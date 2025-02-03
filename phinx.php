@@ -7,18 +7,18 @@ $dotenv->load();
 return [
     'paths' => [
         'migrations' => '%%PHINX_CONFIG_DIR%%/db/migrations',
-        'seeds' => '%%PHINX_CONFIG_DIR%%/db/seeds',
+        'seeds' => '%%PHINX_CONFIG_DIR%%/db/seeds'
     ],
     'environments' => [
         'default_migration_table' => 'phinxlog',
         'default_environment' => 'development',
         'development' => [
             'adapter' => 'pgsql',
-            'host' => $_ENV['DB_HOST'],
-            'name' => $_ENV['DB_NAME'],
-            'user' => $_ENV['DB_USERNAME'],
-            'pass' => $_ENV['DB_PASSWORD'],
-            'port' => $_ENV['DB_PORT'],
+            'host' => 'localhost',
+            'name' => 'health_deals',
+            'user' => 'postgres',
+            'pass' => 'postgres',
+            'port' => '5432',
             'charset' => 'utf8',
         ]
     ],

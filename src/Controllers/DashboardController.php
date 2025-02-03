@@ -2,31 +2,31 @@
 
 namespace App\Controllers;
 
+use App\Models\Store;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
-use App\Models\Store;
 
 class DashboardController
 {
-    private $view;
+  private $view;
 
-    public function __construct($container)
-    {
-        $this->view = $container->get('view');
-    }
+  public function __construct($container)
+  {
+    $this->view = $container->get('view');
+  }
 
-    public function index(Request $request, Response $response): Response
-    {
-        $metrics = [
-            'activeStores' => Store::countActive(),
-            // Prepare for future metrics
-            'activeProducts' => 0, // TODO: Implement when Products model is ready
-            'activeCategories' => 0, // TODO: Implement when Categories model is ready
-            'messagesSentToday' => 0, // TODO: Implement when Outbox model is ready
-        ];
+  public function index(Request $request, Response $response): Response
+  {
+    $metrics = [
+      'activeStores' => Store::countActive(),
+      // Prepare for future metrics
+      'activeProducts' => 0, // TODO: Implement when Products model is ready
+      'activeCategories' => 0, // TODO: Implement when Categories model is ready
+      'messagesSentToday' => 0, // TODO: Implement when Outbox model is ready
+    ];
 
-        return $this->view->render($response, 'dashboard/index.php', [
-            'metrics' => $metrics
-        ]);
-    }
-} 
+    return $this->view->render($response, 'dashboard/index.php', [
+      'metrics' => $metrics
+    ]);
+  }
+}

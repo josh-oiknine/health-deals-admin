@@ -132,6 +132,11 @@ EOL
     cd /var/www/health-deals-admin
     sudo -u vagrant composer install
     
+    # Run database migrations and seeds using PHP to execute phinx
+    cd /var/www/health-deals-admin
+    sudo -u vagrant php vendor/robmorgan/phinx/bin/phinx migrate -e development
+    sudo -u vagrant php vendor/robmorgan/phinx/bin/phinx seed:run -e development
+    
     echo "Installation completed! You can access the site at http://192.168.56.10"
   SHELL
 end 
