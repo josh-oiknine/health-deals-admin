@@ -1,0 +1,33 @@
+# Vagrant
+.vagrant/
+*.log
+
+# Composer
+/vendor/
+composer.phar
+
+# Environment files
+.env
+.env.backup
+
+# IDE files
+.idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs and databases
+*.log
+*.sql
+*.sqlite
+
+# Cache and session files
+/storage/*.key
+/storage/logs/*
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/views/* 
