@@ -2,6 +2,8 @@
 
 namespace App\Controllers;
 
+use App\Models\Category;
+use App\Models\Product;
 use App\Models\Store;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -19,9 +21,8 @@ class DashboardController
   {
     $metrics = [
       'activeStores' => Store::countActive(),
-      // Prepare for future metrics
-      'activeProducts' => 0, // TODO: Implement when Products model is ready
-      'activeCategories' => 0, // TODO: Implement when Categories model is ready
+      'activeProducts' => Product::countActive(),
+      'activeCategories' => Category::countActive(),
       'messagesSentToday' => 0, // TODO: Implement when Outbox model is ready
     ];
 

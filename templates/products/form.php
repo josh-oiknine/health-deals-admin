@@ -109,7 +109,12 @@
                             <label for="category_id" class="form-label">Category</label>
                             <select class="form-select" id="category_id" name="category_id">
                                 <option value="">Select a category</option>
-                                <!-- Add categories here when implemented -->
+                                <?php foreach ($categories as $category): ?>
+                                    <option value="<?= $category->getId() ?>" 
+                                        <?= ($product['category_id'] ?? '') == $category->getId() ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($category->getName()) ?>
+                                    </option>
+                                <?php endforeach; ?>
                             </select>
                         </div>
 

@@ -80,6 +80,7 @@ class Store
       return $stores;
     } catch (PDOException $e) {
       error_log("Database error in Store::findAllActive(): " . $e->getMessage());
+
       return [];
     }
   }

@@ -49,16 +49,19 @@ class Product
     try {
       $db = Database::getInstance()->getConnection();
       $stmt = $db->prepare("
-                SELECT p.*, s.name as store_name 
+                SELECT p.*, s.name as store_name, c.name as category_name 
                 FROM products p 
                 LEFT JOIN stores s ON p.store_id = s.id 
+                LEFT JOIN categories c ON p.category_id = c.id
                 WHERE p.deleted_at IS NULL
                 ORDER BY p.created_at DESC
             ");
       $stmt->execute();
+
       return $stmt->fetchAll();
     } catch (PDOException $e) {
       error_log("Database error in Product::findAll(): " . $e->getMessage());
+
       return [];
     }
   }
@@ -73,9 +76,11 @@ class Product
                 ORDER BY created_at DESC
             ");
       $stmt->execute(['store_id' => $store_id]);
+
       return $stmt->fetchAll();
     } catch (PDOException $e) {
       error_log("Database error in Product::findByStore(): " . $e->getMessage());
+
       return [];
     }
   }
@@ -85,16 +90,19 @@ class Product
     try {
       $db = Database::getInstance()->getConnection();
       $stmt = $db->prepare("
-                SELECT p.*, s.name as store_name 
+                SELECT p.*, s.name as store_name, c.name as category_name 
                 FROM products p 
                 LEFT JOIN stores s ON p.store_id = s.id 
+                LEFT JOIN categories c ON p.category_id = c.id 
                 WHERE p.id = :id AND p.deleted_at IS NULL
             ");
       $stmt->execute(['id' => $id]);
       $result = $stmt->fetch();
+
       return $result ?: null;
     } catch (PDOException $e) {
       error_log("Database error in Product::findById(): " . $e->getMessage());
+
       return null;
     }
   }
@@ -107,6 +115,7 @@ class Product
       // Validate required fields
       if (empty($this->name) || empty($this->slug) || $this->store_id <= 0) {
         error_log("Product validation failed: name, slug, and store_id are required");
+
         return false;
       }
 
@@ -154,15 +163,16 @@ class Product
       $stmt->bindValue(':is_active', $this->is_active, PDO::PARAM_BOOL);
 
       $result = $stmt->execute();
-      
+
       if (!$result) {
         $error = $stmt->errorInfo();
         error_log("Database error in Product::save(): " . json_encode($error));
       }
-      
+
       return $result;
     } catch (PDOException $e) {
       error_log("Database error in Product::save(): " . $e->getMessage());
+
       return false;
     }
   }
@@ -172,9 +182,11 @@ class Product
     try {
       $db = Database::getInstance()->getConnection();
       $stmt = $db->prepare("DELETE FROM products WHERE id = :id");
+
       return $stmt->execute(['id' => $id]);
     } catch (PDOException $e) {
       error_log("Database error in Product::delete(): " . $e->getMessage());
+
       return false;
     }
   }
@@ -187,9 +199,11 @@ class Product
     try {
       $db = Database::getInstance()->getConnection();
       $stmt = $db->prepare("UPDATE products SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?");
+
       return $stmt->execute([$this->id]);
     } catch (PDOException $e) {
       error_log("Database error in Product::softDelete(): " . $e->getMessage());
+
       return false;
     }
   }
@@ -200,9 +214,11 @@ class Product
       $db = Database::getInstance()->getConnection();
       $stmt = $db->prepare("SELECT COUNT(*) FROM products WHERE is_active = true AND deleted_at IS NULL");
       $stmt->execute();
+
       return (int)$stmt->fetchColumn();
     } catch (PDOException $e) {
       error_log("Database error in Product::countActive(): " . $e->getMessage());
+
       return 0;
     }
   }

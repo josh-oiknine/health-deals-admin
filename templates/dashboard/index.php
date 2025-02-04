@@ -1,3 +1,6 @@
+<!-- Add Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
 <div class="container-fluid py-4">
     <div class="row">
         <!-- Metric Cards -->
@@ -14,8 +17,8 @@
                             </div>
                         </div>
                         <div class="col-4 text-end">
-                            <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
-                                <i class="fas fa-store opacity-10"></i>
+                            <div class="icon icon-shape bg-gradient-primary text-center">
+                                <i class="bi bi-shop"></i>
                             </div>
                         </div>
                     </div>
@@ -36,8 +39,8 @@
                             </div>
                         </div>
                         <div class="col-4 text-end">
-                            <div class="icon icon-shape bg-gradient-success shadow text-center border-radius-md">
-                                <i class="fas fa-box opacity-10"></i>
+                            <div class="icon icon-shape bg-gradient-success text-center">
+                                <i class="bi bi-box"></i>
                             </div>
                         </div>
                     </div>
@@ -58,8 +61,8 @@
                             </div>
                         </div>
                         <div class="col-4 text-end">
-                            <div class="icon icon-shape bg-gradient-warning shadow text-center border-radius-md">
-                                <i class="fas fa-tags opacity-10"></i>
+                            <div class="icon icon-shape bg-gradient-warning text-center">
+                                <i class="bi bi-tags"></i>
                             </div>
                         </div>
                     </div>
@@ -80,8 +83,8 @@
                             </div>
                         </div>
                         <div class="col-4 text-end">
-                            <div class="icon icon-shape bg-gradient-info shadow text-center border-radius-md">
-                                <i class="fas fa-envelope opacity-10"></i>
+                            <div class="icon icon-shape bg-gradient-info text-center">
+                                <i class="bi bi-envelope"></i>
                             </div>
                         </div>
                     </div>
@@ -101,7 +104,7 @@
                     <div class="chart" style="height: 300px;">
                         <!-- TODO: Add Chart.js integration for message statistics -->
                         <div class="d-flex align-items-center justify-content-center h-100 text-muted">
-                            <i class="fas fa-chart-line me-2"></i> Message statistics coming soon
+                            <i class="bi bi-graph-up me-2"></i> Message statistics coming soon
                         </div>
                     </div>
                 </div>
@@ -115,7 +118,7 @@
                 <div class="card-body p-3">
                     <!-- TODO: Add latest deals list -->
                     <div class="text-center text-muted py-4">
-                        <i class="fas fa-tags me-2"></i> Latest deals coming soon
+                        <i class="bi bi-tags me-2"></i> Latest deals coming soon
                     </div>
                 </div>
             </div>
@@ -131,12 +134,13 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 0.75rem;
 }
 .bg-gradient-primary { background: linear-gradient(145deg, #4e73df 0%, #224abe 100%); }
 .bg-gradient-success { background: linear-gradient(145deg, #1cc88a 0%, #13855c 100%); }
 .bg-gradient-warning { background: linear-gradient(145deg, #f6c23e 0%, #dda20a 100%); }
 .bg-gradient-info { background: linear-gradient(145deg, #36b9cc 0%, #258391 100%); }
-.icon-shape i { color: white; font-size: 1.25rem; }
-.border-radius-md { border-radius: 0.5rem; }
+.icon-shape i { 
+    color: white; 
+    font-size: 1.25rem; 
+}
 </style> 

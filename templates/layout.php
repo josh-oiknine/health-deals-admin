@@ -25,7 +25,7 @@
                 <button id="sidebarToggle" class="btn btn-dark">
                     <i class="bi bi-list"></i>
                 </button>
-                <a class="navbar-brand ms-3" href="/dashboard">Health Deals Admin</a>
+                <a class="navbar-brand ms-3" href="/dashboard">Your Healthy Deals Admin</a>
             </div>
         </nav>
 

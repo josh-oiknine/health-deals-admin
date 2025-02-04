@@ -16,6 +16,7 @@
                             <th>Store</th>
                             <th>SKU</th>
                             <th>Regular Price</th>
+                            <th>Category</th>
                             <th>URL</th>
                             <th>Status</th>
                             <th>Created</th>
@@ -35,6 +36,15 @@
                                     <td><?= htmlspecialchars($product['store_name'] ?? 'N/A') ?></td>
                                     <td><?= htmlspecialchars($product['sku'] ?? 'N/A') ?></td>
                                     <td>$<?= number_format($product['regular_price'], 2) ?></td>
+                                    <td>
+                                        <?php if (!empty($product['category_name'])): ?>
+                                            <span class="badge bg-info">
+                                                <?= htmlspecialchars($product['category_name']) ?>
+                                            </span>
+                                        <?php else: ?>
+                                            <span class="text-muted">No Category</span>
+                                        <?php endif; ?>
+                                    </td>
                                     <td>
                                         <?php if ($product['url']): ?>
                                             <a href="<?= htmlspecialchars($product['url']) ?>" 

@@ -35,4 +35,4 @@ class StoresSeeder extends AbstractSeed
 
     $this->table('stores')->insert($data)->save();
   }
-} 
+}

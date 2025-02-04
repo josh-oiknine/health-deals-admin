@@ -1,10 +1,11 @@
 <?php
 
-use App\Controllers\AuthController;
-use App\Controllers\DashboardController;
-use App\Controllers\StoresController;
-use App\Controllers\ProductsController;
 use App\Controllers\Api\ProductsController as ApiProductsController;
+use App\Controllers\AuthController;
+use App\Controllers\CategoriesController;
+use App\Controllers\DashboardController;
+use App\Controllers\ProductsController;
+use App\Controllers\StoresController;
 use App\Middleware\AuthMiddleware;
 use Slim\Routing\RouteCollectorProxy;
 
@@ -29,6 +30,13 @@ $app->group('', function (RouteCollectorProxy $group) {
   $group->post('/stores/edit/{id}', [StoresController::class, 'edit']);
   $group->post('/stores/delete/{id}', [StoresController::class, 'delete']);
 
+  // Category routes
+  $group->get('/categories', [CategoriesController::class, 'index'])->setName('categories');
+  $group->get('/categories/add', [CategoriesController::class, 'add']);
+  $group->post('/categories/add', [CategoriesController::class, 'add']);
+  $group->get('/categories/edit/{id}', [CategoriesController::class, 'edit']);
+  $group->post('/categories/edit/{id}', [CategoriesController::class, 'edit']);
+
   // Product routes
   $group->get('/products', [ProductsController::class, 'index'])->setName('products');
   $group->get('/products/add', [ProductsController::class, 'add']);
@@ -41,9 +49,6 @@ $app->group('', function (RouteCollectorProxy $group) {
   $group->get('/api/products/fetch-info', [ApiProductsController::class, 'fetchInfo']);
 
   // Placeholder routes for future implementation
-  $group->get('/categories', function ($request, $response) {
-    return $response->withHeader('Location', '/dashboard');
-  });
   $group->get('/deals', function ($request, $response) {
     return $response->withHeader('Location', '/dashboard');
   });

@@ -7,6 +7,7 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 use App\Controllers\AuthController;
+use App\Controllers\CategoriesController;
 use App\Controllers\DashboardController;
 use App\Controllers\ProductsController;
 use App\Database\Database;
@@ -51,6 +52,9 @@ $containerBuilder->addDefinitions([
   },
   ProductsController::class => function (Container $container) {
     return new ProductsController($container);
+  },
+  CategoriesController::class => function (Container $container) {
+    return new CategoriesController($container);
   }
 ]);
 
