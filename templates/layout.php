@@ -33,37 +33,37 @@
       <div class="position-sticky">
         <ul class="nav flex-column">
           <li class="nav-item">
-            <a class="nav-link <?= $_SERVER['REQUEST_URI'] === '/dashboard' ? 'active' : '' ?>" href="/dashboard">
+            <a class="nav-link <?= $_SERVER['REQUEST_URI'] === '/dashboard' ? 'active' : '' ?>" href="/dashboard" data-bs-toggle="tooltip" data-bs-placement="right" title="Dashboard">
               <i class="bi bi-speedometer2 me-2"></i>
               <span>Dashboard</span>
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link <?= $_SERVER['REQUEST_URI'] === '/products' ? 'active' : '' ?>" href="/products">
+            <a class="nav-link <?= $_SERVER['REQUEST_URI'] === '/products' ? 'active' : '' ?>" href="/products" data-bs-toggle="tooltip" data-bs-placement="right" title="Products">
               <i class="bi bi-box me-2"></i>
               <span>Products</span>
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link <?= $_SERVER['REQUEST_URI'] === '/deals' ? 'active' : '' ?>" href="/deals">
+            <a class="nav-link <?= $_SERVER['REQUEST_URI'] === '/deals' ? 'active' : '' ?>" href="/deals" data-bs-toggle="tooltip" data-bs-placement="right" title="Deals">
               <i class="bi bi-percent me-2"></i>
               <span>Deals</span>
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link <?= $_SERVER['REQUEST_URI'] === '/outbox' ? 'active' : '' ?>" href="/outbox">
+            <a class="nav-link <?= $_SERVER['REQUEST_URI'] === '/outbox' ? 'active' : '' ?>" href="/outbox" data-bs-toggle="tooltip" data-bs-placement="right" title="Outbox">
               <i class="bi bi-envelope me-2"></i>
               <span>Outbox</span>
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link <?= $_SERVER['REQUEST_URI'] === '/stores' ? 'active' : '' ?>" href="/stores">
+            <a class="nav-link <?= $_SERVER['REQUEST_URI'] === '/stores' ? 'active' : '' ?>" href="/stores" data-bs-toggle="tooltip" data-bs-placement="right" title="Stores">
               <i class="bi bi-shop me-2"></i>
               <span>Stores</span>
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link <?= $_SERVER['REQUEST_URI'] === '/categories' ? 'active' : '' ?>" href="/categories">
+            <a class="nav-link <?= $_SERVER['REQUEST_URI'] === '/categories' ? 'active' : '' ?>" href="/categories" data-bs-toggle="tooltip" data-bs-placement="right" title="Categories">
               <i class="bi bi-tags me-2"></i>
               <span>Categories</span>
             </a>
@@ -71,7 +71,7 @@
           <div class="divider"></div>
           <li class="nav-item">
             <form action="/logout" method="POST" class="nav-link">
-              <button type="submit" class="btn btn-link text-decoration-none p-0">
+              <button type="submit" class="btn btn-link text-decoration-none p-0" data-bs-toggle="tooltip" data-bs-placement="right" title="Logout">
                 <i class="bi bi-box-arrow-right me-2"></i>
                 <span>Logout</span>
               </button>

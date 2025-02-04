@@ -14,6 +14,21 @@ function setCookie(name, value, days) {
     document.cookie = `${name}=${value};${expires};path=/`;
 }
 
+// Function to handle responsive sidebar behavior
+function handleResponsiveSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const content = document.getElementById('content');
+    if (!sidebar || !content) return;
+
+    const isMobileView = window.innerWidth < 768; // Common breakpoint for mobile devices
+    
+    if (isMobileView) {
+        sidebar.classList.add('sidebar-collapsed');
+        content.classList.add('content-expanded');
+        setCookie('sidebar_collapsed', true, 30);
+    }
+}
+
 // Initialize sidebar functionality
 function initSidebar() {
     // Initialize sidebar state from cookie
@@ -23,11 +38,34 @@ function initSidebar() {
 
     if (!sidebar || !content || !sidebarToggle) return;
 
-    // Set initial state from cookie
-    const isCollapsed = getCookie('sidebar_collapsed') === 'true';
-    if (isCollapsed) {
-        sidebar.classList.add('sidebar-collapsed');
-        content.classList.add('content-expanded');
+    // Handle responsive behavior first
+    handleResponsiveSidebar();
+
+    // Function to manage tooltips based on sidebar state
+    function manageTooltips(isCollapsed) {
+        const tooltipTriggers = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        tooltipTriggers.forEach(el => {
+            const tooltip = bootstrap.Tooltip.getInstance(el);
+            if (tooltip) {
+                tooltip.dispose();
+            }
+            if (isCollapsed) {
+                new bootstrap.Tooltip(el, {
+                    trigger: 'hover',
+                    container: 'body'
+                });
+            }
+        });
+    }
+
+    // Set initial state from cookie (only for non-mobile screens)
+    if (window.innerWidth >= 768) {
+        const isCollapsed = getCookie('sidebar_collapsed') === 'true';
+        if (isCollapsed) {
+            sidebar.classList.add('sidebar-collapsed');
+            content.classList.add('content-expanded');
+            manageTooltips(true);
+        }
     }
 
     // Toggle sidebar and save state to cookie
@@ -38,10 +76,16 @@ function initSidebar() {
         // Save state to cookie (expires in 30 days)
         const isCollapsed = sidebar.classList.contains('sidebar-collapsed');
         setCookie('sidebar_collapsed', isCollapsed, 30);
+        
+        // Manage tooltips based on new state
+        manageTooltips(isCollapsed);
     });
 }
 
 // Initialize all functionality when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     initSidebar();
+    
+    // Add resize event listener
+    window.addEventListener('resize', handleResponsiveSidebar);
 }); 

@@ -169,3 +169,17 @@
   text-align: center;
   margin-right: 0.5rem;
 }
+
+/* Custom tooltip styles */
+.tooltip {
+  font-size: 0.875rem;
+}
+
+.tooltip .tooltip-inner {
+  background-color: #212529;
+  padding: 0.5rem 0.75rem;
+}
+
+.tooltip.bs-tooltip-end .tooltip-arrow::before {
+  border-right-color: #212529;
+}
