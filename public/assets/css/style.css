@@ -1,126 +1,171 @@
+/* Remove all rounded corners */
+.icon-shape,
+.card,
+.card-body,
+.card-header,
+.btn,
+.alert,
+.badge,
+.nav-pills .nav-link,
+.pagination .page-link,
+.input-group-text,
+.form-control,
+.modal-content,
+.dropdown-menu,
+.list-group-item,
+.navbar,
+.sidebar,
+.login-card {
+  border-radius: 0 !important;
+}
+
+/* Icon shape styles */
+.icon-shape {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s;
+}
+.icon-shape:hover {
+  opacity: 0.8;
+}
+
+/* Background colors */
+.bg-primary { background-color: #4e73df; }
+.bg-success { background-color: #1cc88a; }
+.bg-warning { background-color: #f6c23e; }
+.bg-info { background-color: #36b9cc; }
+
+/* Icon styles */
+.icon-shape i { 
+  color: white; 
+  font-size: 1.25rem; 
+}
+
 /* Login page specific styles */
 .login-container {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #f8f9fa;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8f9fa;
 }
 
 .login-card {
-    width: 400px;
-    border-radius: 10px;
+  width: 400px;
 }
 
 .login-card .card-body {
-    padding: 2.5rem;
+  padding: 2.5rem;
 }
 
 .login-title {
-    color: #333;
-    font-weight: 600;
-    margin-bottom: 1.5rem;
+  color: #333;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
 }
 
 /* Form styles */
 .form-control:focus {
-    border-color: #80bdff;
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
 }
 
 /* Button styles */
 .btn-primary {
-    background-color: #0d6efd;
-    border-color: #0d6efd;
-    padding: 0.5rem 1.5rem;
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+  padding: 0.5rem 1.5rem;
 }
 
 .btn-primary:hover {
-    background-color: #0b5ed7;
-    border-color: #0a58ca;
+  background-color: #0b5ed7;
+  border-color: #0a58ca;
 }
 
 /* Dashboard layout styles */
 .sidebar {
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    z-index: 100;
-    padding: 48px 0 0;
-    width: 250px;
-    transition: all 0.3s;
-    background-color: #212529;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 100;
+  padding: 48px 0 0;
+  width: 250px;
+  transition: all 0.3s;
+  background-color: #212529;
 }
 
 .sidebar-collapsed {
-    width: 60px;
+  width: 60px;
 }
 
 .sidebar-collapsed .nav-link span {
-    display: none;
+  display: none;
 }
 
 .sidebar-collapsed .nav-link {
-    text-align: center;
-    padding: 0.5rem;
+  text-align: center;
+  padding: 0.5rem;
 }
 
 .sidebar-collapsed .nav-link i {
-    margin-right: 0;
+  margin-right: 0;
 }
 
 .sidebar-collapsed .divider {
-    margin: 0.5rem 0.5rem;
+  margin: 0.5rem 0.5rem;
 }
 
 #content {
-    margin-left: 250px;
-    transition: all 0.3s;
+  margin-left: 250px;
+  transition: all 0.3s;
 }
 
 #content.content-expanded {
-    margin-left: 60px;
+  margin-left: 60px;
 }
 
 .sidebar-heading {
-    font-size: .75rem;
-    text-transform: uppercase;
-    color: #adb5bd;
+  font-size: .75rem;
+  text-transform: uppercase;
+  color: #adb5bd;
 }
 
 .nav-link {
-    color: #e9ecef;
-    padding: 0.5rem 1rem;
-    transition: all 0.2s;
+  color: #e9ecef;
+  padding: 0.5rem 1rem;
+  transition: all 0.2s;
 }
 
 .nav-link:hover {
-    color: #fff;
-    background-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 .nav-link.active {
-    color: #fff;
-    background-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  background-color: rgba(255, 255, 255, 0.2);
 }
 
 .nav-link button {
-    color: #e9ecef;
+  color: #e9ecef;
 }
 
 .nav-link button:hover {
-    color: #fff;
+  color: #fff;
 }
 
 .divider {
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    margin: 0.5rem 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin: 0.5rem 1rem;
 }
 
 .nav-link i {
-    font-size: 1.2rem;
-    width: 1.5rem;
-    text-align: center;
-    margin-right: 0.5rem;
+  font-size: 1.2rem;
+  width: 1.5rem;
+  text-align: center;
+  margin-right: 0.5rem;
 }

@@ -17,7 +17,6 @@
                             <th>SKU</th>
                             <th>Regular Price</th>
                             <th>Category</th>
-                            <th>URL</th>
                             <th>Status</th>
                             <th>Created</th>
                             <th>Updated</th>
@@ -32,7 +31,15 @@
                         <?php else: ?>
                             <?php foreach ($products as $product): ?>
                                 <tr>
-                                    <td><?= htmlspecialchars($product['name']) ?></td>
+                                    <td>
+                                      <a href="<?= htmlspecialchars($product['url']) ?>" 
+                                        target="_blank"
+                                        class="text-decoration-none"
+                                      >
+                                        <?= htmlspecialchars($product['name']) ?>
+                                        <small><i class="bi bi-box-arrow-up-right ms-1"></i></small>
+                                      </a>
+                                    </td>
                                     <td><?= htmlspecialchars($product['store_name'] ?? 'N/A') ?></td>
                                     <td><?= htmlspecialchars($product['sku'] ?? 'N/A') ?></td>
                                     <td>$<?= number_format($product['regular_price'], 2) ?></td>
@@ -43,18 +50,6 @@
                                             </span>
                                         <?php else: ?>
                                             <span class="text-muted">No Category</span>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td>
-                                        <?php if ($product['url']): ?>
-                                            <a href="<?= htmlspecialchars($product['url']) ?>" 
-                                               target="_blank"
-                                               class="text-decoration-none">
-                                                View Product
-                                                <i class="bi bi-box-arrow-up-right ms-1"></i>
-                                            </a>
-                                        <?php else: ?>
-                                            <span class="text-muted">No URL</span>
                                         <?php endif; ?>
                                     </td>
                                     <td>

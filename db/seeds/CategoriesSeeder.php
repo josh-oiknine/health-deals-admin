@@ -1,10 +1,8 @@
 <?php
 
-declare(strict_types=1);
+use Phinx\Seed\AbstractSeed;
 
-use Phinx\Seeder\AbstractSeeder;
-
-class CategoriesSeeder extends AbstractSeeder
+class CategoriesSeeder extends AbstractSeed
 {
   public function run(): void
   {
