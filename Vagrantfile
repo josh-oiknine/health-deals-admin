@@ -17,7 +17,7 @@ Vagrant.configure("2") do |config|
   # Network settings
   config.vm.network "private_network", ip: "192.168.56.10"
   config.vm.network "forwarded_port", guest: 80, host: 8080
-  # config.vm.network "forwarded_port", guest: 5432, host: 5433
+  config.vm.network "forwarded_port", guest: 5432, host: 5433
   
   # Sync folder using basic settings first
   config.vm.synced_folder ".", "/var/www/health-deals-admin",
@@ -134,8 +134,8 @@ EOL
     
     # Run database migrations and seeds using PHP to execute phinx
     cd /var/www/health-deals-admin
-    sudo -u vagrant php vendor/robmorgan/phinx/bin/phinx migrate -e development
-    sudo -u vagrant php vendor/robmorgan/phinx/bin/phinx seed:run -e development
+    sudo -u vagrant php vendor/bin/phinx migrate -e development
+    sudo -u vagrant php vendor/bin/phinx seed:run -e development
     
     echo "Installation completed! You can access the site at http://192.168.56.10"
   SHELL
