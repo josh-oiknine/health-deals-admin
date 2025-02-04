@@ -10,19 +10,19 @@ use PDOException;
 
 class Product
 {
-  private $id = null;
-  private $store_id;
-  private $name;
-  private $description;
-  private $price;
-  private $sale_price;
-  private $image_url;
-  private $product_url;
-  private $is_active;
-  private $created_at;
-  private $updated_at;
-  private $deleted_at;
-  private $store = null;
+  private ?int $id = null;
+  private int $store_id;
+  private string $name;
+  private string $slug;
+  private string $url;
+  private ?int $category_id;
+  private float $regular_price;
+  private ?string $sku;
+  private bool $is_active;
+  private ?string $created_at = null;
+  private ?string $updated_at = null;
+  private ?string $deleted_at = null;
+  private ?Store $store = null;
 
   public function __construct(
     string $name = '',
@@ -104,6 +104,12 @@ class Product
     try {
       $db = Database::getInstance()->getConnection();
 
+      // Validate required fields
+      if (empty($this->name) || empty($this->slug) || $this->store_id <= 0) {
+        error_log("Product validation failed: name, slug, and store_id are required");
+        return false;
+      }
+
       if ($this->id === null) {
         $stmt = $db->prepare("
                     INSERT INTO products (name, slug, url, category_id, store_id, regular_price, sku, is_active)
@@ -126,6 +132,18 @@ class Product
         $stmt->bindValue(':id', $this->id);
       }
 
+      // Log the values being saved for debugging
+      error_log("Saving product with values: " . json_encode([
+        'name' => $this->name,
+        'slug' => $this->slug,
+        'url' => $this->url,
+        'category_id' => $this->category_id,
+        'store_id' => $this->store_id,
+        'regular_price' => $this->regular_price,
+        'sku' => $this->sku,
+        'is_active' => $this->is_active
+      ]));
+
       $stmt->bindValue(':name', $this->name);
       $stmt->bindValue(':slug', $this->slug);
       $stmt->bindValue(':url', $this->url);
@@ -135,7 +153,14 @@ class Product
       $stmt->bindValue(':sku', $this->sku);
       $stmt->bindValue(':is_active', $this->is_active, PDO::PARAM_BOOL);
 
-      return $stmt->execute();
+      $result = $stmt->execute();
+      
+      if (!$result) {
+        $error = $stmt->errorInfo();
+        error_log("Database error in Product::save(): " . json_encode($error));
+      }
+      
+      return $result;
     } catch (PDOException $e) {
       error_log("Database error in Product::save(): " . $e->getMessage());
       return false;
