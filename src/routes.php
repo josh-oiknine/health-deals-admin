@@ -4,6 +4,7 @@ use App\Controllers\AuthController;
 use App\Controllers\DashboardController;
 use App\Controllers\StoresController;
 use App\Controllers\ProductsController;
+use App\Controllers\Api\ProductsController as ApiProductsController;
 use App\Middleware\AuthMiddleware;
 use Slim\Routing\RouteCollectorProxy;
 
@@ -35,6 +36,9 @@ $app->group('', function (RouteCollectorProxy $group) {
   $group->get('/products/edit/{id}', [ProductsController::class, 'edit']);
   $group->post('/products/edit/{id}', [ProductsController::class, 'edit']);
   $group->post('/products/delete/{id}', [ProductsController::class, 'delete']);
+
+  // API routes
+  $group->get('/api/products/fetch-info', [ApiProductsController::class, 'fetchInfo']);
 
   // Placeholder routes for future implementation
   $group->get('/categories', function ($request, $response) {

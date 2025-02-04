@@ -1,4 +1,14 @@
 <div class="container-fluid">
+    <!-- Toast container for notifications -->
+    <div class="toast-container position-fixed top-0 end-0 p-3">
+        <div id="notificationToast" class="toast align-items-center text-white border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body"></div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
     <div class="row">
         <div class="col-md-8 offset-md-2">
             <div class="card">
@@ -18,7 +28,8 @@
                                        placeholder="https://example.com/product"
                                        required>
                                 <button class="btn btn-outline-secondary" type="button" id="fetchProductInfo">
-                                    <i class="bi bi-arrow-clockwise"></i> Fetch Info
+                                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                    <i class="bi bi-arrow-clockwise"></i> <span class="button-text">Fetch Info</span>
                                 </button>
                             </div>
                             <div class="form-text">Enter the product URL and click Fetch Info to auto-populate fields</div>
@@ -130,44 +141,81 @@
 <script>
 // Form validation
 (function () {
-    'use strict'
-    var forms = document.querySelectorAll('.needs-validation')
-    Array.prototype.slice.call(forms)
-        .forEach(function (form) {
-            form.addEventListener('submit', function (event) {
-                if (!form.checkValidity()) {
-                    event.preventDefault()
-                    event.stopPropagation()
-                }
-                form.classList.add('was-validated')
-            }, false)
-        })
+  'use strict'
+  var forms = document.querySelectorAll('.needs-validation')
+  Array.prototype.slice.call(forms)
+    .forEach(function (form) {
+      form.addEventListener('submit', function (event) {
+        if (!form.checkValidity()) {
+          event.preventDefault()
+          event.stopPropagation()
+        }
+        form.classList.add('was-validated')
+      }, false)
+    })
 })()
 
 // Function to create slug from text
 function createSlug(text, maxLength = 100) {
-    let slug = text
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '_')
-        .replace(/^_|_$/g, '');
-    
-    // If slug is longer than maxLength, trim it at the last underscore before maxLength
-    if (slug.length > maxLength) {
-        slug = slug.substr(0, maxLength);
-        // Find the last underscore in the truncated string
-        const lastUnderscore = slug.lastIndexOf('_');
-        if (lastUnderscore !== -1) {
-            slug = slug.substr(0, lastUnderscore);
-        }
+  let slug = text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_|_$/g, '');
+  
+  // If slug is longer than maxLength, trim it at the last underscore before maxLength
+  if (slug.length > maxLength) {
+    slug = slug.substr(0, maxLength);
+    // Find the last underscore in the truncated string
+    const lastUnderscore = slug.lastIndexOf('_');
+    if (lastUnderscore !== -1) {
+      slug = slug.substr(0, lastUnderscore);
     }
-    
-    return slug;
+  }
+  
+  return slug;
 }
 
 // Auto-generate slug from name
 document.getElementById('name').addEventListener('input', function(e) {
-    document.getElementById('slug').value = createSlug(e.target.value);
+  document.getElementById('slug').value = createSlug(e.target.value);
 });
+
+// Function to show toast notification
+function showNotification(message, type = 'success') {
+  const toast = document.getElementById('notificationToast');
+  const toastBody = toast.querySelector('.toast-body');
+  
+  // Set toast color based on type
+  toast.className = 'toast align-items-center text-white border-0';
+  toast.classList.add(`bg-${type}`);
+  
+  // Set message
+  toastBody.textContent = message;
+  
+  // Show toast using Bootstrap's Toast API
+  const bsToast = new bootstrap.Toast(toast);
+  bsToast.show();
+}
+
+// Function to toggle loading state of fetch button
+function toggleFetchButtonLoading(isLoading) {
+  const button = document.getElementById('fetchProductInfo');
+  const spinner = button.querySelector('.spinner-border');
+  const icon = button.querySelector('.bi-arrow-clockwise');
+  const text = button.querySelector('.button-text');
+  
+  button.disabled = isLoading;
+  
+  if (isLoading) {
+    spinner.classList.remove('d-none');
+    icon.classList.add('d-none');
+    text.textContent = 'Fetching...';
+  } else {
+    spinner.classList.add('d-none');
+    icon.classList.remove('d-none');
+    text.textContent = 'Fetch Info';
+  }
+}
 
 // Handle URL parsing and product info fetching
 document.getElementById('fetchProductInfo').addEventListener('click', async function() {
@@ -175,7 +223,7 @@ document.getElementById('fetchProductInfo').addEventListener('click', async func
     const url = urlInput.value;
     
     if (!url) {
-        alert('Please enter a product URL');
+        showNotification('Please enter a product URL', 'danger');
         return;
     }
 
@@ -187,11 +235,14 @@ document.getElementById('fetchProductInfo').addEventListener('click', async func
             if (asinMatch) {
                 const asin = asinMatch[1];
                 
+                // Show loading state
+                toggleFetchButtonLoading(true);
+                
                 // Make API call to your backend endpoint
                 const response = await fetch(`/api/products/fetch-info?url=${encodeURIComponent(url)}`);
-                const data = await response.json();
+                const responseData = await response.json();
                 
-                if (data.success) {
+                if (responseData.success) {
                     // Auto-select Amazon store
                     const storeSelect = document.getElementById('store_id');
                     Array.from(storeSelect.options).forEach(option => {
@@ -199,22 +250,30 @@ document.getElementById('fetchProductInfo').addEventListener('click', async func
                             option.selected = true;
                         }
                     });
-                    
+
                     // Populate other fields
+                    const data = responseData.data;
                     document.getElementById('name').value = data.name;
                     document.getElementById('slug').value = createSlug(data.name);
                     document.getElementById('sku').value = asin;
                     document.getElementById('regular_price').value = data.price;
+                    
+                    showNotification('Product information fetched successfully', 'success');
                 } else {
-                    alert('Failed to fetch product information. Please fill in the details manually.');
+                    showNotification(responseData.error || 'Failed to fetch product information', 'danger');
                 }
+            } else {
+                showNotification('Invalid Amazon product URL. Please make sure it contains a valid product ID.', 'danger');
             }
         } else {
-            alert('Currently only Amazon URLs are supported for auto-fetching information.');
+            showNotification('Currently only Amazon URLs are supported for auto-fetching information.', 'warning');
         }
     } catch (error) {
         console.error('Error fetching product information:', error);
-        alert('An error occurred while fetching product information. Please try again or fill in the details manually.');
+        showNotification('An error occurred while fetching product information', 'danger');
+    } finally {
+        // Always hide loading state when done
+        toggleFetchButtonLoading(false);
     }
 });
 </script> 

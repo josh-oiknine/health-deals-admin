@@ -1,0 +1,37 @@
+<?php
+
+namespace App\Controllers\Api;
+
+use App\Services\ProductScraperService;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+
+class ProductsController
+{
+    private ProductScraperService $scraperService;
+
+    public function __construct(ProductScraperService $scraperService)
+    {
+        $this->scraperService = $scraperService;
+    }
+
+    public function fetchInfo(Request $request, Response $response): Response
+    {
+        $params = $request->getQueryParams();
+        $url = $params['url'] ?? '';
+
+        if (empty($url)) {
+            $response->getBody()->write(json_encode([
+                'success' => false,
+                'error' => 'URL parameter is required'
+            ]));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+        }
+
+        $result = $this->scraperService->scrapeAmazonProduct($url);
+        
+        $response->getBody()->write(json_encode($result));
+        return $response->withHeader('Content-Type', 'application/json')
+            ->withStatus($result['success'] ? 200 : 400);
+    }
+} 
