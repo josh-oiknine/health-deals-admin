@@ -3,6 +3,7 @@
 use App\Controllers\AuthController;
 use App\Controllers\DashboardController;
 use App\Controllers\StoresController;
+use App\Controllers\ProductsController;
 use App\Middleware\AuthMiddleware;
 use Slim\Routing\RouteCollectorProxy;
 
@@ -27,10 +28,15 @@ $app->group('', function (RouteCollectorProxy $group) {
   $group->post('/stores/edit/{id}', [StoresController::class, 'edit']);
   $group->post('/stores/delete/{id}', [StoresController::class, 'delete']);
 
+  // Product routes
+  $group->get('/products', [ProductsController::class, 'index'])->setName('products');
+  $group->get('/products/add', [ProductsController::class, 'add']);
+  $group->post('/products/add', [ProductsController::class, 'add']);
+  $group->get('/products/edit/{id}', [ProductsController::class, 'edit']);
+  $group->post('/products/edit/{id}', [ProductsController::class, 'edit']);
+  $group->post('/products/delete/{id}', [ProductsController::class, 'delete']);
+
   // Placeholder routes for future implementation
-  $group->get('/products', function ($request, $response) {
-    return $response->withHeader('Location', '/dashboard');
-  });
   $group->get('/categories', function ($request, $response) {
     return $response->withHeader('Location', '/dashboard');
   });

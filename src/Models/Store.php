@@ -57,6 +57,33 @@ class Store
     }
   }
 
+  public static function findAllActive(): array
+  {
+    try {
+      $db = Database::getInstance()->getConnection();
+      $stmt = $db->prepare("
+        SELECT * FROM stores 
+        WHERE deleted_at IS NULL 
+        AND is_active = true 
+        ORDER BY name
+      ");
+      $stmt->execute();
+      $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+      $stores = [];
+      foreach ($rows as $row) {
+        $store = new self();
+        $store->initFromArray($row);
+        $stores[] = $store;
+      }
+
+      return $stores;
+    } catch (PDOException $e) {
+      error_log("Database error in Store::findAllActive(): " . $e->getMessage());
+      return [];
+    }
+  }
+
   public static function findById(int $id): ?self
   {
     try {

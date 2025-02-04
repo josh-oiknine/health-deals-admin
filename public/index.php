@@ -8,6 +8,7 @@ ini_set('display_errors', 1);
 
 use App\Controllers\AuthController;
 use App\Controllers\DashboardController;
+use App\Controllers\ProductsController;
 use App\Database\Database;
 use DI\Container;
 use DI\ContainerBuilder;
@@ -47,6 +48,9 @@ $containerBuilder->addDefinitions([
   },
   App\Controllers\StoresController::class => function (Container $container) {
     return new App\Controllers\StoresController($container);
+  },
+  ProductsController::class => function (Container $container) {
+    return new ProductsController($container);
   }
 ]);
 

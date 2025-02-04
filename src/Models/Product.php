@@ -46,90 +46,112 @@ class Product
 
   public static function findAll(): array
   {
-    $db = Database::getInstance();
-    $stmt = $db->query("
-            SELECT p.*, s.name as store_name 
-            FROM products p 
-            LEFT JOIN stores s ON p.store_id = s.id 
-            WHERE s.deleted_at IS NULL
-            ORDER BY p.created_at DESC
-        ");
-
-    return $stmt->fetchAll();
+    try {
+      $db = Database::getInstance()->getConnection();
+      $stmt = $db->prepare("
+                SELECT p.*, s.name as store_name 
+                FROM products p 
+                LEFT JOIN stores s ON p.store_id = s.id 
+                WHERE p.deleted_at IS NULL
+                ORDER BY p.created_at DESC
+            ");
+      $stmt->execute();
+      return $stmt->fetchAll();
+    } catch (PDOException $e) {
+      error_log("Database error in Product::findAll(): " . $e->getMessage());
+      return [];
+    }
   }
 
   public static function findByStore(int $store_id): array
   {
-    $db = Database::getInstance();
-    $stmt = $db->prepare("
-            SELECT * FROM products 
-            WHERE store_id = :store_id 
-            ORDER BY created_at DESC
-        ");
-    $stmt->execute(['store_id' => $store_id]);
-
-    return $stmt->fetchAll();
+    try {
+      $db = Database::getInstance()->getConnection();
+      $stmt = $db->prepare("
+                SELECT * FROM products 
+                WHERE store_id = :store_id AND deleted_at IS NULL
+                ORDER BY created_at DESC
+            ");
+      $stmt->execute(['store_id' => $store_id]);
+      return $stmt->fetchAll();
+    } catch (PDOException $e) {
+      error_log("Database error in Product::findByStore(): " . $e->getMessage());
+      return [];
+    }
   }
 
   public static function findById(int $id): ?array
   {
-    $db = Database::getInstance();
-    $stmt = $db->prepare("
-            SELECT p.*, s.name as store_name 
-            FROM products p 
-            LEFT JOIN stores s ON p.store_id = s.id 
-            WHERE p.id = :id AND s.deleted_at IS NULL
-        ");
-    $stmt->execute(['id' => $id]);
-    $result = $stmt->fetch();
-
-    return $result ?: null;
+    try {
+      $db = Database::getInstance()->getConnection();
+      $stmt = $db->prepare("
+                SELECT p.*, s.name as store_name 
+                FROM products p 
+                LEFT JOIN stores s ON p.store_id = s.id 
+                WHERE p.id = :id AND p.deleted_at IS NULL
+            ");
+      $stmt->execute(['id' => $id]);
+      $result = $stmt->fetch();
+      return $result ?: null;
+    } catch (PDOException $e) {
+      error_log("Database error in Product::findById(): " . $e->getMessage());
+      return null;
+    }
   }
 
   public function save(): bool
   {
-    $db = Database::getInstance();
+    try {
+      $db = Database::getInstance()->getConnection();
 
-    if ($this->id === null) {
-      $stmt = $db->prepare("
-                INSERT INTO products (name, slug, url, category_id, store_id, regular_price, sku, is_active)
-                VALUES (:name, :slug, :url, :category_id, :store_id, :regular_price, :sku, :is_active)
-            ");
-    } else {
-      $stmt = $db->prepare("
-                UPDATE products 
-                SET name = :name, 
-                    slug = :slug,
-                    url = :url,
-                    category_id = :category_id,
-                    store_id = :store_id,
-                    regular_price = :regular_price,
-                    sku = :sku,
-                    is_active = :is_active,
-                    updated_at = CURRENT_TIMESTAMP
-                WHERE id = :id
-            ");
-      $stmt->bindValue(':id', $this->id);
+      if ($this->id === null) {
+        $stmt = $db->prepare("
+                    INSERT INTO products (name, slug, url, category_id, store_id, regular_price, sku, is_active)
+                    VALUES (:name, :slug, :url, :category_id, :store_id, :regular_price, :sku, :is_active)
+                ");
+      } else {
+        $stmt = $db->prepare("
+                    UPDATE products 
+                    SET name = :name, 
+                        slug = :slug,
+                        url = :url,
+                        category_id = :category_id,
+                        store_id = :store_id,
+                        regular_price = :regular_price,
+                        sku = :sku,
+                        is_active = :is_active,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = :id
+                ");
+        $stmt->bindValue(':id', $this->id);
+      }
+
+      $stmt->bindValue(':name', $this->name);
+      $stmt->bindValue(':slug', $this->slug);
+      $stmt->bindValue(':url', $this->url);
+      $stmt->bindValue(':category_id', $this->category_id);
+      $stmt->bindValue(':store_id', $this->store_id);
+      $stmt->bindValue(':regular_price', $this->regular_price);
+      $stmt->bindValue(':sku', $this->sku);
+      $stmt->bindValue(':is_active', $this->is_active, PDO::PARAM_BOOL);
+
+      return $stmt->execute();
+    } catch (PDOException $e) {
+      error_log("Database error in Product::save(): " . $e->getMessage());
+      return false;
     }
-
-    $stmt->bindValue(':name', $this->name);
-    $stmt->bindValue(':slug', $this->slug);
-    $stmt->bindValue(':url', $this->url);
-    $stmt->bindValue(':category_id', $this->category_id);
-    $stmt->bindValue(':store_id', $this->store_id);
-    $stmt->bindValue(':regular_price', $this->regular_price);
-    $stmt->bindValue(':sku', $this->sku);
-    $stmt->bindValue(':is_active', $this->is_active, PDO::PARAM_BOOL);
-
-    return $stmt->execute();
   }
 
   public static function delete(int $id): bool
   {
-    $db = Database::getInstance();
-    $stmt = $db->prepare("DELETE FROM products WHERE id = :id");
-
-    return $stmt->execute(['id' => $id]);
+    try {
+      $db = Database::getInstance()->getConnection();
+      $stmt = $db->prepare("DELETE FROM products WHERE id = :id");
+      return $stmt->execute(['id' => $id]);
+    } catch (PDOException $e) {
+      error_log("Database error in Product::delete(): " . $e->getMessage());
+      return false;
+    }
   }
 
   public function softDelete(): bool
@@ -140,11 +162,9 @@ class Product
     try {
       $db = Database::getInstance()->getConnection();
       $stmt = $db->prepare("UPDATE products SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?");
-
       return $stmt->execute([$this->id]);
     } catch (PDOException $e) {
       error_log("Database error in Product::softDelete(): " . $e->getMessage());
-
       return false;
     }
   }
@@ -155,11 +175,9 @@ class Product
       $db = Database::getInstance()->getConnection();
       $stmt = $db->prepare("SELECT COUNT(*) FROM products WHERE is_active = true AND deleted_at IS NULL");
       $stmt->execute();
-
       return (int)$stmt->fetchColumn();
     } catch (PDOException $e) {
       error_log("Database error in Product::countActive(): " . $e->getMessage());
-
       return 0;
     }
   }
