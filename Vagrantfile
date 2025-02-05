@@ -16,8 +16,9 @@ Vagrant.configure("2") do |config|
   
   # Network settings
   config.vm.network "private_network", ip: "192.168.56.10"
-  config.vm.network "forwarded_port", guest: 80, host: 8080
-  config.vm.network "forwarded_port", guest: 5432, host: 5433
+  config.vm.network "forwarded_port", guest: 80, host: 8080 # NGINX
+  config.vm.network "forwarded_port", guest: 5432, host: 5433 # PostgreSQL
+  config.vm.network "forwarded_port", guest: 6379, host: 6379 # Redis
   
   # Sync folder using basic settings first
   config.vm.synced_folder ".", "/var/www/health-deals-admin",
@@ -54,7 +55,7 @@ Vagrant.configure("2") do |config|
     
     # Install PostgreSQL
     apt-get install -y postgresql postgresql-contrib
-    
+  
     # Configure PostgreSQL
     sudo -u postgres psql -c "CREATE USER postgres WITH PASSWORD 'postgres';"
     sudo -u postgres psql -c "ALTER USER postgres WITH SUPERUSER;"
@@ -64,6 +65,16 @@ Vagrant.configure("2") do |config|
     sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/" /etc/postgresql/14/main/postgresql.conf
     echo "host all all 0.0.0.0/0 md5" >> /etc/postgresql/14/main/pg_hba.conf
     systemctl restart postgresql
+    
+    # Install Redis
+    apt-get install -y redis-server
+    
+    # Configure Redis to accept remote connections
+    sed -i "s/bind 127.0.0.1/bind 0.0.0.0/" /etc/redis/redis.conf
+    sed -i "s/protected-mode yes/protected-mode no/" /etc/redis/redis.conf
+    
+    # Restart Redis to apply changes
+    systemctl restart redis-server
     
     # Install Composer 2
     curl -sS https://getcomposer.org/installer | php
