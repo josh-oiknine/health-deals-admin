@@ -98,7 +98,7 @@
 
   <!-- Charts Row -->
   <div class="row mt-4">
-    <div class="col-lg-7 mb-4">
+    <div class="col-lg-6 mb-4">
       <div class="card">
         <div class="card-header pb-0">
           <h6>Messages Sent (Last 24 Hours)</h6>
@@ -113,16 +113,61 @@
         </div>
       </div>
     </div>
-    <div class="col-lg-5 mb-4">
+    <div class="col-lg-6 mb-4">
       <div class="card">
         <div class="card-header pb-0">
           <h6>Latest Deals</h6>
         </div>
         <div class="card-body p-3">
-          <!-- TODO: Add latest deals list -->
-          <div class="text-center text-muted py-4">
-            <i class="bi bi-tags me-2"></i> Latest deals coming soon
-          </div>
+          <?php if (empty($latestDeals)): ?>
+            <div class="text-center text-muted py-4">
+              <i class="bi bi-tags me-2"></i> No deals found
+            </div>
+          <?php else: ?>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Product</th>
+                    <th class="text-end">Original</th>
+                    <th class="text-end">Current</th>
+                    <th class="text-end">Savings</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <?php foreach ($latestDeals as $index => $deal): ?>
+                    <?php 
+                      $savings = (($deal['regular_price'] - $deal['current_price']) / $deal['regular_price']) * 100;
+                      $savingsFormatted = number_format($savings, 1);
+                    ?>
+                    <tr>
+                      <td><?= $index + 1 ?></td>
+                      <td>
+                        <a href="<?= $deal['url'] ?>" 
+                           target="_blank" 
+                           class="text-decoration-none text-reset">
+                          <?= $deal['name'] ?>
+                          <small><i class="bi bi-box-arrow-up-right"></i></small>
+                        </a>
+                      </td>
+                      <td class="text-end">
+                        $<?= number_format($deal['regular_price'], 2) ?>
+                      </td>
+                      <td class="text-end">
+                        $<?= number_format($deal['current_price'], 2) ?>
+                      </td>
+                      <td class="text-end">
+                        <span class="badge bg-success">
+                          <?= $savingsFormatted ?>%
+                        </span>
+                      </td>
+                    </tr>
+                  <?php endforeach; ?>
+                </tbody>
+              </table>
+            </div>
+          <?php endif; ?>
         </div>
       </div>
     </div>

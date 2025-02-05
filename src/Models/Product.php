@@ -223,6 +223,40 @@ class Product
     }
   }
 
+  public static function getLatestDeals($limit = 18)
+  {
+    try {
+      $db = Database::getInstance()->getConnection();
+      $stmt = $db->prepare("
+                SELECT
+                  products.*,
+                  price_history.price as current_price,
+                  price_history.created_at as price_updated_at
+                FROM
+                  products 
+                  LEFT JOIN price_history ON products.id = price_history.product_id
+                WHERE
+                  price_history.price < products.regular_price
+                  AND price_history.created_at = (
+                    SELECT MAX(created_at) 
+                    FROM price_history ph 
+                    WHERE ph.product_id = products.id
+                  )
+                  AND products.deleted_at IS NULL
+                ORDER BY price_history.created_at DESC
+                LIMIT :limit
+            ");
+      $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
+      $stmt->execute();
+
+      return $stmt->fetchAll();
+    } catch (PDOException $e) {
+      error_log("Database error in Product::getLatestDeals(): " . $e->getMessage());
+
+      return [];
+    }
+  }
+
   public function getStore(): ?Store
   {
     if ($this->store === null && $this->store_id) {

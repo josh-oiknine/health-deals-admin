@@ -26,8 +26,11 @@ class DashboardController
       'messagesSentToday' => 0, // TODO: Implement when Outbox model is ready
     ];
 
+    $latestDeals = Product::getLatestDeals();
+
     return $this->view->render($response, 'dashboard/index.php', [
-      'metrics' => $metrics
+      'metrics' => $metrics,
+      'latestDeals' => $latestDeals
     ]);
   }
 }
