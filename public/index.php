@@ -10,6 +10,7 @@ use App\Controllers\AuthController;
 use App\Controllers\CategoriesController;
 use App\Controllers\DashboardController;
 use App\Controllers\ProductsController;
+use App\Controllers\StoresController;
 use App\Database\Database;
 use DI\Container;
 use DI\ContainerBuilder;

@@ -140,8 +140,6 @@ class ProductsController
   // API FUNCTIONS
   public function apiAdd(Request $request, Response $response): Response
   {
-    $stores = Store::findAllActive();
-
     // POST DATA
     $data = $request->getParsedBody();
     $name = $data['name'] ?? '';
@@ -172,11 +170,9 @@ class ProductsController
     $domain = $parsedUrl['host'] ?? '';
     $storeId = null;
 
-    foreach ($stores as $store) {
-      if (strpos($domain, $store->domain) !== false) {
-        $storeId = $store->id;
-        break;
-      }
+    $store = Store::findByUrl('https://' . $domain);
+    if ($store) {
+      $storeId = $store->id;
     }
 
     $product = new Product(

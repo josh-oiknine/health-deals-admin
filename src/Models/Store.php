@@ -110,6 +110,31 @@ class Store
     }
   }
 
+  public static function findByUrl(string $url): ?self
+  {
+    try {
+      $db = Database::getInstance()->getConnection();
+      error_log("Finding store with URL: " . $url);
+      $stmt = $db->prepare("SELECT * FROM `stores` WHERE `url` = ? AND `deleted_at` IS NULL");
+      $stmt->execute([$url]);
+      $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+      if ($row) {
+        $store = new self();
+        $store->initFromArray($row);
+        error_log("FindByUrl result: " . print_r($store, true));
+
+        return $store;
+      }
+
+      return null;
+    } catch (PDOException $e) {
+      error_log("Database error in Store::findByUrl(): " . $e->getMessage());
+
+      return null;
+    }
+  }
+
   public function save(): bool
   {
     try {

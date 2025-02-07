@@ -18,6 +18,7 @@ class AuthMiddleware
 
     // Check if token exists
     if (!$token) {
+      error_log('AuthMiddleware: auth token not found');
       return $response
         ->withHeader('Location', '/')
         ->withStatus(302);

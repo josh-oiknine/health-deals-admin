@@ -65,7 +65,7 @@ class AuthController
       $authToken = $_COOKIE['auth_token'] ?? null;
       if ($authToken) {
         try {
-          $decoded = JWT::decode($authToken, $_ENV['JWT_SECRET'], ['HS256']);
+          $decoded = JWT::decode($authToken, new Key($_ENV['JWT_SECRET'], 'HS256'));
           if ($decoded->user_id === $user['id'] && 
               isset($decoded->mfa_verified_until) && 
               $decoded->mfa_verified_until > time()) {
@@ -173,7 +173,7 @@ class AuthController
       return $response->withHeader('Location', '/')->withStatus(302);
     }
 
-    $stmt = $this->db->prepare('SELECT totp_secret FROM users WHERE id = ?');
+    $stmt = $this->db->prepare('SELECT email, totp_secret FROM users WHERE id = ?');
     $stmt->execute([$userId]);
     $user = $stmt->fetch();
 
@@ -348,7 +348,6 @@ class AuthController
     }
   }
   
-
   // Handle OPTIONS preflight request
   public function handleOptionsRequest(Request $request, Response $response)
   {
