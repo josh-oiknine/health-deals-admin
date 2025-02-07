@@ -136,4 +136,78 @@ class ProductsController
     return $response->withHeader('Location', '/products')
       ->withStatus(302);
   }
+
+  // API FUNCTIONS
+  public function apiAdd(Request $request, Response $response): Response
+  {
+    $stores = Store::findAllActive();
+
+    // POST DATA
+    $data = $request->getParsedBody();
+    $name = $data['name'] ?? '';
+    $url = $data['url'] ?? '';
+    $regularPrice = $data['regular_price'] ?? 0.0;
+    $sku = $data['sku'] ?? null;
+    
+    // JSON DATA
+    if (empty($name) || empty($url) || empty($regularPrice) || empty($sku)) {
+      $rawBody = $request->getBody()->__toString();
+      $data = json_decode($rawBody, true);
+      $name = $data['name'] ?? '';
+      $url = $data['url'] ?? '';
+      $regularPrice = $data['regular_price'] ?? 0.0;
+      $sku = $data['sku'] ?? null;
+    }
+
+    if (empty($name) || empty($url) || empty($regularPrice) || empty($sku)) {
+      $response->getBody()->write(json_encode([
+        'status' => 'error',
+        'message' => 'Missing required fields'
+      ]));
+      return $response->withStatus(400);
+    }
+    
+    $slug = Str::slug($name);
+    $parsedUrl = parse_url($url);
+    $domain = $parsedUrl['host'] ?? '';
+    $storeId = null;
+
+    foreach ($stores as $store) {
+      if (strpos($domain, $store->domain) !== false) {
+        $storeId = $store->id;
+        break;
+      }
+    }
+
+    $product = new Product(
+      $name,
+      $slug,
+      $url,
+      null, // category_id
+      $storeId,
+      (float)$regularPrice,
+      $sku,
+      true // is_active
+    );
+
+    if ($product->save()) {
+      return $response->withHeader('Content-Type', 'application/json')
+        ->getBody()->write(json_encode([
+          'status' => 'success',
+          'message' => 'Product added successfully'
+        ]));
+    } else {
+      return $response->withHeader('Content-Type', 'application/json')
+        ->getBody()->write(json_encode([
+          'status' => 'error',
+          'message' => 'Failed to save the product. Please try again.'
+        ]));
+    }
+
+    return $response->withHeader('Content-Type', 'application/json')
+      ->getBody()->write(json_encode([
+        'status' => 'error',
+        'message' => 'Failed to save the product. Please try again.'
+      ]));
+  }
 }

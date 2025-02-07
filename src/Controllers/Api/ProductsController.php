@@ -29,7 +29,18 @@ class ProductsController
       return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
     }
 
-    $result = $this->scraperService->scrapeAmazonProduct($url);
+    // Determine store type from URL
+    if (strpos($url, 'amazon.com') !== false) {
+      $result = $this->scraperService->scrapeAmazonProduct($url);
+    } else if (strpos($url, 'walmart.com') !== false) {
+      $result = $this->scraperService->scrapeWalmartProduct($url);
+    } else {
+      $response->getBody()->write(json_encode([
+        'success' => false,
+        'error' => 'Unsupported store. Currently supporting: Amazon, Walmart'
+      ]));
+      return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
 
     $response->getBody()->write(json_encode($result));
 

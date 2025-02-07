@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use Exception;
 use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use RobThree\Auth\Algorithm;
@@ -58,6 +59,23 @@ class AuthController
         $_SESSION['temp_user_id'] = $user['id'];
 
         return $response->withHeader('Location', '/setup-2fa')->withStatus(302);
+      }
+
+      // Check if user has a valid MFA session
+      $authToken = $_COOKIE['auth_token'] ?? null;
+      if ($authToken) {
+        try {
+          $decoded = JWT::decode($authToken, $_ENV['JWT_SECRET'], ['HS256']);
+          if ($decoded->user_id === $user['id'] && 
+              isset($decoded->mfa_verified_until) && 
+              $decoded->mfa_verified_until > time()) {
+            // MFA is still valid, create new token and redirect to dashboard
+            $this->createAndSetToken($user['id'], $response);
+            return $response->withHeader('Location', '/dashboard')->withStatus(302);
+          }
+        } catch (Exception $e) {
+          // Token invalid or expired, continue with MFA
+        }
       }
 
       // Store user info in session for MFA verification
@@ -165,7 +183,7 @@ class AuthController
       unset($_SESSION['temp_user_id']);
 
       // Create and set JWT token
-      $this->createAndSetToken($userId, $response);
+      $this->createAndSetToken($userId, $user['email']);
 
       return $response->withHeader('Location', '/dashboard')->withStatus(302);
     }
@@ -175,11 +193,13 @@ class AuthController
     ]);
   }
 
-  private function createAndSetToken(int $userId, Response $response): void
+  private function createAndSetToken(int $userId, string $email): string
   {
     $payload = [
       'user_id' => $userId,
-      'exp' => time() + (14 * 24 * 60 * 60) // 14 days
+      'email' => $email,
+      'exp' => time() + (5 * 24 * 60 * 60), // 5 days
+      'mfa_verified_until' => time() + (14 * 24 * 60 * 60) // MFA valid for 14 days
     ];
 
     $jwt = JWT::encode($payload, $_ENV['JWT_SECRET'], 'HS256');
@@ -187,12 +207,14 @@ class AuthController
     // More permissive cookie settings for development
     $secure = isset($_ENV['APP_ENV']) && $_ENV['APP_ENV'] === 'production';
     setcookie('auth_token', $jwt, [
-      'expires' => time() + (14 * 24 * 60 * 60),
+      'expires' => time() + (14 * 24 * 60 * 60), // 14 days to match MFA verification period
       'path' => '/',
       'secure' => $secure,
       'httponly' => true,
       'samesite' => 'Lax'
     ]);
+
+    return $jwt;
   }
 
   public function logout(Request $request, Response $response)
@@ -207,5 +229,135 @@ class AuthController
     ]);
 
     return $response->withHeader('Location', '/')->withStatus(302);
+  }
+
+  // API Login
+  public function apiLogin(Request $request, Response $response)
+  {
+    // Add CORS headers
+    $response = $response
+      ->withHeader('Access-Control-Allow-Origin', $_ENV['APP_URL'] ?? '*')
+      ->withHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
+      ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+      ->withHeader('Access-Control-Allow-Credentials', 'true')
+      ->withHeader('Content-Type', 'application/json');
+
+    $data = $request->getParsedBody();
+    $email = $data['email'] ?? '';
+    $password = $data['password'] ?? '';
+
+    // Maybe it's a json request
+    if (empty($email) || empty($password)) {
+      $rawBody = $request->getBody()->__toString();
+      $data = json_decode($rawBody, true);
+      $email = $data['email'] ?? '';
+      $password = $data['password'] ?? '';
+    }
+
+    // Validate required fields
+    if (empty($email) || empty($password)) {
+      $response->getBody()->write(json_encode([
+        'status' => 'error',
+        'message' => 'Email and password are required'
+      ]));
+      return $response->withStatus(400);
+    }
+
+    $stmt = $this->db->prepare('SELECT * FROM users WHERE email = ? AND is_active = true');
+    $stmt->execute([$email]);
+    $user = $stmt->fetch();
+
+    if (!$user || !password_verify($password, $user['password'])) {
+      $response->getBody()->write(json_encode([
+        'status' => 'error',
+        'message' => 'Invalid credentials'
+      ]));
+      return $response->withStatus(401);
+    }
+
+    // Check if 2FA is not set up
+    if (!$user['totp_setup_complete']) {
+      $response->getBody()->write(json_encode([
+        'status' => 'error',
+        'message' => 'Two-factor authentication setup required'
+      ]));
+      return $response->withStatus(403);
+    }
+
+    // Generate JWT token
+    $jwt = $this->createAndSetToken($user['id'], $user['email']);
+
+    $response->getBody()->write(json_encode([
+      'status' => 'success',
+      'message' => 'Authentication successful',
+      'auth_token' => $jwt
+    ]));
+    return $response->withStatus(200);
+  }
+
+  public function apiVerifyToken(Request $request, Response $response)
+  {
+    // Add CORS headers
+    $response = $response
+      ->withHeader('Access-Control-Allow-Origin', $_ENV['APP_URL'] ?? '*')
+      ->withHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
+      ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Origin')
+      ->withHeader('Access-Control-Allow-Credentials', 'true')
+      ->withHeader('Content-Type', 'application/json');
+
+    // Get Authorization header
+    $authHeader = $request->getHeaderLine('Authorization');
+    if (empty($authHeader) || !preg_match('/Bearer\s+(.*)$/i', $authHeader, $matches)) {
+      $response->getBody()->write(json_encode([
+        'status' => 'error',
+        'message' => 'No token provided or invalid format'
+      ]));
+      return $response->withStatus(401);
+    }
+
+    $token = $matches[1];
+
+    try {
+      // Verify the token
+      $jwtSecret = $_ENV['JWT_SECRET'] ?? null;
+      if (!$jwtSecret) {
+        error_log('AuthMiddleware: JWT_SECRET is not set in environment variables');
+        throw new Exception('JWT_SECRET not configured');
+      }
+      
+      // Attempt to decode the token
+      $decoded = JWT::decode($token, new Key($jwtSecret, 'HS256'));
+      
+      // Check if token is expired
+      if (isset($decoded->exp) && $decoded->exp < time()) {
+        throw new \Exception('Token has expired');
+      }
+
+      $response->getBody()->write(json_encode([
+        'status' => 'success',
+        'message' => 'Token is valid'
+      ]));
+      return $response->withStatus(200);
+
+    } catch (\Exception $e) {
+      $response->getBody()->write(json_encode([
+        'status' => 'error',
+        'message' => 'Invalid or expired token'
+      ]));
+      return $response->withStatus(401);
+    }
+  }
+  
+
+  // Handle OPTIONS preflight request
+  public function handleOptionsRequest(Request $request, Response $response)
+  {
+    return $response
+      ->withHeader('Access-Control-Allow-Origin', $_ENV['APP_URL'] ?? '*')
+      ->withHeader('Access-Control-Allow-Methods', 'POST, OPTIONS, GET')
+      ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Origin')
+      ->withHeader('Access-Control-Allow-Credentials', 'true')
+      ->withHeader('Content-Type', 'application/json')
+      ->withStatus(204);
   }
 }

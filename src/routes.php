@@ -17,6 +17,12 @@ $app->group('', function (RouteCollectorProxy $group) {
   $group->post('/setup-2fa', [AuthController::class, 'setup2fa']);
   $group->get('/mfa', [AuthController::class, 'mfaPage']);
   $group->post('/verify-mfa', [AuthController::class, 'verifyMfa']);
+
+  // Extension API routes
+  $group->options('/api/login', [AuthController::class, 'handleOptionsRequest']);
+  $group->post('/api/login', [AuthController::class, 'apiLogin']);
+  $group->options('/api/verify-token', [AuthController::class, 'handleOptionsRequest']);
+  $group->get('/api/verify-token', [AuthController::class, 'apiVerifyToken']);
 });
 
 // Protected routes

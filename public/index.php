@@ -41,14 +41,17 @@ $containerBuilder->addDefinitions([
   'db' => function () {
     return Database::getInstance()->getConnection();
   },
+  'redis' => function () {
+    return new Redis();
+  },
   AuthController::class => function (Container $container) {
     return new AuthController($container);
   },
   DashboardController::class => function (Container $container) {
     return new DashboardController($container);
   },
-  App\Controllers\StoresController::class => function (Container $container) {
-    return new App\Controllers\StoresController($container);
+  StoresController::class => function (Container $container) {
+    return new StoresController($container);
   },
   ProductsController::class => function (Container $container) {
     return new ProductsController($container);

@@ -16,34 +16,23 @@ class AuthMiddleware
     $response = new Response();
     $token = $_COOKIE['auth_token'] ?? null;
 
-    // Debug: Log the current route
-    error_log('AuthMiddleware: Checking auth for path: ' . $request->getUri()->getPath());
-
-    // Debug: Check if token exists
+    // Check if token exists
     if (!$token) {
-      error_log('AuthMiddleware: No auth_token cookie found');
-
       return $response
         ->withHeader('Location', '/')
         ->withStatus(302);
     }
 
-    error_log('AuthMiddleware: Token found, attempting to decode');
-
     try {
-      // Debug: Log JWT secret length to ensure it's set (don't log the actual secret)
+      // Log JWT secret length to ensure it's set (don't log the actual secret)
       $jwtSecret = $_ENV['JWT_SECRET'] ?? null;
       if (!$jwtSecret) {
         error_log('AuthMiddleware: JWT_SECRET is not set in environment variables');
         throw new Exception('JWT_SECRET not configured');
       }
-      error_log('AuthMiddleware: JWT_SECRET length: ' . strlen($jwtSecret));
-
+      
       // Attempt to decode the token
       $decoded = JWT::decode($token, new Key($jwtSecret, 'HS256'));
-
-      // Debug: Log successful decode
-      error_log('AuthMiddleware: Token decoded successfully. User ID: ' . $decoded->user_id);
 
       // Check token expiration explicitly
       if (isset($decoded->exp) && $decoded->exp < time()) {

@@ -233,45 +233,34 @@ document.getElementById('fetchProductInfo').addEventListener('click', async func
     }
 
     try {
-        // Example of parsing Amazon URL
-        if (url.includes('amazon.com')) {
-            // Extract ASIN from URL
-            const asinMatch = url.match(/\/dp\/([A-Z0-9]{10})/);
-            if (asinMatch) {
-                const asin = asinMatch[1];
-                
-                // Show loading state
-                toggleFetchButtonLoading(true);
-                
-                // Make API call to your backend endpoint
-                const response = await fetch(`/api/products/fetch-info?url=${encodeURIComponent(url)}`);
-                const responseData = await response.json();
-                
-                if (responseData.success) {
-                    // Auto-select Amazon store
-                    const storeSelect = document.getElementById('store_id');
-                    Array.from(storeSelect.options).forEach(option => {
-                        if (option.text.toLowerCase().includes('amazon')) {
-                            option.selected = true;
-                        }
-                    });
-
-                    // Populate other fields
-                    const data = responseData.data;
-                    document.getElementById('name').value = data.name;
-                    document.getElementById('slug').value = createSlug(data.name);
-                    document.getElementById('sku').value = asin;
-                    document.getElementById('regular_price').value = data.price;
-                    
-                    showNotification('Product information fetched successfully', 'success');
-                } else {
-                    showNotification(responseData.error || 'Failed to fetch product information', 'danger');
+        // Show loading state
+        toggleFetchButtonLoading(true);
+        
+        // Make API call to your backend endpoint
+        const response = await fetch(`/api/products/fetch-info?url=${encodeURIComponent(url)}`);
+        const responseData = await response.json();
+        
+        if (responseData.success) {
+            // Auto-select the appropriate store based on URL
+            const storeSelect = document.getElementById('store_id');
+            Array.from(storeSelect.options).forEach(option => {
+                const storeName = option.text.toLowerCase();
+                if (url.includes('amazon.com') && storeName.includes('amazon') ||
+                    url.includes('walmart.com') && storeName.includes('walmart')) {
+                    option.selected = true;
                 }
-            } else {
-                showNotification('Invalid Amazon product URL. Please make sure it contains a valid product ID.', 'danger');
-            }
+            });
+
+            // Populate other fields
+            const data = responseData.data;
+            document.getElementById('name').value = data.name;
+            document.getElementById('slug').value = createSlug(data.name);
+            document.getElementById('sku').value = data.asin || data.item_id || '';
+            document.getElementById('regular_price').value = data.price;
+            
+            showNotification('Product information fetched successfully', 'success');
         } else {
-            showNotification('Currently only Amazon URLs are supported for auto-fetching information.', 'warning');
+            showNotification(responseData.error || 'Failed to fetch product information', 'danger');
         }
     } catch (error) {
         console.error('Error fetching product information:', error);
