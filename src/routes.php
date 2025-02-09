@@ -6,6 +6,7 @@ use App\Controllers\CategoriesController;
 use App\Controllers\DashboardController;
 use App\Controllers\ProductsController;
 use App\Controllers\StoresController;
+use App\Controllers\SettingsController;
 use App\Middleware\AuthMiddleware;
 use Slim\Routing\RouteCollectorProxy;
 
@@ -54,6 +55,12 @@ $app->group('', function (RouteCollectorProxy $group) {
   $group->post('/products/delete/{id}', [ProductsController::class, 'delete']);
 
   $group->post('/api/products/add', [ProductsController::class, 'apiAdd']);
+
+  // Settings routes
+  $group->get('/settings', [SettingsController::class, 'index'])->setName('settings');
+  $group->post('/settings/change-password', [SettingsController::class, 'changePassword']);
+  $group->get('/settings/change-mfa', [SettingsController::class, 'changeMfaDevice']);
+  $group->post('/settings/verify-mfa', [SettingsController::class, 'verifyNewMfaDevice']);
 
   // API routes
   $group->get('/api/products/fetch-info', [ApiProductsController::class, 'fetchInfo']);

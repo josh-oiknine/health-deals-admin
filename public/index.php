@@ -11,6 +11,7 @@ use App\Controllers\CategoriesController;
 use App\Controllers\DashboardController;
 use App\Controllers\ProductsController;
 use App\Controllers\StoresController;
+use App\Controllers\SettingsController;
 use App\Database\Database;
 use DI\Container;
 use DI\ContainerBuilder;
@@ -59,6 +60,9 @@ $containerBuilder->addDefinitions([
   },
   CategoriesController::class => function (Container $container) {
     return new CategoriesController($container);
+  },
+  SettingsController::class => function (Container $container) {
+    return new SettingsController($container);
   }
 ]);
 

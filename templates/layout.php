@@ -69,6 +69,13 @@
             </a>
           </li>
           <div class="divider"></div>
+          
+          <li class="nav-item">
+            <a class="nav-link <?= $_SERVER['REQUEST_URI'] === '/settings' ? 'active' : '' ?>" href="/settings" data-bs-toggle="tooltip" data-bs-placement="right" title="Settings">
+              <i class="bi bi-gear me-2"></i>
+              <span>Settings</span>
+            </a>
+          </li>
           <li class="nav-item">
             <form action="/logout" method="POST" class="nav-link">
               <button type="submit" class="btn btn-link text-decoration-none p-0" data-bs-toggle="tooltip" data-bs-placement="right" title="Logout">
