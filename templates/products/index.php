@@ -1,3 +1,38 @@
+<?php
+$sortOrder = $sorting['sort_order'] ?? 'DESC';
+$sortBy = $sorting['sort_by'] ?? 'created_at';
+
+function getSortIcon($currentSortBy, $thisSortBy, $currentSortOrder) {
+    if ($currentSortBy !== $thisSortBy) {
+        return '<i class="bi bi-arrow-down-up text-muted"></i>';
+    }
+    return $currentSortOrder === 'ASC' 
+        ? '<i class="bi bi-arrow-up"></i>' 
+        : '<i class="bi bi-arrow-down"></i>';
+}
+
+function getSortUrl($baseUrl, $thisSortBy, $currentSortBy, $currentSortOrder) {
+    $newOrder = ($thisSortBy === $currentSortBy && $currentSortOrder === 'ASC') ? 'DESC' : 'ASC';
+    return $baseUrl . '&sort_by=' . $thisSortBy . '&sort_order=' . $newOrder;
+}
+
+// Build the base URL with current filters
+
+// echo '<pre>';
+// var_dump(isset($filters['category_id']));
+// echo '</pre>';
+// die();
+
+$baseUrl = '?';
+$urlParts = array_filter([
+    !empty($filters['keyword']) ? 'keyword=' . urlencode($filters['keyword']) : null,
+    !empty($filters['store_id']) ? 'store_id=' . $filters['store_id'] : null,
+    array_key_exists('category_id', $filters) ? 'category_id=' . ($filters['category_id'] == null ? 'none' : $filters['category_id']) : null,
+    array_key_exists('is_active', $filters) ? 'is_active=' . ($filters['is_active'] ? '1' : '0') : null
+]);
+$baseUrl .= implode('&', $urlParts);
+?>
+
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>Products</h1>
@@ -6,20 +41,103 @@
         </a>
     </div>
 
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Search</label>
+                    <input type="text" name="keyword" class="form-control" 
+                           placeholder="Search by name, SKU or price" 
+                           value="<?= htmlspecialchars($filters['keyword'] ?? '') ?>">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Store</label>
+                    <select name="store_id" class="form-select">
+                        <option value="">All Stores</option>
+                        <?php foreach ($stores as $store): ?>
+                            <option value="<?= $store['id'] ?>" 
+                                <?= ($filters['store_id'] ?? '') == $store['id'] ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($store['name']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Category</label>
+                    <select name="category_id" class="form-select">
+                        <option value="">All Categories</option>
+                        <option value="none" <?= ($filters['category_id'] ?? '') === null ? 'selected' : '' ?>>No Category</option>
+                        <?php foreach ($categories as $category): ?>
+                            <option value="<?= $category['id'] ?>" 
+                                <?= ($filters['category_id'] ?? '') == $category['id'] ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($category['name']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Status</label>
+                    <select name="is_active" class="form-select">
+                        <option value="" <?= isset($filters['is_active']) && $filters['is_active'] == '' ? 'selected' : '' ?>>All Status</option>
+                        <option value="1" <?= isset($filters['is_active']) && $filters['is_active'] == '1' ? 'selected' : '' ?>>Active</option>
+                        <option value="0" <?= isset($filters['is_active']) && $filters['is_active'] == '0' ? 'selected' : '' ?>>Inactive</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="bi bi-search"></i> Search
+                    </button>
+                    <a href="/products" class="btn btn-secondary">
+                        <i class="bi bi-x-circle"></i> Clear
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="card">
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-striped">
                     <thead>
                         <tr>
-                            <th>Name</th>
-                            <th>Store</th>
-                            <th>SKU</th>
-                            <th>Regular Price</th>
-                            <th>Category</th>
+                            <th>
+                                <a href="<?= getSortUrl($baseUrl, 'name', $sortBy, $sortOrder) ?>" class="text-decoration-none text-dark">
+                                    Name <?= getSortIcon($sortBy, 'name', $sortOrder) ?>
+                                </a>
+                            </th>
+                            <th>
+                                <a href="<?= getSortUrl($baseUrl, 'store_name', $sortBy, $sortOrder) ?>" class="text-decoration-none text-dark">
+                                    Store <?= getSortIcon($sortBy, 'store_name', $sortOrder) ?>
+                                </a>
+                            </th>
+                            <th>
+                                <a href="<?= getSortUrl($baseUrl, 'sku', $sortBy, $sortOrder) ?>" class="text-decoration-none text-dark">
+                                    SKU <?= getSortIcon($sortBy, 'sku', $sortOrder) ?>
+                                </a>
+                            </th>
+                            <th>
+                                <a href="<?= getSortUrl($baseUrl, 'regular_price', $sortBy, $sortOrder) ?>" class="text-decoration-none text-dark">
+                                    Regular Price <?= getSortIcon($sortBy, 'regular_price', $sortOrder) ?>
+                                </a>
+                            </th>
+                            <th>
+                                <a href="<?= getSortUrl($baseUrl, 'category_name', $sortBy, $sortOrder) ?>" class="text-decoration-none text-dark">
+                                    Category <?= getSortIcon($sortBy, 'category_name', $sortOrder) ?>
+                                </a>
+                            </th>
                             <th>Status</th>
-                            <th>Created</th>
-                            <th>Updated</th>
+                            <th>
+                                <a href="<?= getSortUrl($baseUrl, 'created_at', $sortBy, $sortOrder) ?>" class="text-decoration-none text-dark">
+                                    Created <?= getSortIcon($sortBy, 'created_at', $sortOrder) ?>
+                                </a>
+                            </th>
+                            <th>
+                                <a href="<?= getSortUrl($baseUrl, 'updated_at', $sortBy, $sortOrder) ?>" class="text-decoration-none text-dark">
+                                    Updated <?= getSortIcon($sortBy, 'updated_at', $sortOrder) ?>
+                                </a>
+                            </th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -83,6 +201,66 @@
                     </tbody>
                 </table>
             </div>
+
+            <!-- Pagination -->
+            <?php if ($pagination['last_page'] > 1): ?>
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <div class="text-muted">
+                    Showing <?= ($pagination['current_page'] - 1) * $pagination['per_page'] + 1 ?> 
+                    to <?= min($pagination['current_page'] * $pagination['per_page'], $pagination['total']) ?> 
+                    of <?= $pagination['total'] ?> results
+                </div>
+                <nav aria-label="Page navigation">
+                    <ul class="pagination mb-0">
+                        <?php if ($pagination['current_page'] > 1): ?>
+                            <li class="page-item">
+                                <a class="page-link" href="<?= $baseUrl ?>&page=<?= $pagination['current_page'] - 1 ?>">
+                                    Previous
+                                </a>
+                            </li>
+                        <?php endif; ?>
+                        
+                        <?php
+                        $start = max(1, $pagination['current_page'] - 2);
+                        $end = min($pagination['last_page'], $pagination['current_page'] + 2);
+                        
+                        if ($start > 1): ?>
+                            <li class="page-item">
+                                <a class="page-link" href="<?= $baseUrl ?>&page=1">1</a>
+                            </li>
+                            <?php if ($start > 2): ?>
+                                <li class="page-item disabled"><span class="page-link">...</span></li>
+                            <?php endif; ?>
+                        <?php endif; ?>
+                        
+                        <?php for ($i = $start; $i <= $end; $i++): ?>
+                            <li class="page-item <?= $i === $pagination['current_page'] ? 'active' : '' ?>">
+                                <a class="page-link" href="<?= $baseUrl ?>&page=<?= $i ?>"><?= $i ?></a>
+                            </li>
+                        <?php endfor; ?>
+                        
+                        <?php if ($end < $pagination['last_page']): ?>
+                            <?php if ($end < $pagination['last_page'] - 1): ?>
+                                <li class="page-item disabled"><span class="page-link">...</span></li>
+                            <?php endif; ?>
+                            <li class="page-item">
+                                <a class="page-link" href="<?= $baseUrl ?>&page=<?= $pagination['last_page'] ?>">
+                                    <?= $pagination['last_page'] ?>
+                                </a>
+                            </li>
+                        <?php endif; ?>
+                        
+                        <?php if ($pagination['current_page'] < $pagination['last_page']): ?>
+                            <li class="page-item">
+                                <a class="page-link" href="<?= $baseUrl ?>&page=<?= $pagination['current_page'] + 1 ?>">
+                                    Next
+                                </a>
+                            </li>
+                        <?php endif; ?>
+                    </ul>
+                </nav>
+            </div>
+            <?php endif; ?>
         </div>
     </div>
 </div> 

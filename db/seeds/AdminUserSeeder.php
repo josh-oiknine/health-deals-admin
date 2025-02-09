@@ -17,7 +17,18 @@ class AdminUserSeeder extends AbstractSeed
         'updated_at' => date('Y-m-d H:i:s'),
         'totp_secret' => 'YJMIOBUW7BWIBD25TZKFXKFCR2TY2MML',
         'totp_setup_complete' => true
-      ]
+      ],
+      [
+        'email' => 'shaneeoiknine@gmail.com',
+        'password' => password_hash('newPassword7^', PASSWORD_DEFAULT),
+        'first_name' => 'Shanee',
+        'last_name' => 'Oiknine',
+        'is_active' => true,
+        'created_at' => date('Y-m-d H:i:s'),
+        'updated_at' => date('Y-m-d H:i:s'),
+        'totp_secret' => null,
+        'totp_setup_complete' => false
+      ],
     ];
 
     $this->table('users')->insert($data)->save();

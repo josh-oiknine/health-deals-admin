@@ -40,9 +40,9 @@
                             <select class="form-select" id="store_id" name="store_id" required>
                                 <option value="">Select a store</option>
                                 <?php foreach ($stores as $store): ?>
-                                    <option value="<?= $store->getId() ?>" 
-                                        <?= ($product['store_id'] ?? '') == $store->getId() ? 'selected' : '' ?>>
-                                        <?= htmlspecialchars($store->getName()) ?>
+                                    <option value="<?= $store['id'] ?>" 
+                                        <?= ($product['store_id'] ?? '') == $store['id'] ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($store['name']) ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
@@ -110,9 +110,9 @@
                             <select class="form-select" id="category_id" name="category_id">
                                 <option value="">Select a category</option>
                                 <?php foreach ($categories as $category): ?>
-                                    <option value="<?= $category->getId() ?>" 
-                                        <?= ($product['category_id'] ?? '') == $category->getId() ? 'selected' : '' ?>>
-                                        <?= htmlspecialchars($category->getName()) ?>
+                                    <option value="<?= $category['id'] ?>" 
+                                        <?= ($product['category_id'] ?? '') == $category['id'] ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($category['name']) ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>

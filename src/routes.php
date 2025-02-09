@@ -23,6 +23,8 @@ $app->group('', function (RouteCollectorProxy $group) {
   $group->post('/api/login', [AuthController::class, 'apiLogin']);
   $group->options('/api/verify-token', [AuthController::class, 'handleOptionsRequest']);
   $group->get('/api/verify-token', [AuthController::class, 'apiVerifyToken']);
+
+  // $group->get('/test', [ProductsController::class, 'testStuff']);
 });
 
 // Protected routes
@@ -50,6 +52,8 @@ $app->group('', function (RouteCollectorProxy $group) {
   $group->get('/products/edit/{id}', [ProductsController::class, 'edit']);
   $group->post('/products/edit/{id}', [ProductsController::class, 'edit']);
   $group->post('/products/delete/{id}', [ProductsController::class, 'delete']);
+
+  $group->post('/api/products/add', [ProductsController::class, 'apiAdd']);
 
   // API routes
   $group->get('/api/products/fetch-info', [ApiProductsController::class, 'fetchInfo']);

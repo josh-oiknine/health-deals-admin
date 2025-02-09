@@ -107,6 +107,28 @@ class Product
     }
   }
 
+  public static function findBySku(string $sku): ?array
+  {
+    try {
+      $db = Database::getInstance()->getConnection();
+      $stmt = $db->prepare("
+                SELECT p.*, s.name as store_name, c.name as category_name 
+                FROM products p 
+                LEFT JOIN stores s ON p.store_id = s.id 
+                LEFT JOIN categories c ON p.category_id = c.id 
+                WHERE p.sku = :sku AND p.deleted_at IS NULL
+            ");
+      $stmt->execute(['sku' => $sku]);
+      $result = $stmt->fetch();
+
+      return $result ?: null;
+    } catch (PDOException $e) {
+      error_log("Database error in Product::findBySku(): " . $e->getMessage());
+
+      return null;
+    }
+  }
+
   public function save(): bool
   {
     try {
@@ -346,5 +368,103 @@ class Product
   public function setIsActive(bool $is_active): void
   {
     $this->is_active = $is_active;
+  }
+
+  public static function findFiltered(array $filters = [], string $sortBy = 'created_at', string $sortOrder = 'DESC', int $page = 1, int $perPage = 20): array
+  {
+    try {
+      $db = Database::getInstance()->getConnection();
+      
+      $conditions = ['p.deleted_at IS NULL'];
+      $params = [];
+      
+      // Search by keyword (name, sku, or price)
+      if (!empty($filters['keyword'])) {
+        $keyword = '%' . $filters['keyword'] . '%';
+        $conditions[] = '(p.name LIKE :keyword OR p.sku LIKE :keyword OR CAST(p.regular_price AS CHAR) LIKE :keyword)';
+        $params['keyword'] = $keyword;
+      }
+      
+      // Filter by store
+      if (!empty($filters['store_id'])) {
+        $conditions[] = 'p.store_id = :store_id';
+        $params['store_id'] = $filters['store_id'];
+      }
+      
+      // Filter by category
+      if ($filters['category_id'] !== null) {
+        if ($filters['category_id'] === 0) {
+          $conditions[] = 'p.category_id IS NULL';
+        } else {
+          $conditions[] = 'p.category_id = :category_id';
+          $params['category_id'] = $filters['category_id'];
+        }
+      }
+      
+      // Filter by active status
+      if (isset($filters['is_active'])) {
+        $conditions[] = 'p.is_active = :is_active';
+        $params['is_active'] = $filters['is_active'];
+      }
+      
+      // Build the WHERE clause
+      $whereClause = implode(' AND ', $conditions);
+      
+      // Validate and sanitize sort column
+      $allowedSortColumns = ['name', 'store_name', 'sku', 'regular_price', 'category_name', 'created_at', 'updated_at'];
+      $sortBy = in_array($sortBy, $allowedSortColumns) ? $sortBy : 'created_at';
+      $sortOrder = strtoupper($sortOrder) === 'ASC' ? 'ASC' : 'DESC';
+      
+      // Calculate offset for pagination
+      $offset = ($page - 1) * $perPage;
+      
+      // Get total count for pagination
+      $countStmt = $db->prepare("
+        SELECT COUNT(*) 
+        FROM products p 
+        WHERE $whereClause
+      ");
+      $countStmt->execute($params);
+      $totalCount = $countStmt->fetchColumn();
+      
+      // Get filtered and sorted results
+      $stmt = $db->prepare("
+        SELECT p.*, s.name as store_name, c.name as category_name 
+        FROM products p 
+        LEFT JOIN stores s ON p.store_id = s.id 
+        LEFT JOIN categories c ON p.category_id = c.id
+        WHERE $whereClause
+        ORDER BY " . ($sortBy === 'store_name' ? 's.name' : ($sortBy === 'category_name' ? 'c.name' : "p.$sortBy")) . " $sortOrder
+        LIMIT :limit OFFSET :offset
+      ");
+      
+      // Bind all parameters
+      foreach ($params as $key => $value) {
+        $stmt->bindValue(":$key", $value);
+      }
+      $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
+      $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+      
+      $stmt->execute();
+      $results = $stmt->fetchAll();
+      
+      return [
+        'data' => $results,
+        'total' => $totalCount,
+        'page' => $page,
+        'per_page' => $perPage,
+        'last_page' => ceil($totalCount / $perPage)
+      ];
+      
+    } catch (PDOException $e) {
+      error_log("Database error in Product::findFiltered(): " . $e->getMessage());
+      return [
+        'data' => [],
+        'total' => 0,
+        'page' => $page,
+        'per_page' => $perPage,
+        'last_page' => 1
+      ];
+    }
   }
 }

@@ -15,6 +15,20 @@ class CategoriesSeeder extends AbstractSeed
         'updated_at' => date('Y-m-d H:i:s')
       ],
       [
+        'name' => 'Clothing',
+        'slug' => 'clothing',
+        'is_active' => true,
+        'created_at' => date('Y-m-d H:i:s'),
+        'updated_at' => date('Y-m-d H:i:s')
+      ],
+      [
+        'name' => 'Fitness',
+        'slug' => 'fitness',
+        'is_active' => true,
+        'created_at' => date('Y-m-d H:i:s'),
+        'updated_at' => date('Y-m-d H:i:s')
+      ],
+      [
         'name' => 'Grocery',
         'slug' => 'grocery',
         'is_active' => true,
@@ -45,13 +59,6 @@ class CategoriesSeeder extends AbstractSeed
       [
         'name' => 'Wellness',
         'slug' => 'wellness',
-        'is_active' => true,
-        'created_at' => date('Y-m-d H:i:s'),
-        'updated_at' => date('Y-m-d H:i:s')
-      ],
-      [
-        'name' => 'Clothing',
-        'slug' => 'clothing',
         'is_active' => true,
         'created_at' => date('Y-m-d H:i:s'),
         'updated_at' => date('Y-m-d H:i:s')

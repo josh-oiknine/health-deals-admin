@@ -68,19 +68,9 @@ class Store
         ORDER BY name
       ");
       $stmt->execute();
-      $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-      $stores = [];
-      foreach ($rows as $row) {
-        $store = new self();
-        $store->initFromArray($row);
-        $stores[] = $store;
-      }
-
-      return $stores;
+      return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
       error_log("Database error in Store::findAllActive(): " . $e->getMessage());
-
       return [];
     }
   }
@@ -110,21 +100,17 @@ class Store
     }
   }
 
-  public static function findByUrl(string $url): ?self
+  public static function findByDomain(string $url): ?array
   {
     try {
       $db = Database::getInstance()->getConnection();
       error_log("Finding store with URL: " . $url);
-      $stmt = $db->prepare("SELECT * FROM `stores` WHERE `url` = ? AND `deleted_at` IS NULL");
-      $stmt->execute([$url]);
+      $stmt = $db->prepare("SELECT * FROM stores WHERE url LIKE ? AND deleted_at IS NULL LIMIT 1");
+      $stmt->execute(['%'.$url.'%']);
       $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
       if ($row) {
-        $store = new self();
-        $store->initFromArray($row);
-        error_log("FindByUrl result: " . print_r($store, true));
-
-        return $store;
+        return $row;
       }
 
       return null;

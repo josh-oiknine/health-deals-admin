@@ -60,19 +60,9 @@ class Category
                 ORDER BY name
             ");
       $stmt->execute();
-      $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-      $categories = [];
-      foreach ($rows as $row) {
-        $category = new self();
-        $category->initFromArray($row);
-        $categories[] = $category;
-      }
-
-      return $categories;
+      return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
       error_log("Database error in Category::findAllActive(): " . $e->getMessage());
-
       return [];
     }
   }

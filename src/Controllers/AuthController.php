@@ -70,7 +70,7 @@ class AuthController
               isset($decoded->mfa_verified_until) && 
               $decoded->mfa_verified_until > time()) {
             // MFA is still valid, create new token and redirect to dashboard
-            $this->createAndSetToken($user['id'], $response);
+            $this->createAndSetToken($user['id'], $user['email']);
             return $response->withHeader('Location', '/dashboard')->withStatus(302);
           }
         } catch (Exception $e) {
