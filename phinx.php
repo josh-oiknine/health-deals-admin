@@ -14,11 +14,11 @@ return [
         'default_environment' => 'development',
         'development' => [
             'adapter' => 'pgsql',
-            'host' => 'localhost',
-            'name' => 'health_deals',
-            'user' => 'postgres',
-            'pass' => 'postgres',
-            'port' => '5432',
+            'host' => $_ENV['DB_HOST'],
+            'name' => $_ENV['DB_NAME'],
+            'user' => $_ENV['DB_USERNAME'],
+            'pass' => $_ENV['DB_PASSWORD'],
+            'port' => $_ENV['DB_PORT'],
             'charset' => 'utf8',
         ]
     ],

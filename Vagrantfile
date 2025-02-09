@@ -48,11 +48,14 @@ Vagrant.configure("2") do |config|
     
     # Install PHP 8.2 and extensions
     apt-get install -y php8.2-fpm php8.2-cli php8.2-common php8.2-pgsql php8.2-curl \
-        php8.2-mbstring php8.2-xml php8.2-zip php8.2-bcmath php8.2-intl
+      php8.2-mbstring php8.2-xml php8.2-zip php8.2-bcmath php8.2-intl
     
     # Install NGINX
     apt-get install -y nginx
     
+    # When Seting up the server you don't need full PostgreSQL just the cli tools
+    # sudo apt install -y postgresql-client
+
     # Install PostgreSQL
     apt-get install -y postgresql postgresql-contrib
   
@@ -126,9 +129,9 @@ EOL
     
     # Configure PHP
     sed -i 's/memory_limit = .*/memory_limit = 512M/' /etc/php/8.2/fpm/php.ini
-    sed -i 's/upload_max_filesize = .*/upload_max_filesize = 100M/' /etc/php/8.2/fpm/php.ini
-    sed -i 's/post_max_size = .*/post_max_size = 100M/' /etc/php/8.2/fpm/php.ini
-    sed -i 's/max_execution_time = .*/max_execution_time = 300/' /etc/php/8.2/fpm/php.ini
+    sed -i 's/upload_max_filesize = .*/upload_max_filesize = 50M/' /etc/php/8.2/fpm/php.ini
+    sed -i 's/post_max_size = .*/post_max_size = 50M/' /etc/php/8.2/fpm/php.ini
+    sed -i 's/max_execution_time = .*/max_execution_time = 120/' /etc/php/8.2/fpm/php.ini
     
     # Restart services
     systemctl restart nginx
