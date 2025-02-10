@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Health Deals Admin</title>
+  <title>Your Healthy Deals Admin</title>
 
   <!-- Apple Touch Icon -->
   <link rel="apple-touch-icon" sizes="57x57" href="/assets/images/apple-icon-57x57.png">
@@ -45,7 +45,10 @@
         <button id="sidebarToggle" class="btn btn-dark">
           <i class="bi bi-list"></i>
         </button>
-        <a class="navbar-brand ms-3" href="/dashboard">Your Healthy Deals Admin</a>
+        <a class="navbar-brand ms-3" href="/dashboard">
+          <img src="/assets/images/favicon-32x32.png" alt="Your Healthy Deals Logo" class="navbar-logo">
+          Your Healthy Deals Admin
+        </a>
       </div>
     </nav>
 

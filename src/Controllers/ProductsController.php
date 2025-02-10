@@ -33,7 +33,7 @@ class ProductsController
       'keyword' => $queryParams['keyword'] ?? '',
       'store_id' => !empty($queryParams['store_id']) ? (int)$queryParams['store_id'] : null,
       'category_id' => isset($queryParams['category_id']) && $queryParams['category_id'] !== '' 
-        ? ($queryParams['category_id'] === 'none' ? 0 : (int)$queryParams['category_id'])
+        ? ($queryParams['category_id'] === '0' ? 0 : (int)$queryParams['category_id'])
         : null
     ];
     
@@ -296,6 +296,7 @@ class ProductsController
     return $response->withStatus(400);
   }
 
+  // Private Static Helper Functions
   private static function makeSlug($name, $maxLength = 100)
   {
     $slug = strtolower($name);
@@ -313,16 +314,6 @@ class ProductsController
     }
     
     return $slug;
-  }
-
-  public function testStuff(Request $request, Response $response): Response
-  {
-    // $category = self::decideCategory('Chosen Foods 100% Pure Avocado Oil - Size 33.8oz', 'https://www.target.com/p/chosen-foods-100-pure-avocado-oil/-/A-89461892?preselect=88368709#lnk=sametab');
-    
-    // return $response->withHeader('application/json', json_encode([
-    //   'status' => 'success',
-    //   'message' => 'Category: ' . $category
-    // ]));
   }
 
   private static function decideCategory($name, $url)

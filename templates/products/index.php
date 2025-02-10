@@ -27,7 +27,7 @@ $baseUrl = '?';
 $urlParts = array_filter([
     !empty($filters['keyword']) ? 'keyword=' . urlencode($filters['keyword']) : null,
     !empty($filters['store_id']) ? 'store_id=' . $filters['store_id'] : null,
-    array_key_exists('category_id', $filters) ? 'category_id=' . ($filters['category_id'] == null ? 'none' : $filters['category_id']) : null,
+    array_key_exists('category_id', $filters) ? 'category_id=' . ($filters['category_id'] === 0 ? 'none' : $filters['category_id']) : null,
     array_key_exists('is_active', $filters) ? 'is_active=' . ($filters['is_active'] ? '1' : '0') : null
 ]);
 $baseUrl .= implode('&', $urlParts);
@@ -46,13 +46,11 @@ $baseUrl .= implode('&', $urlParts);
         <div class="card-body">
             <form method="GET" class="row g-3">
                 <div class="col-md-3">
-                    <label class="form-label">Search</label>
                     <input type="text" name="keyword" class="form-control" 
                            placeholder="Search by name, SKU or price" 
                            value="<?= htmlspecialchars($filters['keyword'] ?? '') ?>">
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label">Store</label>
                     <select name="store_id" class="form-select">
                         <option value="">All Stores</option>
                         <?php foreach ($stores as $store): ?>
@@ -64,10 +62,9 @@ $baseUrl .= implode('&', $urlParts);
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label">Category</label>
                     <select name="category_id" class="form-select">
                         <option value="">All Categories</option>
-                        <option value="none" <?= ($filters['category_id'] ?? '') === null ? 'selected' : '' ?>>No Category</option>
+                        <option value="0" <?= ($filters['category_id'] ?? '') == '0' ? 'selected' : '' ?>>No Category</option>
                         <?php foreach ($categories as $category): ?>
                             <option value="<?= $category['id'] ?>" 
                                 <?= ($filters['category_id'] ?? '') == $category['id'] ? 'selected' : '' ?>>
@@ -77,7 +74,6 @@ $baseUrl .= implode('&', $urlParts);
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label">Status</label>
                     <select name="is_active" class="form-select">
                         <option value="" <?= isset($filters['is_active']) && $filters['is_active'] == '' ? 'selected' : '' ?>>All Status</option>
                         <option value="1" <?= isset($filters['is_active']) && $filters['is_active'] == '1' ? 'selected' : '' ?>>Active</option>
@@ -85,12 +81,9 @@ $baseUrl .= implode('&', $urlParts);
                     </select>
                 </div>
                 <div class="col-md-2 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary me-2">
+                    <button type="submit" class="btn btn-sm btn-primary me-2">
                         <i class="bi bi-search"></i> Search
                     </button>
-                    <a href="/products" class="btn btn-secondary">
-                        <i class="bi bi-x-circle"></i> Clear
-                    </a>
                 </div>
             </form>
         </div>
