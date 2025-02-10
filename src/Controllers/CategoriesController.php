@@ -35,7 +35,8 @@ class CategoriesController
       $category = new Category(
         $data['name'] ?? '',
         $data['slug'] ?? '',
-        ($data['is_active'] ?? '') === 'on'
+        ($data['is_active'] ?? '') === 'on',
+        $data['color'] ?? '#6c757d'
       );
 
       if ($category->save()) {
@@ -68,6 +69,7 @@ class CategoriesController
       $category->setName($data['name'] ?? '');
       $category->setSlug($data['slug'] ?? '');
       $category->setIsActive(($data['is_active'] ?? '') === 'on');
+      $category->setColor($data['color'] ?? '#6c757d');
 
       if ($category->save()) {
         return $response->withHeader('Location', '/categories')

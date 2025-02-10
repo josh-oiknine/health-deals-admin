@@ -14,17 +14,20 @@ class Category
   private $name;
   private $slug;
   private $is_active;
+  private $color;
   private $created_at;
   private $updated_at;
 
   public function __construct(
     string $name = '',
     string $slug = '',
-    bool $is_active = true
+    bool $is_active = true,
+    ?string $color = '#6c757d'
   ) {
     $this->name = $name;
     $this->slug = $slug;
     $this->is_active = $is_active;
+    $this->color = $color;
   }
 
   public static function findAll(): array
@@ -97,10 +100,10 @@ class Category
 
       if ($this->id === null) {
         $stmt = $db->prepare(
-          "INSERT INTO categories (name, slug, is_active) 
-                     VALUES (?, ?, ?)"
+          "INSERT INTO categories (name, slug, is_active, color) 
+                     VALUES (?, ?, ?, ?)"
         );
-        $result = $stmt->execute([$this->name, $this->slug, (int)$this->is_active]);
+        $result = $stmt->execute([$this->name, $this->slug, (int)$this->is_active, $this->color]);
         if ($result) {
           $this->id = (int)$db->lastInsertId();
 
@@ -111,11 +114,11 @@ class Category
       } else {
         $stmt = $db->prepare(
           "UPDATE categories 
-                     SET name = ?, slug = ?, is_active = ?, updated_at = CURRENT_TIMESTAMP 
+                     SET name = ?, slug = ?, is_active = ?, color = ?, updated_at = CURRENT_TIMESTAMP 
                      WHERE id = ?"
         );
 
-        return $stmt->execute([$this->name, $this->slug, (int)$this->is_active, $this->id]);
+        return $stmt->execute([$this->name, $this->slug, (int)$this->is_active, $this->color, $this->id]);
       }
     } catch (PDOException $e) {
       error_log("Database error in Category::save(): " . $e->getMessage());
@@ -185,12 +188,23 @@ class Category
     return $this->updated_at;
   }
 
+  public function getColor(): ?string
+  {
+    return $this->color;
+  }
+
+  public function setColor(?string $color): void
+  {
+    $this->color = $color;
+  }
+
   private function initFromArray(array $data): void
   {
     $this->id = isset($data['id']) ? (int)$data['id'] : null;
     $this->name = $data['name'] ?? '';
     $this->slug = $data['slug'] ?? '';
     $this->is_active = isset($data['is_active']) ? (bool)$data['is_active'] : true;
+    $this->color = $data['color'] ?? '#6c757d';
     $this->created_at = $data['created_at'] ?? null;
     $this->updated_at = $data['updated_at'] ?? null;
   }

@@ -49,7 +49,7 @@ class Product
     try {
       $db = Database::getInstance()->getConnection();
       $stmt = $db->prepare("
-                SELECT p.*, s.name as store_name, c.name as category_name 
+                SELECT p.*, s.name as store_name, c.name as category_name, c.color as category_color 
                 FROM products p 
                 LEFT JOIN stores s ON p.store_id = s.id 
                 LEFT JOIN categories c ON p.category_id = c.id
@@ -90,7 +90,7 @@ class Product
     try {
       $db = Database::getInstance()->getConnection();
       $stmt = $db->prepare("
-                SELECT p.*, s.name as store_name, c.name as category_name 
+                SELECT p.*, s.name as store_name, c.name as category_name, c.color as category_color 
                 FROM products p 
                 LEFT JOIN stores s ON p.store_id = s.id 
                 LEFT JOIN categories c ON p.category_id = c.id 
@@ -112,7 +112,7 @@ class Product
     try {
       $db = Database::getInstance()->getConnection();
       $stmt = $db->prepare("
-                SELECT p.*, s.name as store_name, c.name as category_name 
+                SELECT p.*, s.name as store_name, c.name as category_name, c.color as category_color 
                 FROM products p 
                 LEFT JOIN stores s ON p.store_id = s.id 
                 LEFT JOIN categories c ON p.category_id = c.id 
@@ -375,94 +375,95 @@ class Product
     try {
       $db = Database::getInstance()->getConnection();
       
-      $conditions = ['p.deleted_at IS NULL'];
+      // Base query
+      $query = "
+        SELECT p.*, s.name as store_name, c.name as category_name, c.color as category_color
+        FROM products p 
+        LEFT JOIN stores s ON p.store_id = s.id 
+        LEFT JOIN categories c ON p.category_id = c.id 
+        WHERE p.deleted_at IS NULL
+      ";
+      
       $params = [];
       
-      // Search by keyword (name, sku, or price)
+      // Apply filters
       if (!empty($filters['keyword'])) {
         $keyword = '%' . $filters['keyword'] . '%';
-        $conditions[] = '(p.name LIKE :keyword OR p.sku LIKE :keyword OR CAST(p.regular_price AS CHAR) LIKE :keyword)';
+        $query .= " AND (p.name LIKE :keyword OR p.sku LIKE :keyword OR CAST(p.regular_price AS CHAR) LIKE :keyword)";
         $params['keyword'] = $keyword;
       }
       
-      // Filter by store
       if (!empty($filters['store_id'])) {
-        $conditions[] = 'p.store_id = :store_id';
+        $query .= " AND p.store_id = :store_id";
         $params['store_id'] = $filters['store_id'];
       }
       
-      // Filter by category
-      if ($filters['category_id'] !== null) {
+      if (isset($filters['category_id'])) {
         if ($filters['category_id'] === 0) {
-          $conditions[] = 'p.category_id IS NULL';
+          $query .= " AND p.category_id IS NULL";
         } else {
-          $conditions[] = 'p.category_id = :category_id';
+          $query .= " AND p.category_id = :category_id";
           $params['category_id'] = $filters['category_id'];
         }
       }
       
-      // Filter by active status
       if (isset($filters['is_active'])) {
-        $conditions[] = 'p.is_active = :is_active';
+        $query .= " AND p.is_active = :is_active";
         $params['is_active'] = $filters['is_active'];
       }
       
-      // Build the WHERE clause
-      $whereClause = implode(' AND ', $conditions);
-      
-      // Validate and sanitize sort column
-      $allowedSortColumns = ['name', 'store_name', 'sku', 'regular_price', 'category_name', 'created_at', 'updated_at'];
-      $sortBy = in_array($sortBy, $allowedSortColumns) ? $sortBy : 'created_at';
-      $sortOrder = strtoupper($sortOrder) === 'ASC' ? 'ASC' : 'DESC';
-      
-      // Calculate offset for pagination
-      $offset = ($page - 1) * $perPage;
-      
-      // Get total count for pagination
-      $countStmt = $db->prepare("
-        SELECT COUNT(*) 
-        FROM products p 
-        WHERE $whereClause
-      ");
+      // Count total results
+      $countQuery = str_replace("p.*, s.name as store_name, c.name as category_name, c.color as category_color", "COUNT(*)", $query);
+      $countStmt = $db->prepare($countQuery);
       $countStmt->execute($params);
-      $totalCount = $countStmt->fetchColumn();
+      $total = (int)$countStmt->fetchColumn();
       
-      // Get filtered and sorted results
-      $stmt = $db->prepare("
-        SELECT p.*, s.name as store_name, c.name as category_name 
-        FROM products p 
-        LEFT JOIN stores s ON p.store_id = s.id 
-        LEFT JOIN categories c ON p.category_id = c.id
-        WHERE $whereClause
-        ORDER BY " . ($sortBy === 'store_name' ? 's.name' : ($sortBy === 'category_name' ? 'c.name' : "p.$sortBy")) . " $sortOrder
-        LIMIT :limit OFFSET :offset
-      ");
+      // Apply sorting
+      $allowedSortFields = [
+        'name' => 'p.name',
+        'store_name' => 's.name',
+        'category_name' => 'c.name',
+        'sku' => 'p.sku',
+        'regular_price' => 'p.regular_price',
+        'created_at' => 'p.created_at',
+        'updated_at' => 'p.updated_at'
+      ];
+      
+      $sortField = $allowedSortFields[$sortBy] ?? 'p.created_at';
+      $query .= " ORDER BY {$sortField} {$sortOrder}";
+      
+      // Apply pagination
+      $offset = ($page - 1) * $perPage;
+      $query .= " LIMIT :limit OFFSET :offset";
+      
+      $stmt = $db->prepare($query);
       
       // Bind all parameters
       foreach ($params as $key => $value) {
-        $stmt->bindValue(":$key", $value);
+        $stmt->bindValue(":{$key}", $value);
       }
       $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
       $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
       
       $stmt->execute();
-      $results = $stmt->fetchAll();
+      $data = $stmt->fetchAll();
+      
+      $lastPage = ceil($total / $perPage);
       
       return [
-        'data' => $results,
-        'total' => $totalCount,
-        'page' => $page,
+        'data' => $data,
+        'total' => $total,
         'per_page' => $perPage,
-        'last_page' => ceil($totalCount / $perPage)
+        'page' => $page,
+        'last_page' => $lastPage
       ];
-      
     } catch (PDOException $e) {
       error_log("Database error in Product::findFiltered(): " . $e->getMessage());
       return [
         'data' => [],
         'total' => 0,
-        'page' => $page,
         'per_page' => $perPage,
+        'page' => $page,
         'last_page' => 1
       ];
     }

@@ -163,7 +163,7 @@ $baseUrl .= implode('&', $urlParts);
                                     <td>$<?= number_format($product['regular_price'], 2) ?></td>
                                     <td>
                                         <?php if (!empty($product['category_name'])): ?>
-                                            <span class="badge bg-info">
+                                            <span class="badge" style="background-color: <?= htmlspecialchars($product['category_color'] ?? '#6c757d') ?>">
                                                 <?= htmlspecialchars($product['category_name']) ?>
                                             </span>
                                         <?php else: ?>

@@ -44,7 +44,7 @@
                                    class="form-control" 
                                    id="logo_url" 
                                    name="logo_url" 
-                                   value="<?= htmlspecialchars($store->getLogoUrl() ?? '') ?>"
+                                   value="<?= htmlspecialchars($store->getLogoUrl() ?? 'https://img.logo.dev/xxxxx.com?token=pk_BItyJ-OPQR2skfIDI-whLQ&size=100&retina=true') ?>"
                                    placeholder="https://example.com/logo.png">
                             <div class="form-text">Direct URL to the store's logo image</div>
                         </div>
