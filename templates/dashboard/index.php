@@ -7,10 +7,10 @@
           <div class="row">
             <div class="col-8">
               <div class="numbers">
-                <p class="text-sm mb-0 text-uppercase font-weight-bold text-muted">Active Products</p>
-                <h5 class="font-weight-bolder mb-0">
+                <p class="text-sm mb-0 text-muted text-sm-left">Active Products</p>
+                <h4 class="font-weight-bolder mb-0">
                   <?= $metrics['activeProducts'] ?>
-                </h5>
+                </h4>
               </div>
             </div>
             <div class="col-4 text-end">
@@ -31,10 +31,10 @@
           <div class="row">
             <div class="col-8">
               <div class="numbers">
-                <p class="text-sm mb-0 text-uppercase font-weight-bold text-muted">Active Categories</p>
-                <h5 class="font-weight-bolder mb-0">
+                <p class="text-sm mb-0 text-muted">Active Categories</p>
+                <h4 class="font-weight-bolder mb-0">
                   <?= $metrics['activeCategories'] ?>
-                </h5>
+                </h4>
               </div>
             </div>
             <div class="col-4 text-end">
@@ -55,10 +55,10 @@
           <div class="row">
             <div class="col-8">
               <div class="numbers">
-                <p class="text-sm mb-0 text-uppercase font-weight-bold text-muted">Active Stores</p>
-                <h5 class="font-weight-bolder mb-0">
+                <p class="text-sm mb-0 text-muted">Active Stores</p>
+                <h4 class="font-weight-bolder mb-0">
                   <?= $metrics['activeStores'] ?>
-                </h5>
+                </h4>
               </div>
             </div>
             <div class="col-4 text-end">
@@ -79,10 +79,10 @@
           <div class="row">
             <div class="col-8">
               <div class="numbers">
-                <p class="text-sm mb-0 text-uppercase font-weight-bold text-muted">Outbox</p>
-                <h5 class="font-weight-bolder mb-0">
+                <p class="text-sm mb-0 text-muted">Outbox</p>
+                <h4 class="font-weight-bolder mb-0">
                   <?= $metrics['messagesSentToday'] ?>
-                </h5>
+                </h4>
               </div>
             </div>
             <div class="col-4 text-end">

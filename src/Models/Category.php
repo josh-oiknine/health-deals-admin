@@ -63,9 +63,11 @@ class Category
                 ORDER BY name
             ");
       $stmt->execute();
+
       return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
       error_log("Database error in Category::findAllActive(): " . $e->getMessage());
+
       return [];
     }
   }

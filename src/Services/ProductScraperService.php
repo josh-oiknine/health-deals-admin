@@ -46,7 +46,7 @@ class ProductScraperService
   private function getRandomHeaders(): array
   {
     $userAgent = $this->userAgents[array_rand($this->userAgents)];
-    
+
     return [
       'User-Agent' => $userAgent,
       'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
@@ -103,17 +103,29 @@ class ProductScraperService
       $crawler = $this->fetchPage($url);
 
       // Extract product information using Amazon-specific selectors
-      $name = $this->extractAmazonProductName($crawler, [
+      $name = $this->extractText($crawler, [
         '#productTitle',
         '#title',
         'h1.product-title'
       ]);
-      
-      $price = $this->extractAmazonPrice($crawler, [
+
+      $price = $this->extractPrice($crawler, [
         '.a-price .a-offscreen',
         '#priceblock_ourprice',
         '#priceblock_dealprice',
         '.a-price-whole'
+      ]);
+
+      $description = $this->extractText($crawler, [
+        '#productDescription',
+        '#description',
+        '.a-expander-content'
+      ]);
+
+      $image = $this->extractImage($crawler, [
+        '#landingImage',
+        '#image',
+        '.a-dynamic-image img'
       ]);
 
       return [
@@ -121,7 +133,9 @@ class ProductScraperService
         'data' => [
           'name' => $name,
           'price' => $price,
-          'asin' => $asin,
+          'description' => $description,
+          'image' => $image,
+          'sku' => $asin,
           'store' => 'amazon'
         ]
       ];
@@ -135,100 +149,152 @@ class ProductScraperService
 
   public function scrapeWalmartProduct(string $url): array
   {
-      try {
-          // Improved ID extraction with fallback for different URL formats
-          preg_match('/(?:\/ip\/.*?|\/product\/)(\d+)(?:[?\/]|$)/', $url, $matches);
-          $itemId = $matches[1] ?? null;
-          
-          if (!$itemId || !ctype_digit($itemId)) {
-              throw new Exception('Invalid Walmart URL - Missing numeric item ID');
-          }
+    try {
+      // Improved ID extraction with fallback for different URL formats
+      preg_match('/(?:\/ip\/.*?|\/product\/)(\d+)(?:[?\/]|$)/', $url, $matches);
+      $itemId = $matches[1] ?? null;
 
-          $attempts = 0;
-          $lastError = null;
-          $client = new Client(['timeout' => 15]);
-
-          while ($attempts < self::MAX_RETRIES) {
-              try {
-                  // Get fresh cookies and headers each attempt
-                  $cookieJar = new CookieJar();
-                  $homepageResponse = $client->get('https://www.walmart.com/', [
-                      'cookies' => $cookieJar,
-                      'headers' => $this->getBaseHeaders()
-                  ]);
-
-                  // Improved hash extraction from JSON payload instead of regex
-                  $homepage = (string)$homepageResponse->getBody();
-                  if (!preg_match('/"__APOLLO_STATE__":(\{.*?\})\s*<\/script>/', $homepage, $jsonMatches)) {
-                      throw new Exception("Failed to extract Apollo state");
-                  }
-                  
-                  $apolloState = json_decode($jsonMatches[1], true);
-                  $queryHash = $apolloState['ROOT_QUERY']['__typename']['__r_hash'] ?? null;
-                  
-                  if (!$queryHash || strlen($queryHash) !== 64) {
-                      throw new Exception("Invalid GraphQL query hash");
-                  }
-
-                  // Updated GraphQL endpoint format
-                  $endpoint = "https://www.walmart.com/orchestration/pdp/graphql/v1/query";
-                  
-                  $response = $client->post($endpoint, [
-                      'cookies' => $cookieJar,
-                      'headers' => $this->getGraphQLHeaders($url),
-                      'json' => [
-                          'query' => 'query ItemByIdBtf'.$queryHash,
-                          'variables' => [
-                              'id' => $itemId,
-                              'persistedQuery' => [
-                                  'version' => 1,
-                                  'sha256Hash' => $queryHash
-                              ]
-                          ]
-                      ]
-                  ]);
-
-                  $data = json_decode($response->getBody(), true);
-                  
-                  // Handle GraphQL errors first
-                  if (!empty($data['errors'])) {
-                      throw new Exception("GraphQL Error: ".json_encode($data['errors']));
-                  }
-
-                  // Improved data extraction with fallbacks
-                  $product = $data['data']['product'] ?? [];
-                  if (empty($product)) {
-                      throw new Exception("Product data structure mismatch");
-                  }
-
-                  return [
-                      'success' => true,
-                      'data' => [
-                          'name' => $product['name'] ?? 'N/A',
-                          'price' => $this->extractWalmartPrice($product),
-                          'item_id' => $itemId,
-                          'currency' => $product['priceInfo']['currencyUnit'] ?? 'USD'
-                      ]
-                  ];
-
-              } catch (Exception $e) {
-                  $lastError = $e;
-                  $attempts++;
-                  if ($attempts < self::MAX_RETRIES) {
-                      sleep(pow(2, $attempts)); // Exponential backoff
-                  }
-              }
-          }
-
-          throw new Exception($lastError ? $lastError->getMessage() : 'Maximum retries exceeded');
-
-      } catch (Exception $e) {
-          return [
-              'success' => false,
-              'error' => $e->getMessage(),
-              'code' => $e->getCode()
-          ];
+      if (!$itemId || !ctype_digit($itemId)) {
+        throw new Exception('Invalid Walmart URL - Missing numeric item ID');
       }
+
+      $attempts = 0;
+      $lastError = null;
+      $client = new Client(['timeout' => 15]);
+
+      while ($attempts < self::MAX_RETRIES) {
+        try {
+          // Get fresh cookies and headers each attempt
+          $cookieJar = new CookieJar();
+          $homepageResponse = $client->get('https://www.walmart.com/', [
+            'cookies' => $cookieJar,
+            'headers' => $this->getBaseHeaders()
+          ]);
+
+          // Improved hash extraction from JSON payload instead of regex
+          $homepage = (string)$homepageResponse->getBody();
+          if (!preg_match('/"__APOLLO_STATE__":(\{.*?\})\s*<\/script>/', $homepage, $jsonMatches)) {
+            throw new Exception("Failed to extract Apollo state");
+          }
+
+          $apolloState = json_decode($jsonMatches[1], true);
+          $queryHash = $apolloState['ROOT_QUERY']['__typename']['__r_hash'] ?? null;
+
+          if (!$queryHash || strlen($queryHash) !== 64) {
+            throw new Exception("Invalid GraphQL query hash");
+          }
+
+          // Updated GraphQL endpoint format
+          $endpoint = "https://www.walmart.com/orchestration/pdp/graphql/v1/query";
+
+          $response = $client->post($endpoint, [
+            'cookies' => $cookieJar,
+            'headers' => $this->getGraphQLHeaders($url),
+            'json' => [
+              'query' => 'query ItemByIdBtf'.$queryHash,
+              'variables' => [
+                'id' => $itemId,
+                'persistedQuery' => [
+                  'version' => 1,
+                  'sha256Hash' => $queryHash
+                ]
+              ]
+            ]
+          ]);
+
+          $data = json_decode($response->getBody(), true);
+
+          // Handle GraphQL errors first
+          if (!empty($data['errors'])) {
+            throw new Exception("GraphQL Error: ".json_encode($data['errors']));
+          }
+
+          // Improved data extraction with fallbacks
+          $product = $data['data']['product'] ?? [];
+          if (empty($product)) {
+            throw new Exception("Product data structure mismatch");
+          }
+
+          return [
+            'success' => true,
+            'data' => [
+              'name' => $product['name'] ?? 'N/A',
+              'price' => $this->extractWalmartPrice($product),
+              'sku' => $itemId,
+              'store' => 'walmart'
+            ]
+          ];
+
+        } catch (Exception $e) {
+          $lastError = $e;
+          $attempts++;
+          if ($attempts < self::MAX_RETRIES) {
+            sleep(pow(2, $attempts)); // Exponential backoff
+          }
+        }
+      }
+
+      throw new Exception($lastError ? $lastError->getMessage() : 'Maximum retries exceeded');
+    } catch (Exception $e) {
+      return [
+        'success' => false,
+        'error' => $e->getMessage(),
+        'code' => $e->getCode()
+      ];
+    }
+  }
+
+  public function scrapeTargetProduct(string $url): array
+  {
+    try {
+      // Extract TCIN from URL
+      preg_match('/\/p\/([A-Z0-9]{10})/', $url, $matches);
+      $tcin = $matches[1] ?? null;
+
+      if (!$tcin || !ctype_digit($tcin)) {
+        throw new Exception('Invalid Target URL - Missing numeric TCIN');
+      }
+
+      $crawler = $this->fetchPage($url);
+
+      // Extract product information using Target-specific selectors
+      $name = $this->extractText($crawler, [
+        '#productTitle',
+        '#title',
+        'h1.product-title'
+      ]);
+
+      $price = $this->extractPrice($crawler, [
+        '.price-display',
+        '.price-display-group',
+        '.price-display-group-with-savings'
+      ]);
+
+      $description = $this->extractText($crawler, [
+        '#description',
+        '.product-description-container'
+      ]);
+
+      $image = $this->extractImage($crawler, [
+        '#image',
+        '.product-image'
+      ]);
+
+      return [
+        'success' => true,
+        'data' => [
+          'name' => $name,
+          'price' => $price,
+          'sku' => $tcin,
+          'store' => 'target'
+        ]
+      ];
+    } catch (Exception $e) {
+      return [
+        'success' => false,
+        'error' => $e->getMessage()
+      ];
+    }
   }
 
   // Common
@@ -242,7 +308,7 @@ class ProductScraperService
     }
 
     $html = (string) $response->getBody();
-    
+
     if (empty($html)) {
       throw new Exception('Received empty response from server');
     }
@@ -253,8 +319,27 @@ class ProductScraperService
     return new Crawler($html);
   }
 
+  private static function extractSkuFromUrl(string $url): string
+  {
+    if (strpos($url, 'amazon.com') !== false) {
+      preg_match('/\/dp\/([A-Z0-9]{10})/', $url, $matches);
+
+      return $matches[1] ?? '';
+    } elseif (strpos($url, 'walmart.com') !== false) {
+      preg_match('/(?:\/ip\/.*?|\/product\/)(\d+)(?:[?\/]|$)/', $url, $matches);
+
+      return $matches[1] ?? '';
+    } elseif (strpos($url, 'target.com') !== false) {
+      preg_match('/\/p\/([A-Z0-9]{10})/', $url, $matches);
+
+      return $matches[1] ?? '';
+    }
+
+    return '';
+  }
+
   // Amazon
-  private function extractAmazonProductName(Crawler $crawler, array $selectors): string
+  private function extractText(Crawler $crawler, array $selectors): string
   {
     try {
       foreach ($selectors as $selector) {
@@ -269,7 +354,7 @@ class ProductScraperService
       throw new Exception('Failed to extract product name: ' . $e->getMessage());
     }
   }
-  private function extractAmazonPrice(Crawler $crawler, array $selectors): float
+  private function extractPrice(Crawler $crawler, array $selectors): float
   {
     try {
       foreach ($selectors as $selector) {
@@ -292,11 +377,26 @@ class ProductScraperService
       throw new Exception('Failed to extract price: ' . $e->getMessage());
     }
   }
+  private function extractImage(Crawler $crawler, array $selectors): string
+  {
+    try {
+      foreach ($selectors as $selector) {
+        $element = $crawler->filter($selector)->first();
+        if ($element->count() > 0) {
+          return $element->attr('src');
+        }
+      }
+
+      throw new Exception('Image not found');
+    } catch (Exception $e) {
+      throw new Exception('Failed to extract image: ' . $e->getMessage());
+    }
+  }
 
   // Walmart
   private function extractWalmartPrice(array $product): float
   {
-    return $product['priceInfo']['currentPrice']['price'] 
+    return $product['priceInfo']['currentPrice']['price']
       ?? $product['priceInfo']['wasPrice']['price']
       ?? $product['priceInfo']['priceRange']['minPrice']
       ?? 0.0;

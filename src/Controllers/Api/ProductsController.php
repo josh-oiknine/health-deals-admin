@@ -32,13 +32,16 @@ class ProductsController
     // Determine store type from URL
     if (strpos($url, 'amazon.com') !== false) {
       $result = $this->scraperService->scrapeAmazonProduct($url);
-    } else if (strpos($url, 'walmart.com') !== false) {
+    } elseif (strpos($url, 'walmart.com') !== false) {
       $result = $this->scraperService->scrapeWalmartProduct($url);
+    } elseif (strpos($url, 'target.com') !== false) {
+      $result = $this->scraperService->scrapeTargetProduct($url);
     } else {
       $response->getBody()->write(json_encode([
         'success' => false,
-        'error' => 'Unsupported store. Currently supporting: Amazon, Walmart'
+        'error' => 'Unsupported store. Currently supporting: Amazon, Walmart, Target'
       ]));
+
       return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
     }
 

@@ -1,12 +1,14 @@
 <?php
 
+use App\Controllers\Api\DealsController as ApiDealsController;
 use App\Controllers\Api\ProductsController as ApiProductsController;
 use App\Controllers\AuthController;
 use App\Controllers\CategoriesController;
 use App\Controllers\DashboardController;
+use App\Controllers\DealsController;
 use App\Controllers\ProductsController;
-use App\Controllers\StoresController;
 use App\Controllers\SettingsController;
+use App\Controllers\StoresController;
 use App\Middleware\AuthMiddleware;
 use Slim\Routing\RouteCollectorProxy;
 
@@ -56,6 +58,14 @@ $app->group('', function (RouteCollectorProxy $group) {
 
   $group->post('/api/products/add', [ProductsController::class, 'apiAdd']);
 
+  // Deal routes
+  $group->get('/deals', [DealsController::class, 'index'])->setName('deals');
+  $group->get('/deals/add', [DealsController::class, 'add']);
+  $group->post('/deals/add', [DealsController::class, 'add']);
+  $group->get('/deals/edit/{id}', [DealsController::class, 'edit']);
+  $group->post('/deals/edit/{id}', [DealsController::class, 'edit']);
+  $group->post('/deals/delete/{id}', [DealsController::class, 'delete']);
+
   // Settings routes
   $group->get('/settings', [SettingsController::class, 'index'])->setName('settings');
   $group->post('/settings/change-password', [SettingsController::class, 'changePassword']);
@@ -64,11 +74,9 @@ $app->group('', function (RouteCollectorProxy $group) {
 
   // API routes
   $group->get('/api/products/fetch-info', [ApiProductsController::class, 'fetchInfo']);
+  $group->get('/api/deals/fetch-info', [ApiDealsController::class, 'fetchInfo']);
 
   // Placeholder routes for future implementation
-  $group->get('/deals', function ($request, $response) {
-    return $response->withHeader('Location', '/dashboard');
-  });
   $group->get('/outbox', function ($request, $response) {
     return $response->withHeader('Location', '/dashboard');
   });

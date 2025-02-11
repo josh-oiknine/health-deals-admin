@@ -246,7 +246,8 @@ document.getElementById('fetchProductInfo').addEventListener('click', async func
             Array.from(storeSelect.options).forEach(option => {
                 const storeName = option.text.toLowerCase();
                 if (url.includes('amazon.com') && storeName.includes('amazon') ||
-                    url.includes('walmart.com') && storeName.includes('walmart')) {
+                    url.includes('walmart.com') && storeName.includes('walmart') ||
+                    url.includes('target.com') && storeName.includes('target')) {
                     option.selected = true;
                 }
             });

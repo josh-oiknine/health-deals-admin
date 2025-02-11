@@ -7,9 +7,10 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 use App\Controllers\AuthController;
-use App\Controllers\CategoriesController;
 use App\Controllers\DashboardController;
 use App\Controllers\ProductsController;
+use App\Controllers\DealsController;
+use App\Controllers\CategoriesController;
 use App\Controllers\StoresController;
 use App\Controllers\SettingsController;
 use App\Database\Database;
@@ -52,14 +53,17 @@ $containerBuilder->addDefinitions([
   DashboardController::class => function (Container $container) {
     return new DashboardController($container);
   },
-  StoresController::class => function (Container $container) {
-    return new StoresController($container);
-  },
   ProductsController::class => function (Container $container) {
     return new ProductsController($container);
   },
+  DealsController::class => function (Container $container) {
+    return new DealsController($container);
+  },
   CategoriesController::class => function (Container $container) {
     return new CategoriesController($container);
+  },
+  StoresController::class => function (Container $container) {
+    return new StoresController($container);
   },
   SettingsController::class => function (Container $container) {
     return new SettingsController($container);
