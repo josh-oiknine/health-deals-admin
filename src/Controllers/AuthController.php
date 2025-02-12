@@ -66,11 +66,12 @@ class AuthController
       if ($authToken) {
         try {
           $decoded = JWT::decode($authToken, new Key($_ENV['JWT_SECRET'], 'HS256'));
-          if ($decoded->user_id === $user['id'] && 
-              isset($decoded->mfa_verified_until) && 
+          if ($decoded->user_id === $user['id'] &&
+              isset($decoded->mfa_verified_until) &&
               $decoded->mfa_verified_until > time()) {
             // MFA is still valid, create new token and redirect to dashboard
             $this->createAndSetToken($user['id'], $user['email']);
+
             return $response->withHeader('Location', '/dashboard')->withStatus(302);
           }
         } catch (Exception $e) {
@@ -260,6 +261,7 @@ class AuthController
         'status' => 'error',
         'message' => 'Email and password are required'
       ]));
+
       return $response->withStatus(400);
     }
 
@@ -272,6 +274,7 @@ class AuthController
         'status' => 'error',
         'message' => 'Invalid credentials'
       ]));
+
       return $response->withStatus(401);
     }
 
@@ -281,6 +284,7 @@ class AuthController
         'status' => 'error',
         'message' => 'Two-factor authentication setup required'
       ]));
+
       return $response->withStatus(403);
     }
 
@@ -292,6 +296,7 @@ class AuthController
       'message' => 'Authentication successful',
       'auth_token' => $jwt
     ]));
+
     return $response->withStatus(200);
   }
 
@@ -312,6 +317,7 @@ class AuthController
         'status' => 'error',
         'message' => 'No token provided or invalid format'
       ]));
+
       return $response->withStatus(401);
     }
 
@@ -324,30 +330,32 @@ class AuthController
         error_log('AuthMiddleware: JWT_SECRET is not set in environment variables');
         throw new Exception('JWT_SECRET not configured');
       }
-      
+
       // Attempt to decode the token
       $decoded = JWT::decode($token, new Key($jwtSecret, 'HS256'));
-      
+
       // Check if token is expired
       if (isset($decoded->exp) && $decoded->exp < time()) {
-        throw new \Exception('Token has expired');
+        throw new Exception('Token has expired');
       }
 
       $response->getBody()->write(json_encode([
         'status' => 'success',
         'message' => 'Token is valid'
       ]));
+
       return $response->withStatus(200);
 
-    } catch (\Exception $e) {
+    } catch (Exception $e) {
       $response->getBody()->write(json_encode([
         'status' => 'error',
         'message' => 'Invalid or expired token'
       ]));
+
       return $response->withStatus(401);
     }
   }
-  
+
   // Handle OPTIONS preflight request
   public function handleOptionsRequest(Request $request, Response $response)
   {

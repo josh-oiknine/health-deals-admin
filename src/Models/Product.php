@@ -127,6 +127,24 @@ class Product
 
       return null;
     }
+  } 
+
+  public static function findBySlug(string $slug): ?array
+  {
+    try {
+      $db = Database::getInstance()->getConnection();
+      $stmt = $db->prepare("
+        SELECT COUNT(*) FROM products WHERE slug = :slug AND deleted_at IS NULL
+      ");
+      $stmt->execute(['slug' => $slug]);
+      $result = $stmt->fetchColumn();
+
+      return $result ?: null;
+    } catch (PDOException $e) {
+      error_log("Database error in Product::findBySlug(): " . $e->getMessage());
+
+      return null;
+    }
   }
 
   public function save(): bool
@@ -245,40 +263,6 @@ class Product
     }
   }
 
-  public static function getLatestDeals($limit = 18)
-  {
-    try {
-      $db = Database::getInstance()->getConnection();
-      $stmt = $db->prepare("
-                SELECT
-                  products.*,
-                  price_history.price as current_price,
-                  price_history.created_at as price_updated_at
-                FROM
-                  products 
-                  LEFT JOIN price_history ON products.id = price_history.product_id
-                WHERE
-                  price_history.price < products.regular_price
-                  AND price_history.created_at = (
-                    SELECT MAX(created_at) 
-                    FROM price_history ph 
-                    WHERE ph.product_id = products.id
-                  )
-                  AND products.deleted_at IS NULL
-                ORDER BY price_history.created_at DESC
-                LIMIT :limit
-            ");
-      $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
-      $stmt->execute();
-
-      return $stmt->fetchAll();
-    } catch (PDOException $e) {
-      error_log("Database error in Product::getLatestDeals(): " . $e->getMessage());
-
-      return [];
-    }
-  }
-
   public function getStore(): ?Store
   {
     if ($this->store === null && $this->store_id) {
@@ -374,7 +358,7 @@ class Product
   {
     try {
       $db = Database::getInstance()->getConnection();
-      
+
       // Base query
       $query = "
         SELECT p.*, s.name as store_name, c.name as category_name, c.color as category_color
@@ -383,21 +367,21 @@ class Product
         LEFT JOIN categories c ON p.category_id = c.id 
         WHERE p.deleted_at IS NULL
       ";
-      
+
       $params = [];
-      
+
       // Apply filters
       if (!empty($filters['keyword'])) {
         $keyword = '%' . $filters['keyword'] . '%';
         $query .= " AND (p.name LIKE :keyword OR p.sku LIKE :keyword OR CAST(p.regular_price AS CHAR) LIKE :keyword)";
         $params['keyword'] = $keyword;
       }
-      
+
       if (!empty($filters['store_id'])) {
         $query .= " AND p.store_id = :store_id";
         $params['store_id'] = $filters['store_id'];
       }
-      
+
       if (isset($filters['category_id'])) {
         if ($filters['category_id'] === 0) {
           $query .= " AND p.category_id IS NULL";
@@ -406,18 +390,18 @@ class Product
           $params['category_id'] = $filters['category_id'];
         }
       }
-      
+
       if (isset($filters['is_active'])) {
         $query .= " AND p.is_active = :is_active";
         $params['is_active'] = $filters['is_active'];
       }
-      
+
       // Count total results
       $countQuery = str_replace("p.*, s.name as store_name, c.name as category_name, c.color as category_color", "COUNT(*)", $query);
       $countStmt = $db->prepare($countQuery);
       $countStmt->execute($params);
       $total = (int)$countStmt->fetchColumn();
-      
+
       // Apply sorting
       $allowedSortFields = [
         'name' => 'p.name',
@@ -428,28 +412,28 @@ class Product
         'created_at' => 'p.created_at',
         'updated_at' => 'p.updated_at'
       ];
-      
+
       $sortField = $allowedSortFields[$sortBy] ?? 'p.created_at';
       $query .= " ORDER BY {$sortField} {$sortOrder}";
-      
+
       // Apply pagination
       $offset = ($page - 1) * $perPage;
       $query .= " LIMIT :limit OFFSET :offset";
-      
+
       $stmt = $db->prepare($query);
-      
+
       // Bind all parameters
       foreach ($params as $key => $value) {
         $stmt->bindValue(":{$key}", $value);
       }
       $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
       $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-      
+
       $stmt->execute();
       $data = $stmt->fetchAll();
-      
+
       $lastPage = ceil($total / $perPage);
-      
+
       return [
         'data' => $data,
         'total' => $total,
@@ -459,6 +443,7 @@ class Product
       ];
     } catch (PDOException $e) {
       error_log("Database error in Product::findFiltered(): " . $e->getMessage());
+
       return [
         'data' => [],
         'total' => 0,
@@ -466,6 +451,28 @@ class Product
         'page' => $page,
         'last_page' => 1
       ];
+    }
+  }
+
+  public static function getProductsPerDay(int $days = 7): array
+  {
+    try {
+      $db = Database::getInstance()->getConnection();
+      $stmt = $db->prepare("
+        SELECT DAY(created_at) as date, COUNT(*) as count
+        FROM products
+        WHERE created_at >= NOW() - (INTERVAL '1 day' * :days)
+        GROUP BY DATE(created_at)
+        ORDER BY DATE(created_at)
+      ");
+      $stmt->bindParam(':days', $days, PDO::FETCH_KEY_PAIR);
+      $stmt->execute();
+
+      return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+      error_log("Error in Product::getProductsPerDay(): " . $e->getMessage());
+
+      return [];
     }
   }
 }

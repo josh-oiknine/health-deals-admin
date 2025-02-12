@@ -19,6 +19,7 @@ class AuthMiddleware
     // Check if token exists
     if (!$token) {
       error_log('AuthMiddleware: auth token not found');
+
       return $response
         ->withHeader('Location', '/')
         ->withStatus(302);
@@ -31,7 +32,7 @@ class AuthMiddleware
         error_log('AuthMiddleware: JWT_SECRET is not set in environment variables');
         throw new Exception('JWT_SECRET not configured');
       }
-      
+
       // Attempt to decode the token
       $decoded = JWT::decode($token, new Key($jwtSecret, 'HS256'));
 

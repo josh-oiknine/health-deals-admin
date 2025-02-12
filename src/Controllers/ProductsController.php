@@ -8,9 +8,9 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\Store;
 use Exception;
+use GuzzleHttp\Client;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
-use GuzzleHttp\Client;
 
 class ProductsController
 {
@@ -27,32 +27,32 @@ class ProductsController
     $queryParams = $request->getQueryParams();
     $page = max(1, intval($queryParams['page'] ?? 1));
     $perPage = max(1, min(100, intval($queryParams['per_page'] ?? 20)));
-    
+
     // Get filter parameters
     $filters = [
       'keyword' => $queryParams['keyword'] ?? '',
       'store_id' => !empty($queryParams['store_id']) ? (int)$queryParams['store_id'] : null,
-      'category_id' => isset($queryParams['category_id']) && $queryParams['category_id'] !== '' 
+      'category_id' => isset($queryParams['category_id']) && $queryParams['category_id'] !== ''
         ? ($queryParams['category_id'] === '0' ? 0 : (int)$queryParams['category_id'])
         : null
     ];
-    
+
     // Handle active/inactive filter
     if (isset($queryParams['is_active']) && $queryParams['is_active'] !== '') {
       $filters['is_active'] = $queryParams['is_active'] === '1';
     }
-    
+
     // Get sorting parameters
     $sortBy = $queryParams['sort_by'] ?? 'created_at';
     $sortOrder = strtoupper($queryParams['sort_order'] ?? 'DESC') === 'ASC' ? 'ASC' : 'DESC';
-    
+
     // Get filtered products
     $result = Product::findFiltered($filters, $sortBy, $sortOrder, $page, $perPage);
-    
+
     // Get all stores and categories for filters
     $stores = Store::findAllActive();
     $categories = Category::findAllActive();
-    
+
     return $this->view->render($response, 'products/index.php', [
       'products' => $result['data'],
       'pagination' => [
@@ -101,6 +101,7 @@ class ProductsController
           $existingProduct = Product::findBySku($sku);
           if ($existingProduct) {
             $error = 'Duplicate SKU. Please use a unique SKU.';
+
             return $this->view->render($response, 'products/form.php', [
               'product' => $product,
               'stores' => $stores,
@@ -212,7 +213,7 @@ class ProductsController
     $url = $data['url'] ?? '';
     $regularPrice = $data['regular_price'] ?? 0.0;
     $sku = $data['sku'] ?? null;
-    
+
     // JSON DATA
     if (empty($name) || empty($url) || empty($regularPrice) || empty($sku)) {
       $rawBody = $request->getBody()->__toString();
@@ -228,6 +229,7 @@ class ProductsController
         'status' => 'error',
         'message' => 'Missing required fields'
       ]));
+
       return $response->withStatus(400);
     }
 
@@ -238,6 +240,7 @@ class ProductsController
         'status' => 'error',
         'message' => 'Duplicate SKU. Please use a unique SKU.'
       ]));
+
       return $response->withStatus(400);
     }
 
@@ -255,10 +258,25 @@ class ProductsController
         'status' => 'error',
         'message' => 'Store ' . $domain . ' not found'
       ]));
+
       return $response->withStatus(400);
     }
 
     $slug = self::makeSlug($name);
+
+    // Make sure the slug is unique
+    $existingProduct = Product::findBySlug($slug);
+    if ($existingProduct && $existingProduct > 0) {
+      $length = strlen($slug);
+      if ($length > 100) {
+        $slug = substr($slug, 0, 85);
+      }
+      $lastUnderscore = strrpos($slug, '_');
+      if ($lastUnderscore !== false) {
+        $slug = substr($slug, 0, $lastUnderscore);
+      }
+      $slug = $slug . '_' . date('YmdHis');
+    }
 
     // if I've made it here then I want to add in some AI to decide what the category should be based on the Product Name and/or URL
     $category = self::decideCategory($name, $url);
@@ -286,6 +304,7 @@ class ProductsController
         'status' => 'error',
         'message' => 'Failed to save the product. Please try again.'
       ]));
+
       return $response->withStatus(400);
     }
 
@@ -293,6 +312,7 @@ class ProductsController
       'status' => 'error',
       'message' => 'Failed to save the product. Please try again.'
     ]));
+
     return $response->withStatus(400);
   }
 
@@ -302,7 +322,7 @@ class ProductsController
     $slug = strtolower($name);
     $slug = preg_replace('/[^a-z0-9]+/', '_', $slug);
     $slug = preg_replace('/^_|_$/', '', $slug);
-      
+
     // If slug is longer than maxLength, trim it at the last underscore before maxLength
     if (strlen($slug) > $maxLength) {
       $slug = substr($slug, 0, $maxLength);
@@ -312,7 +332,7 @@ class ProductsController
         $slug = substr($slug, 0, $lastUnderscore);
       }
     }
-    
+
     return $slug;
   }
 
@@ -320,9 +340,10 @@ class ProductsController
   {
     try {
       $apiKey = $_ENV['GEMINI_API_KEY'];
-      
+
       if (empty($apiKey)) {
         error_log('Gemini API key is not configured');
+
         return 'Uncategorized';
       }
 
@@ -331,14 +352,15 @@ class ProductsController
       $categories = Category::findAllActive();
       if (empty($categories)) {
         error_log('No categories found in the database');
+
         return 'Uncategorized';
       }
 
-      $categoryNames = array_map(function($category) {
+      $categoryNames = array_map(function ($category) {
         return $category['name'];
       }, $categories);
       $listOfCategories = implode(', ', $categoryNames);
-    
+
       // $promptTemplate = "
       //   You are a product categorization expert. Given a product name, URL, and list of available categories, analyze the product and return ONLY the
       //   single most appropriate category name from the provided list. Do not include any explanation, commentary, or additional text - just output the
@@ -394,17 +416,19 @@ class ProductsController
       ]);
 
       $statusCode = $response->getStatusCode();
-      
+
       if ($statusCode !== 200) {
         error_log("Gemini API request failed with status code: {$statusCode}");
         error_log("Response body: " . $response->getBody()->getContents());
+
         return 'Uncategorized';
       }
 
       $responseData = json_decode($response->getBody()->getContents(), true);
-      
+
       if (json_last_error() !== JSON_ERROR_NONE) {
         error_log('Failed to parse Gemini API response: ' . json_last_error_msg());
+
         return 'Uncategorized';
       }
 
@@ -423,11 +447,12 @@ class ProductsController
           break;
         }
       }
-      
+
       return $categoryId;
 
     } catch (Exception $e) {
       error_log('Error in decideCategory: ' . $e->getMessage());
+
       return 'Uncategorized';
     }
   }

@@ -86,6 +86,12 @@ php vendor/bin/phinx seed:run -s CategorySeeder
 ```bash
 # Fix code style
 php vendor/bin/php-cs-fixer fix
+
+# Fix code style for a specific directory
+php vendor/bin/php-cs-fixer fix /var/www/health-deals-admin/src/
+
+# Fix code style for a specific file
+php vendor/bin/php-cs-fixer fix /var/www/health-deals-admin/src/Controllers/ProductsController.php
 ```
 
 #### Service Management

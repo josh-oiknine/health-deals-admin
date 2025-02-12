@@ -31,3 +31,5 @@ Thumbs.db
 /storage/framework/cache/*
 /storage/framework/sessions/*
 /storage/framework/views/* 
+.php-cs-fixer.cache
+.production.env
