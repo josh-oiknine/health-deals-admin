@@ -102,6 +102,7 @@ class Deal
                     affiliate_url,
                     is_active,
                     is_featured,
+                    is_expired,
                     created_at,
                     updated_at
                 ) VALUES (
