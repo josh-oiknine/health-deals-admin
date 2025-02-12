@@ -11,6 +11,7 @@ class CategoriesSeeder extends AbstractSeed
         'name' => 'Beauty',
         'slug' => 'beauty',
         'is_active' => true,
+        'color' => '#FF6B6B',
         'created_at' => date('Y-m-d H:i:s'),
         'updated_at' => date('Y-m-d H:i:s')
       ],
@@ -18,6 +19,7 @@ class CategoriesSeeder extends AbstractSeed
         'name' => 'Clothing',
         'slug' => 'clothing',
         'is_active' => true,
+        'color' => '#FF6B6B',
         'created_at' => date('Y-m-d H:i:s'),
         'updated_at' => date('Y-m-d H:i:s')
       ],
@@ -25,6 +27,7 @@ class CategoriesSeeder extends AbstractSeed
         'name' => 'Fitness',
         'slug' => 'fitness',
         'is_active' => true,
+        'color' => '#FF6B6B',
         'created_at' => date('Y-m-d H:i:s'),
         'updated_at' => date('Y-m-d H:i:s')
       ],
@@ -32,6 +35,7 @@ class CategoriesSeeder extends AbstractSeed
         'name' => 'Grocery',
         'slug' => 'grocery',
         'is_active' => true,
+        'color' => '#FF6B6B',
         'created_at' => date('Y-m-d H:i:s'),
         'updated_at' => date('Y-m-d H:i:s')
       ],
@@ -39,6 +43,7 @@ class CategoriesSeeder extends AbstractSeed
         'name' => 'Home Essentials',
         'slug' => 'home_essentials',
         'is_active' => true,
+        'color' => '#FF6B6B',
         'created_at' => date('Y-m-d H:i:s'),
         'updated_at' => date('Y-m-d H:i:s')
       ],
@@ -46,6 +51,7 @@ class CategoriesSeeder extends AbstractSeed
         'name' => 'Personal Care',
         'slug' => 'personal_care',
         'is_active' => true,
+        'color' => '#FF6B6B',
         'created_at' => date('Y-m-d H:i:s'),
         'updated_at' => date('Y-m-d H:i:s')
       ],
@@ -53,6 +59,7 @@ class CategoriesSeeder extends AbstractSeed
         'name' => 'Pets',
         'slug' => 'pets',
         'is_active' => true,
+        'color' => '#FF6B6B',
         'created_at' => date('Y-m-d H:i:s'),
         'updated_at' => date('Y-m-d H:i:s')
       ],
@@ -60,6 +67,7 @@ class CategoriesSeeder extends AbstractSeed
         'name' => 'Wellness',
         'slug' => 'wellness',
         'is_active' => true,
+        'color' => '#FF6B6B',
         'created_at' => date('Y-m-d H:i:s'),
         'updated_at' => date('Y-m-d H:i:s')
       ]

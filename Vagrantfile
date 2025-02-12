@@ -151,6 +151,6 @@ EOL
     sudo -u vagrant php vendor/bin/phinx migrate -e development
     sudo -u vagrant php vendor/bin/phinx seed:run -e development
     
-    echo "Installation completed! You can access the site at http://192.168.56.10"
+    echo "Installation completed! You can access the site at http://localhost:8080"
   SHELL
 end 

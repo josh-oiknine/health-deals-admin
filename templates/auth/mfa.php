@@ -9,13 +9,13 @@
                 </div>
             <?php endif; ?>
 
-            <p class="text-center mb-4">Please enter the verification code sent to your device.</p>
+            <p class="text-center mb-4">Please enter the verification from your device.</p>
 
             <form action="/verify-mfa" method="POST">
                 <div class="mb-3">
                     <label for="mfa_code" class="form-label">Verification Code</label>
                     <input type="text" class="form-control form-control-lg text-center" id="mfa_code" name="mfa_code" 
-                           maxlength="6" pattern="\d{6}" title="Please enter a 6-digit code" required>
+                        maxlength="6" pattern="\d{6}" title="Please enter a 6-digit code" required>
                 </div>
                 <button type="submit" class="btn btn-primary w-100">Verify</button>
             </form>
