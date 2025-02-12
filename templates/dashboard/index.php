@@ -13,7 +13,7 @@
                       <i class="bi bi-box" style="font-size: 0.75rem;"></i>
                     </span>
                   </a>
-                  Active Products
+                  Products
                 </p>
                 <h3 class="font-weight-bolder m-2 mb-1">
                   <?= $metrics['activeProducts'] ?>
@@ -42,7 +42,7 @@
                       <i class="bi bi-tag" style="font-size: 0.75rem;"></i>
                     </span>
                   </a>
-                  Active Deals
+                  Deals
                 </p>
                 <h3 class="font-weight-bolder m-2 mb-1">
                   <?= $metrics['activeDeals'] ?>
@@ -71,7 +71,7 @@
                       <i class="bi bi-tags" style="font-size: 0.75rem;"></i>
                     </span>
                   </a>
-                  Active Categories
+                  Categories
                 </p>
                 <h3 class="font-weight-bolder m-2 mb-1">
                   <?= $metrics['activeCategories'] ?>
@@ -98,7 +98,7 @@
                       <i class="bi bi-shop" style="font-size: 0.75rem;"></i>
                     </span>
                   </a>
-                  Active Stores
+                  Stores
                 </p>
                 <h3 class="font-weight-bolder m-2 mb-1">
                   <?= $metrics['activeStores'] ?>
