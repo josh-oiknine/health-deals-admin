@@ -88,34 +88,43 @@ $title = $isEdit ? 'Edit Deal' : 'Add Deal';
                         </div>
 
                         <div class="mb-3">
-                            <label for="image_url" class="form-label">Image URL</label>
-                            <input type="url" 
-                                   class="form-control" 
-                                   id="image_url" 
-                                   name="image_url" 
-                                   value="<?= htmlspecialchars($deal['image_url'] ?? '') ?>">
-                            <div class="form-text">URL of the product image</div>
-                            <?php if (!empty($deal['image_url'])): ?>
-                                <div class="mt-2">
-                                    <img src="<?= htmlspecialchars($deal['image_url']) ?>" 
-                                         alt="Product image" 
-                                         class="img-thumbnail" 
-                                         style="max-height: 150px;">
-                                </div>
-                            <?php endif; ?>
-                            <div id="imagePreview" class="mt-2 d-none">
-                                <img src="" alt="Image preview" class="img-thumbnail" style="max-height: 150px;">
+                          <div class="row">
+                            <div class="col-md-6">
+                              <label for="image_url" class="form-label">Image URL</label>
+                              <input type="url" 
+                                class="form-control" 
+                                id="image_url" 
+                                name="image_url" 
+                                value="<?= htmlspecialchars($deal['image_url'] ?? '') ?>">
+                              <div class="form-text">URL of the product image</div>
                             </div>
+                            <div class="col-md-6 text-center">
+                              <div id="imagePreview" class="mt-2 d-none">
+                                <img src="" alt="Image preview" id="img-thumbnail" style="max-height: 150px;">
+                              </div>
+                            </div>
+                          </div>
                         </div>
 
                         <div class="mb-3">
-                            <label for="product_id" class="form-label">Product</label>
-                            <input type="text" 
-                                   class="form-control" 
-                                   id="product_id" 
-                                   name="product_id" 
-                                   value="<?= htmlspecialchars($deal['product_id'] ?? '') ?>">
-                            <div class="form-text">Link this deal to an existing product (optional)</div>
+                          <div class="row">
+                            <div class="col-md-6">
+                              <label for="product_id" class="form-label">Product</label>
+                              <input type="text" 
+                                class="form-control" 
+                                id="product_id" 
+                                name="product_id" 
+                                value="<?= htmlspecialchars($deal['product_id'] ?? '') ?>">
+                              <div class="form-text">Link this deal to an existing product (optional)</div>
+                            </div>
+                            <div class="col-md-6 d-flex align-items-center justify-content-center">
+                              <a
+                                href="#"
+                                target="_blank"
+                                id="edit-product-link"
+                                class="btn btn-sm btn-outline-secondary">Edit Product</a>
+                            </div>
+                          </div>
                         </div>
 
                         <div class="mb-3">
@@ -189,6 +198,18 @@ $title = $isEdit ? 'Edit Deal' : 'Add Deal';
                                 <label class="form-check-label" for="is_featured">Featured Deal</label>
                             </div>
                             <div class="form-text">Featured deals appear in prominent positions</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input type="checkbox" 
+                                       class="form-check-input" 
+                                       id="is_expired" 
+                                       name="is_expired" 
+                                       <?= (!empty($deal['is_expired'])) ? 'checked' : '' ?>>
+                                <label class="form-check-label" for="is_expired">Expired Deal</label>
+                            </div>
+                            <div class="form-text">Expired deals will still be visible to users</div>
                         </div>
 
                         <div class="d-flex justify-content-between">
@@ -271,9 +292,28 @@ function updateImagePreview(url) {
     }
 }
 
+function updateProductLink(productId) {
+  const productButton = document.getElementById('edit-product-link');
+
+  if (productId) {
+    productButton.href = `/products/edit/${productId}`;
+    productButton.classList.add('btn-primary');
+    productButton.classList.remove('btn-outline-secondary');
+  } else {
+    productButton.href = '#';
+    productButton.classList.remove('btn-primary');
+    productButton.classList.add('btn-outline-secondary');
+  }
+}
+
 // Handle image URL changes
 document.getElementById('image_url').addEventListener('input', function(e) {
     updateImagePreview(e.target.value);
+});
+
+// Handle product ID changes
+document.getElementById('product_id').addEventListener('input', function(e) {
+    updateProductLink(e.target.value);
 });
 
 // Handle URL parsing and deal info fetching
@@ -296,13 +336,15 @@ document.getElementById('fetchDealInfo').addEventListener('click', async functio
         
         if (data.success) {
             // Populate form fields with fetched data
-            document.getElementById('title').value = data.title || '';
-            document.getElementById('description').value = data.description || '';
-            document.getElementById('image_url').value = data.image_url || '';
-            updateImagePreview(data.image_url);
+            document.getElementById('title').value = data.data.name || '';
+            document.getElementById('description').value = data.data.description || '';
+            document.getElementById('image_url').value = data.data.image || '';
+            updateImagePreview(data.data.image);
+            document.getElementById('deal_price').value = data.data.price || '';
             
             if (data.product) {
                 document.getElementById('product_id').value = data.product.id;
+                updateProductLink(data.product.id);
                 document.getElementById('store_id').value = data.product.store_id;
                 document.getElementById('category_id').value = data.product.category_id || '';
                 document.getElementById('original_price').value = data.product.regular_price;

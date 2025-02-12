@@ -184,3 +184,29 @@
 .tooltip.bs-tooltip-end .tooltip-arrow::before {
   border-right-color: #212529;
 }
+
+.grayscale {
+  filter: grayscale(100%);
+  -webkit-filter: grayscale(100%); /* For Safari 6.0 - 9.0 */
+}
+
+.grayscale-overlay {
+  position: relative;
+  display: inline-block;
+}
+
+.grayscale-overlay img {
+  filter: grayscale(100%);
+  -webkit-filter: grayscale(100%);
+}
+
+.grayscale-overlay::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.3); /* Adjust the last value (0.3) for darkness level */
+  pointer-events: none; /* Allows clicks to pass through to the image */
+}

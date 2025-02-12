@@ -256,7 +256,7 @@ document.getElementById('fetchProductInfo').addEventListener('click', async func
             const data = responseData.data;
             document.getElementById('name').value = data.name;
             document.getElementById('slug').value = createSlug(data.name);
-            document.getElementById('sku').value = data.asin || data.item_id || '';
+            document.getElementById('sku').value = data.sku || '';
             document.getElementById('regular_price').value = data.price;
             
             showNotification('Product information fetched successfully', 'success');

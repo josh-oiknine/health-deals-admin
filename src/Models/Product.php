@@ -127,6 +127,24 @@ class Product
 
       return null;
     }
+  } 
+
+  public static function findBySlug(string $slug): ?array
+  {
+    try {
+      $db = Database::getInstance()->getConnection();
+      $stmt = $db->prepare("
+        SELECT COUNT(*) FROM products WHERE slug = :slug AND deleted_at IS NULL
+      ");
+      $stmt->execute(['slug' => $slug]);
+      $result = $stmt->fetchColumn();
+
+      return $result ?: null;
+    } catch (PDOException $e) {
+      error_log("Database error in Product::findBySlug(): " . $e->getMessage());
+
+      return null;
+    }
   }
 
   public function save(): bool
@@ -242,40 +260,6 @@ class Product
       error_log("Database error in Product::countActive(): " . $e->getMessage());
 
       return 0;
-    }
-  }
-
-  public static function getLatestDeals($limit = 18)
-  {
-    try {
-      $db = Database::getInstance()->getConnection();
-      $stmt = $db->prepare("
-                SELECT
-                  products.*,
-                  price_history.price as current_price,
-                  price_history.created_at as price_updated_at
-                FROM
-                  products 
-                  LEFT JOIN price_history ON products.id = price_history.product_id
-                WHERE
-                  price_history.price < products.regular_price
-                  AND price_history.created_at = (
-                    SELECT MAX(created_at) 
-                    FROM price_history ph 
-                    WHERE ph.product_id = products.id
-                  )
-                  AND products.deleted_at IS NULL
-                ORDER BY price_history.created_at DESC
-                LIMIT :limit
-            ");
-      $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
-      $stmt->execute();
-
-      return $stmt->fetchAll();
-    } catch (PDOException $e) {
-      error_log("Database error in Product::getLatestDeals(): " . $e->getMessage());
-
-      return [];
     }
   }
 
@@ -467,6 +451,28 @@ class Product
         'page' => $page,
         'last_page' => 1
       ];
+    }
+  }
+
+  public static function getProductsPerDay(int $days = 7): array
+  {
+    try {
+      $db = Database::getInstance()->getConnection();
+      $stmt = $db->prepare("
+        SELECT DAY(created_at) as date, COUNT(*) as count
+        FROM products
+        WHERE created_at >= NOW() - (INTERVAL '1 day' * :days)
+        GROUP BY DATE(created_at)
+        ORDER BY DATE(created_at)
+      ");
+      $stmt->bindParam(':days', $days, PDO::FETCH_KEY_PAIR);
+      $stmt->execute();
+
+      return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+      error_log("Error in Product::getProductsPerDay(): " . $e->getMessage());
+
+      return [];
     }
   }
 }

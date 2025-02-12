@@ -319,7 +319,7 @@ class ProductScraperService
     return new Crawler($html);
   }
 
-  private static function extractSkuFromUrl(string $url): string
+  public static function extractSkuFromUrl(string $url): string
   {
     if (strpos($url, 'amazon.com') !== false) {
       preg_match('/\/dp\/([A-Z0-9]{10})/', $url, $matches);

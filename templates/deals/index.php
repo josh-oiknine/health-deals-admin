@@ -89,6 +89,7 @@ $baseUrl .= implode('&', $urlParts);
                 <table class="table table-striped">
                     <thead>
                         <tr>
+                            <th>Image</th>
                             <th>
                                 <a href="<?= getSortUrl($baseUrl, 'title', $sortBy, $sortOrder) ?>" class="text-decoration-none text-dark">
                                     Title <?= getSortIcon($sortBy, 'title', $sortOrder) ?>
@@ -99,7 +100,6 @@ $baseUrl .= implode('&', $urlParts);
                                     Store <?= getSortIcon($sortBy, 'store_name', $sortOrder) ?>
                                 </a>
                             </th>
-                            <th>Product</th>
                             <th>
                                 <a href="<?= getSortUrl($baseUrl, 'original_price', $sortBy, $sortOrder) ?>" class="text-decoration-none text-dark">
                                     Original Price <?= getSortIcon($sortBy, 'original_price', $sortOrder) ?>
@@ -108,6 +108,11 @@ $baseUrl .= implode('&', $urlParts);
                             <th>
                                 <a href="<?= getSortUrl($baseUrl, 'deal_price', $sortBy, $sortOrder) ?>" class="text-decoration-none text-dark">
                                     Deal Price <?= getSortIcon($sortBy, 'deal_price', $sortOrder) ?>
+                                </a>
+                            </th>
+                            <th>
+                                <a href="<?= getSortUrl($baseUrl, 'is_featured', $sortBy, $sortOrder) ?>" class="text-decoration-none text-dark">
+                                    Featured <?= getSortIcon($sortBy, 'is_featured', $sortOrder) ?>
                                 </a>
                             </th>
                             <th>Status</th>
@@ -122,6 +127,25 @@ $baseUrl .= implode('&', $urlParts);
                         <?php else: ?>
                             <?php foreach ($deals as $deal): ?>
                                 <tr>
+                                    <td>
+                                        <?php
+                                        $expiredClass = '';
+                                        if ($deal['is_expired']):
+                                            $expiredClass = 'grayscale-overlay';
+                                        endif;
+                                        ?>
+
+                                        <?php if (!empty($deal['image_url'])): ?>
+                                            <div class="<?= $expiredClass ?>">
+                                                <img src="<?= htmlspecialchars($deal['image_url']) ?>" 
+                                                    alt="<?= htmlspecialchars($deal['title']) ?>"
+                                                    class="img-thumbnail"
+                                                    style="max-height: 52px; width: auto;">
+                                            </div>
+                                        <?php else: ?>
+                                            <div class="text-muted small">No image</div>
+                                        <?php endif; ?>
+                                    </td>
                                     <td>
                                         <a href="<?= htmlspecialchars($deal['affiliate_url']) ?>" 
                                             target="_blank"
@@ -138,9 +162,19 @@ $baseUrl .= implode('&', $urlParts);
                                         <?php endif; ?>
                                     </td>
                                     <td><?= htmlspecialchars($deal['store_name'] ?? 'N/A') ?></td>
-                                    <td><?= htmlspecialchars($deal['product_name'] ?? 'N/A') ?></td>
                                     <td>$<?= number_format($deal['original_price'], 2) ?></td>
                                     <td>$<?= number_format($deal['deal_price'], 2) ?></td>
+                                    <td>
+                                        <?php if ($deal['is_featured']): ?>
+                                            <span class="badge bg-warning text-dark">
+                                                <i class="bi bi-star-fill"></i> Featured
+                                            </span>
+                                        <?php else: ?>
+                                            <span class="badge bg-light text-dark">
+                                                <i class="bi bi-star"></i> Regular
+                                            </span>
+                                        <?php endif; ?>
+                                    </td>
                                     <td>
                                         <?php if ($deal['is_active']): ?>
                                             <span class="badge bg-success">Active</span>

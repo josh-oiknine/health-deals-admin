@@ -17,6 +17,8 @@ class DealsController
 {
   public function fetchInfo(Request $request, Response $response): Response
   {
+    $scraperService = new ProductScraperService();
+
     $url = $request->getQueryParams()['url'] ?? '';
     
     if (empty($url)) {
@@ -41,11 +43,11 @@ class DealsController
       }
       
       if (strpos($url, 'amazon.com') !== false) {
-        $result = $this->scraperService->scrapeAmazonProduct($url);
+        $result = $scraperService->scrapeAmazonProduct($url);
       } else if (strpos($url, 'walmart.com') !== false) {
-        $result = $this->scraperService->scrapeWalmartProduct($url);
+        $result = $scraperService->scrapeWalmartProduct($url);
       } else if (strpos($url, 'target.com') !== false) {
-        $result = $this->scraperService->scrapeTargetProduct($url);
+        $result = $scraperService->scrapeTargetProduct($url);
       } else {
         $response->getBody()->write(json_encode([
           'success' => false,
@@ -53,6 +55,8 @@ class DealsController
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
       }
+
+      $result['product'] = $product;
 
       return $this->jsonResponse($response, $result);
     } catch (\Exception $e) {

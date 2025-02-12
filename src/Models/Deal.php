@@ -15,12 +15,15 @@ class Deal
   private string $title;
   private string $description;
   private string $affiliate_url;
-  private ?int $product_id;
-  private ?int $store_id;
+  private string $image_url;
+  private int $product_id;
+  private int $store_id;
   private ?int $category_id;
   private float $original_price;
   private float $deal_price;
   private bool $is_active;
+  private bool $is_featured;
+  private bool $is_expired;
   private ?DateTime $created_at = null;
   private ?DateTime $updated_at = null;
 
@@ -28,22 +31,51 @@ class Deal
     string $title,
     string $description,
     string $affiliate_url,
-    ?int $product_id,
-    ?int $store_id,
+    string $image_url,
+    int $product_id,
+    int $store_id,
     ?int $category_id,
     float $original_price,
     float $deal_price,
-    bool $is_active = true
+    bool $is_active = true,
+    bool $is_featured = false,
+    bool $is_expired = false
   ) {
+    // Validate required fields
+    if (empty($title)) {
+      throw new \InvalidArgumentException('Title is required');
+    }
+    if (empty($description)) {
+      throw new \InvalidArgumentException('Description is required');
+    }
+    if (empty($affiliate_url)) {
+      throw new \InvalidArgumentException('Affiliate URL is required');
+    }
+    if ($store_id <= 0) {
+      throw new \InvalidArgumentException('Valid store ID is required');
+    }
+    if ($product_id <= 0) {
+      throw new \InvalidArgumentException('Valid product ID is required');
+    }
+    if ($original_price < 0) {
+      throw new \InvalidArgumentException('Original price must be non-negative');
+    }
+    if ($deal_price < 0) {
+      throw new \InvalidArgumentException('Deal price must be non-negative');
+    }
+
     $this->title = $title;
     $this->description = $description;
     $this->affiliate_url = $affiliate_url;
+    $this->image_url = $image_url;
     $this->product_id = $product_id;
     $this->store_id = $store_id;
     $this->category_id = $category_id;
     $this->original_price = $original_price;
     $this->deal_price = $deal_price;
     $this->is_active = $is_active;
+    $this->is_featured = $is_featured;
+    $this->is_expired = $is_expired;
   }
 
   public function setId(int $id): void
@@ -59,42 +91,70 @@ class Deal
       if ($this->id === null) {
         // Insert new deal
         $sql = "INSERT INTO deals (
-                    title, description, affiliate_url, product_id, store_id, category_id,
-                    original_price, deal_price,
-                    is_active, created_at, updated_at
+                    store_id,
+                    product_id,
+                    category_id,
+                    title,
+                    description,
+                    deal_price,
+                    original_price,
+                    image_url,
+                    affiliate_url,
+                    is_active,
+                    is_featured,
+                    created_at,
+                    updated_at
                 ) VALUES (
-                    :title, :description, :affiliate_url, :product_id, :store_id, :category_id,
-                    :original_price, :deal_price,
-                    :is_active, NOW(), NOW()
+                    :store_id,
+                    :product_id,
+                    :category_id,
+                    :title,
+                    :description,
+                    :deal_price,
+                    :original_price,
+                    :image_url,
+                    :affiliate_url,
+                    :is_active,
+                    :is_featured,
+                    :is_expired,
+                    NOW(),
+                    NOW()
                 )";
       } else {
         // Update existing deal
         $sql = "UPDATE deals SET
+                    store_id = :store_id,
+                    product_id = :product_id,
+                    category_id = :category_id,
                     title = :title,
                     description = :description,
-                    affiliate_url = :affiliate_url,
-                    product_id = :product_id,
-                    store_id = :store_id,
-                    category_id = :category_id,
-                    original_price = :original_price,
                     deal_price = :deal_price,
+                    original_price = :original_price,
+                    image_url = :image_url,
+                    affiliate_url = :affiliate_url,
                     is_active = :is_active,
+                    is_featured = :is_featured,
+                    is_expired = :is_expired,
                     updated_at = NOW()
-                    WHERE id = :id";
+                WHERE
+                    id = :id";
       }
 
       $stmt = $db->prepare($sql);
 
       $params = [
+        'store_id' => $this->store_id,
+        'product_id' => $this->product_id,
+        'category_id' => $this->category_id,
         'title' => $this->title,
         'description' => $this->description,
-        'affiliate_url' => $this->affiliate_url,
-        'product_id' => $this->product_id,
-        'store_id' => $this->store_id,
-        'category_id' => $this->category_id,
-        'original_price' => $this->original_price,
         'deal_price' => $this->deal_price,
-        'is_active' => $this->is_active
+        'original_price' => $this->original_price,
+        'image_url' => $this->image_url,
+        'affiliate_url' => $this->affiliate_url,
+        'is_active' => $this->is_active ? 't' : 'f',  // Convert boolean to PostgreSQL format
+        'is_featured' => $this->is_featured ? 't' : 'f',  // Convert boolean to PostgreSQL format
+        'is_expired' => $this->is_expired ? 't' : 'f'  // Convert boolean to PostgreSQL format
       ];
 
       if ($this->id !== null) {
@@ -104,8 +164,7 @@ class Deal
       return $stmt->execute($params);
     } catch (PDOException $e) {
       error_log("Error saving deal: " . $e->getMessage());
-
-      return false;
+      throw $e; // Re-throw the exception to handle it in the controller
     }
   }
 
@@ -144,16 +203,16 @@ class Deal
 
       // Build the query
       $sql = "SELECT 
-                    d.*,
-                    s.name as store_name,
-                    c.name as category_name,
-                    c.color as category_color,
-                    p.name as product_name
-                FROM deals d
-                LEFT JOIN stores s ON d.store_id = s.id
-                LEFT JOIN categories c ON d.category_id = c.id
-                LEFT JOIN products p ON d.product_id = p.id
-                WHERE " . implode(' AND ', $conditions);
+                d.*,
+                s.name as store_name,
+                c.name as category_name,
+                c.color as category_color,
+                p.name as product_name
+            FROM deals d
+            LEFT JOIN stores s ON d.store_id = s.id
+            LEFT JOIN categories c ON d.category_id = c.id
+            LEFT JOIN products p ON d.product_id = p.id
+            WHERE " . implode(' AND ', $conditions);
 
       // Add sorting
       $allowedSortFields = [
@@ -209,15 +268,15 @@ class Deal
       $db = Database::getInstance()->getConnection();
 
       $sql = "SELECT 
-                    d.*,
-                    s.name as store_name,
-                    c.name as category_name,
-                    p.name as product_name
-                FROM deals d
-                LEFT JOIN stores s ON d.store_id = s.id
-                LEFT JOIN categories c ON d.category_id = c.id
-                LEFT JOIN products p ON d.product_id = p.id
-                WHERE d.id = :id";
+                d.*,
+                s.name as store_name,
+                c.name as category_name,
+                p.name as product_name
+            FROM deals d
+            LEFT JOIN stores s ON d.store_id = s.id
+            LEFT JOIN categories c ON d.category_id = c.id
+            LEFT JOIN products p ON d.product_id = p.id
+            WHERE d.id = :id";
 
       $stmt = $db->prepare($sql);
       $stmt->execute(['id' => $id]);
@@ -232,17 +291,77 @@ class Deal
     }
   }
 
-  public static function delete(int $id): bool
+  public static function countActive(): int
   {
     try {
       $db = Database::getInstance()->getConnection();
-      $stmt = $db->prepare("DELETE FROM deals WHERE id = :id");
+      $stmt = $db->prepare("
+        SELECT COUNT(*) FROM deals
+        WHERE is_active = TRUE
+      ");
+      $stmt->execute();
 
-      return $stmt->execute(['id' => $id]);
+      return $stmt->fetchColumn();
     } catch (PDOException $e) {
-      error_log("Error deleting deal: " . $e->getMessage());
+      error_log("Error in Deal::countActive(): " . $e->getMessage());
 
-      return false;
+      return 0;
     }
   }
+
+  public static function getDealsPerDay(int $days = 7): array
+  {
+    try {
+      $db = Database::getInstance()->getConnection();
+      $stmt = $db->prepare("
+        SELECT DATE(created_at) as date, COUNT(*) as count
+        FROM deals
+        WHERE created_at >= NOW() - (INTERVAL '1 day' * :days)
+        GROUP BY DATE(created_at)
+        ORDER BY DATE(created_at)
+      ");
+      $stmt->bindParam(':days', $days, PDO::PARAM_INT);
+      $stmt->execute();
+
+      return $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+    } catch (PDOException $e) {
+      error_log("Error in Deal::getDealsPerDay(): " . $e->getMessage());
+
+      return [];
+    }
+  }
+
+  public static function getLatestDeals(int $limit = 18): array
+  {
+    try {
+      $db = Database::getInstance()->getConnection();
+      $stmt = $db->prepare("
+        SELECT * FROM deals
+        ORDER BY created_at DESC
+        LIMIT :limit
+      ");
+      $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
+      $stmt->execute();
+
+      return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+      error_log("Error in Deal::getLatestDeals(): " . $e->getMessage());
+
+      return [];
+    }
+  }
+
+//   public static function delete(int $id): bool
+//   {
+//     try {
+//       $db = Database::getInstance()->getConnection();
+//       $stmt = $db->prepare("DELETE FROM deals WHERE id = :id");
+
+//       return $stmt->execute(['id' => $id]);
+//     } catch (PDOException $e) {
+//       error_log("Error deleting deal: " . $e->getMessage());
+
+//       return false;
+//     }
+//   }
 }

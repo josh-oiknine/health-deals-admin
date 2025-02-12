@@ -76,44 +76,41 @@ class DealsController
     $stores = Store::findAllActive();
     $categories = Category::findAllActive();
     $error = null;
+    $formData = null;
 
     if ($request->getMethod() === 'POST') {
       try {
         $data = $request->getParsedBody();
-
-        // Parse dates
-        $startDate = new DateTime($data['start_date'] ?? 'now');
-        $endDate = !empty($data['end_date']) ? new DateTime($data['end_date']) : null;
+        $formData = $data; // Use submitted data to preserve form state
 
         $deal = new Deal(
-          $data['title'] ?? '',
-          $data['description'] ?? '',
-          $data['url'] ?? '',
-          !empty($data['product_id']) ? (int)$data['product_id'] : null,
-          (int)($data['store_id'] ?? 0),
+          $data['title'],
+          $data['description'],
+          $data['affiliate_url'],
+          $data['image_url'],
+          (int)$data['product_id'],
+          (int)$data['store_id'],
           !empty($data['category_id']) ? (int)$data['category_id'] : null,
-          (float)($data['original_price'] ?? 0.0),
-          (float)($data['deal_price'] ?? 0.0),
-          $data['coupon_code'] ?? null,
-          $startDate,
-          $endDate,
-          isset($data['is_active']) && $data['is_active'] === 'on'
+          (float)$data['original_price'],
+          (float)$data['deal_price'],
+          isset($data['is_active']) && $data['is_active'] === 'on' ? true : false,
+          isset($data['is_featured']) && $data['is_featured'] === 'on' ? true : false,
+          isset($data['is_expired']) && $data['is_expired'] === 'on' ? true : false
         );
 
         if ($deal->save()) {
           return $response->withHeader('Location', '/deals')
             ->withStatus(302);
         } else {
-          $error = 'Failed to save the deal. Please try again.';
+          $error = 'Failed to save the deal. Please check your input and try again.';
         }
       } catch (Exception $e) {
-        error_log("Error in DealsController::add(): " . $e->getMessage());
-        $error = 'An error occurred while saving the deal.';
+        $error = $e->getMessage();
       }
     }
 
     return $this->view->render($response, 'deals/form.php', [
-      'deal' => null,
+      'deal' => $dealData,
       'stores' => $stores,
       'categories' => $categories,
       'mode' => 'add',
@@ -138,24 +135,25 @@ class DealsController
     if ($request->getMethod() === 'POST') {
       try {
         $data = $request->getParsedBody();
+        $dealData = $data; // Use submitted data to preserve form state
 
-        // Parse dates
-        $startDate = new DateTime($data['start_date'] ?? 'now');
-        $endDate = !empty($data['end_date']) ? new DateTime($data['end_date']) : null;
+        echo '<pre>';
+        var_dump(isset($data['is_featured']));
+        echo '</pre>';
 
         $deal = new Deal(
-          $data['title'] ?? '',
-          $data['description'] ?? '',
-          $data['url'] ?? '',
-          !empty($data['product_id']) ? (int)$data['product_id'] : null,
-          (int)($data['store_id'] ?? 0),
+          $data['title'],
+          $data['description'],
+          $data['affiliate_url'],
+          $data['image_url'],
+          (int)$data['product_id'],
+          (int)$data['store_id'],
           !empty($data['category_id']) ? (int)$data['category_id'] : null,
-          (float)($data['original_price'] ?? 0.0),
-          (float)($data['deal_price'] ?? 0.0),
-          $data['coupon_code'] ?? null,
-          $startDate,
-          $endDate,
-          isset($data['is_active']) && $data['is_active'] === 'on'
+          (float)$data['original_price'],
+          (float)$data['deal_price'],
+          isset($data['is_active']) && $data['is_active'] === 'on' ? true : false,
+          isset($data['is_featured']) && $data['is_featured'] === 'on' ? true : false,
+          isset($data['is_expired']) && $data['is_expired'] === 'on' ? true : false
         );
         $deal->setId($id);
 
@@ -163,11 +161,11 @@ class DealsController
           return $response->withHeader('Location', '/deals')
             ->withStatus(302);
         } else {
-          $error = 'Failed to update the deal. Please try again.';
+          $error = 'Failed to save the deal update. Please check your input and try again.';
         }
       } catch (Exception $e) {
         error_log("Error in DealsController::edit(): " . $e->getMessage());
-        $error = 'An error occurred while updating the deal.';
+        $error = 'Failed '.$e->getMessage();
       }
     }
 
