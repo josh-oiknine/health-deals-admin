@@ -275,14 +275,15 @@ class ProductsController
     // Make sure the slug is unique
     $existingProduct = Product::findBySlug($slug);
     if ($existingProduct && $existingProduct > 0) {
-      $length = strlen($slug);
-      if ($length > 100) {
+      if (strlen($slug) > 85) {
         $slug = substr($slug, 0, 85);
+      
+        $lastUnderscore = strrpos($slug, '_');
+        if ($lastUnderscore !== false) {
+          $slug = substr($slug, 0, $lastUnderscore);
+        }
       }
-      $lastUnderscore = strrpos($slug, '_');
-      if ($lastUnderscore !== false) {
-        $slug = substr($slug, 0, $lastUnderscore);
-      }
+      
       $slug = $slug . '_' . date('YmdHis');
     }
 
