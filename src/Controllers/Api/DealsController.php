@@ -6,10 +6,8 @@ namespace App\Controllers\Api;
 
 use App\Models\Product;
 use App\Services\ProductScraperService;
-use DOMDocument;
 use DOMXPath;
 use Exception;
-use GuzzleHttp\Client;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
@@ -20,7 +18,7 @@ class DealsController
     $scraperService = new ProductScraperService();
 
     $url = $request->getQueryParams()['url'] ?? '';
-    
+
     if (empty($url)) {
       return $this->jsonResponse($response, [
         'success' => false,
@@ -41,26 +39,28 @@ class DealsController
           'error' => 'Product not found for SKU: ' . $sku
         ], 404);
       }
-      
+
       if (strpos($url, 'amazon.com') !== false) {
         $result = $scraperService->scrapeAmazonProduct($url);
-      } else if (strpos($url, 'walmart.com') !== false) {
+      } elseif (strpos($url, 'walmart.com') !== false) {
         $result = $scraperService->scrapeWalmartProduct($url);
-      } else if (strpos($url, 'target.com') !== false) {
+      } elseif (strpos($url, 'target.com') !== false) {
         $result = $scraperService->scrapeTargetProduct($url);
       } else {
         $response->getBody()->write(json_encode([
           'success' => false,
           'error' => 'Unsupported store. Currently supporting: Amazon, Walmart, Target'
         ]));
+
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
       }
 
       $result['product'] = $product;
 
       return $this->jsonResponse($response, $result);
-    } catch (\Exception $e) {
+    } catch (Exception $e) {
       error_log("Error in DealsController::fetchInfo: " . $e->getMessage());
+
       return $this->jsonResponse($response, [
         'success' => false,
         'error' => 'Failed to fetch product information'
@@ -138,4 +138,4 @@ class DealsController
       ->withHeader('Content-Type', 'application/json')
       ->withStatus($status);
   }
-} 
+}

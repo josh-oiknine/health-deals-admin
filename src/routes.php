@@ -55,6 +55,7 @@ $app->group('', function (RouteCollectorProxy $group) {
   $group->get('/products/edit/{id}', [ProductsController::class, 'edit']);
   $group->post('/products/edit/{id}', [ProductsController::class, 'edit']);
   $group->post('/products/delete/{id}', [ProductsController::class, 'delete']);
+  $group->get('/products/history/{id}', [ProductsController::class, 'history']);
 
   $group->post('/api/products/add', [ProductsController::class, 'apiAdd']);
 

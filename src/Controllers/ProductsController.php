@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Models\Category;
+use App\Models\PriceHistory;
 use App\Models\Product;
 use App\Models\Store;
 use Exception;
@@ -196,6 +197,14 @@ class ProductsController
       ->withStatus(302);
   }
 
+  public function history(Request $request, Response $response, array $args): Response
+  {
+    $id = (int)$args['id'];
+    $history = PriceHistory::findByProduct($id);
+
+    return $this->view->render($response, 'products/history.php', ['history' => $history]);
+  }
+
   // API FUNCTIONS
   public function apiAdd(Request $request, Response $response): Response
   {
@@ -246,8 +255,7 @@ class ProductsController
 
     // Find the store
     $parsedUrl = parse_url($url);
-    $domain = $parsedUrl['host'] ?? '';
-    $domain_wo = str_replace('www.', '', $domain);
+    $domain_wo = str_replace('www.', '', ($parsedUrl['host'] ?? ''));
 
     $storeId = null;
     $store = Store::findByDomain($domain_wo);
@@ -256,7 +264,7 @@ class ProductsController
     } else {
       $response->getBody()->write(json_encode([
         'status' => 'error',
-        'message' => 'Store ' . $domain . ' not found'
+        'message' => 'Store ' . $domain_wo . ' not found'
       ]));
 
       return $response->withStatus(400);
@@ -317,7 +325,7 @@ class ProductsController
   }
 
   // Private Static Helper Functions
-  private static function makeSlug($name, $maxLength = 100)
+  private static function makeSlug($name, $maxLength = 100): string
   {
     $slug = strtolower($name);
     $slug = preg_replace('/[^a-z0-9]+/', '_', $slug);
@@ -336,7 +344,7 @@ class ProductsController
     return $slug;
   }
 
-  private static function decideCategory($name, $url)
+  private static function decideCategory($name, $url): ?int
   {
     try {
       $apiKey = $_ENV['GEMINI_API_KEY'];
@@ -344,7 +352,7 @@ class ProductsController
       if (empty($apiKey)) {
         error_log('Gemini API key is not configured');
 
-        return 'Uncategorized';
+        return null;
       }
 
       $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
@@ -353,35 +361,13 @@ class ProductsController
       if (empty($categories)) {
         error_log('No categories found in the database');
 
-        return 'Uncategorized';
+        return null;
       }
 
       $categoryNames = array_map(function ($category) {
         return $category['name'];
       }, $categories);
       $listOfCategories = implode(', ', $categoryNames);
-
-      // $promptTemplate = "
-      //   You are a product categorization expert. Given a product name, URL, and list of available categories, analyze the product and return ONLY the
-      //   single most appropriate category name from the provided list. Do not include any explanation, commentary, or additional text - just output the
-      //   exact category name.
-
-      //   Product Details:
-      //   Name: {product_name}
-      //   URL: {product_url}
-
-      //   Available Categories:
-      //   {list_of_categories}
-
-      //   Rules:
-
-      //   Return only the exact category name from the provided list
-      //   Do not add any additional text or explanation
-      //   If no categories fit well, return \"Uncategorized\"
-      //   Match based on product name and URL content
-      //   Consider both specific and general category matches
-      //   Choose the most specific applicable category
-      // ";
 
       $promptTemplate = "Given the product name: '{product_name}' and URL: '{product_url}', select the most appropriate category from this list: '{list_of_categories}'. Respond with only the category name, nothing else.";
 
@@ -421,7 +407,7 @@ class ProductsController
         error_log("Gemini API request failed with status code: {$statusCode}");
         error_log("Response body: " . $response->getBody()->getContents());
 
-        return 'Uncategorized';
+        return null;
       }
 
       $responseData = json_decode($response->getBody()->getContents(), true);
@@ -429,7 +415,7 @@ class ProductsController
       if (json_last_error() !== JSON_ERROR_NONE) {
         error_log('Failed to parse Gemini API response: ' . json_last_error_msg());
 
-        return 'Uncategorized';
+        return null;
       }
 
       $aiCategoryName = 'Uncategorized';
@@ -453,7 +439,7 @@ class ProductsController
     } catch (Exception $e) {
       error_log('Error in decideCategory: ' . $e->getMessage());
 
-      return 'Uncategorized';
+      return null;
     }
   }
 }

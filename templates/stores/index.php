@@ -64,7 +64,7 @@
                                     <td>
                                         <div class="btn-group">
                                             <a href="/stores/edit/<?= $store->getId() ?>" 
-                                               class="btn btn-sm btn-outline-primary">
+                                               class="btn btn-sm btn-outline-success">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
                                             <form action="/stores/delete/<?= $store->getId() ?>" 

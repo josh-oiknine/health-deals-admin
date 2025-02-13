@@ -7,7 +7,6 @@ namespace App\Controllers;
 use App\Models\Category;
 use App\Models\Deal;
 use App\Models\Store;
-use DateTime;
 use Exception;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;

@@ -38,7 +38,7 @@
                                     <td>
                                         <div class="d-flex align-items-center gap-2">
                                             <div style="width: 25px; height: 25px; border-radius: 4px; background-color: <?= htmlspecialchars($category->getColor()) ?>"></div>
-                                            <code class="small"><?= htmlspecialchars($category->getColor()) ?></code>
+                                            <code class="small text-dark"><?= htmlspecialchars($category->getColor()) ?></code>
                                         </div>
                                     </td>
                                     <td>
@@ -53,7 +53,7 @@
                                     <td>
                                         <div class="btn-group">
                                             <a href="/categories/edit/<?= $category->getId() ?>" 
-                                               class="btn btn-sm btn-outline-primary">
+                                               class="btn btn-sm btn-outline-success">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
                                         </div>

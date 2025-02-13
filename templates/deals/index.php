@@ -185,7 +185,7 @@ $baseUrl .= implode('&', $urlParts);
                                     <td>
                                         <div class="btn-group">
                                             <a href="/deals/edit/<?= $deal['id'] ?>" 
-                                               class="btn btn-sm btn-outline-primary">
+                                               class="btn btn-sm btn-outline-success">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
                                         </div>

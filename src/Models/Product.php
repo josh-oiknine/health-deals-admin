@@ -22,6 +22,7 @@ class Product
   private ?string $created_at = null;
   private ?string $updated_at = null;
   private ?string $deleted_at = null;
+  private ?string $last_checked = null;
   private ?Store $store = null;
 
   public function __construct(
@@ -127,7 +128,7 @@ class Product
 
       return null;
     }
-  } 
+  }
 
   public static function findBySlug(string $slug): ?array
   {

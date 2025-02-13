@@ -93,7 +93,7 @@ class ProductScraperService
   {
     try {
       // Extract ASIN from URL
-      preg_match('/\/dp\/([A-Z0-9]{10})/', $url, $matches);
+      preg_match('/\/(?:dp|gp\/product)\/([A-Z0-9]{10})/', $url, $matches);
       $asin = $matches[1] ?? null;
 
       if (!$asin) {
@@ -322,7 +322,7 @@ class ProductScraperService
   public static function extractSkuFromUrl(string $url): string
   {
     if (strpos($url, 'amazon.com') !== false) {
-      preg_match('/\/dp\/([A-Z0-9]{10})/', $url, $matches);
+      preg_match('/\/(?:dp|gp\/product)\/([A-Z0-9]{10})/', $url, $matches);
 
       return $matches[1] ?? '';
     } elseif (strpos($url, 'walmart.com') !== false) {

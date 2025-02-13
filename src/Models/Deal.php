@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Database\Database;
 use DateTime;
+use InvalidArgumentException;
 use PDO;
 use PDOException;
 
@@ -43,25 +44,25 @@ class Deal
   ) {
     // Validate required fields
     if (empty($title)) {
-      throw new \InvalidArgumentException('Title is required');
+      throw new InvalidArgumentException('Title is required');
     }
     if (empty($description)) {
-      throw new \InvalidArgumentException('Description is required');
+      throw new InvalidArgumentException('Description is required');
     }
     if (empty($affiliate_url)) {
-      throw new \InvalidArgumentException('Affiliate URL is required');
+      throw new InvalidArgumentException('Affiliate URL is required');
     }
     if ($store_id <= 0) {
-      throw new \InvalidArgumentException('Valid store ID is required');
+      throw new InvalidArgumentException('Valid store ID is required');
     }
     if ($product_id <= 0) {
-      throw new \InvalidArgumentException('Valid product ID is required');
+      throw new InvalidArgumentException('Valid product ID is required');
     }
     if ($original_price < 0) {
-      throw new \InvalidArgumentException('Original price must be non-negative');
+      throw new InvalidArgumentException('Original price must be non-negative');
     }
     if ($deal_price < 0) {
-      throw new \InvalidArgumentException('Deal price must be non-negative');
+      throw new InvalidArgumentException('Deal price must be non-negative');
     }
 
     $this->title = $title;
@@ -352,17 +353,17 @@ class Deal
     }
   }
 
-//   public static function delete(int $id): bool
-//   {
-//     try {
-//       $db = Database::getInstance()->getConnection();
-//       $stmt = $db->prepare("DELETE FROM deals WHERE id = :id");
+  //   public static function delete(int $id): bool
+  //   {
+  //     try {
+  //       $db = Database::getInstance()->getConnection();
+  //       $stmt = $db->prepare("DELETE FROM deals WHERE id = :id");
 
-//       return $stmt->execute(['id' => $id]);
-//     } catch (PDOException $e) {
-//       error_log("Error deleting deal: " . $e->getMessage());
+  //       return $stmt->execute(['id' => $id]);
+  //     } catch (PDOException $e) {
+  //       error_log("Error deleting deal: " . $e->getMessage());
 
-//       return false;
-//     }
-//   }
+  //       return false;
+  //     }
+  //   }
 }

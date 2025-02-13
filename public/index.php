@@ -7,12 +7,12 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 use App\Controllers\AuthController;
-use App\Controllers\DashboardController;
-use App\Controllers\ProductsController;
-use App\Controllers\DealsController;
 use App\Controllers\CategoriesController;
-use App\Controllers\StoresController;
+use App\Controllers\DashboardController;
+use App\Controllers\DealsController;
+use App\Controllers\ProductsController;
 use App\Controllers\SettingsController;
+use App\Controllers\StoresController;
 use App\Database\Database;
 use DI\Container;
 use DI\ContainerBuilder;
