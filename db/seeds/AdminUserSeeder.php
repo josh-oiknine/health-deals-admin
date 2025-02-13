@@ -15,8 +15,8 @@ class AdminUserSeeder extends AbstractSeed
         'is_active' => true,
         'created_at' => date('Y-m-d H:i:s'),
         'updated_at' => date('Y-m-d H:i:s'),
-        'totp_secret' => 'YJMIOBUW7BWIBD25TZKFXKFCR2TY2MML',
-        'totp_setup_complete' => true
+        'totp_secret' => null,
+        'totp_setup_complete' => false
       ],
       [
         'email' => 'shaneeoiknine@gmail.com',
