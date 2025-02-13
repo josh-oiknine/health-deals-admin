@@ -1,3 +1,4 @@
+<!-- Price History Table -->
 <table class="table table-striped">
   <thead>
     <tr>
@@ -6,11 +7,17 @@
     </tr>
   </thead>
   <tbody>
-    <?php foreach ($history as $entry): ?>
+    <?php if (empty($history)): ?>
       <tr>
-        <td><?= htmlspecialchars($entry['price']) ?></td>
-        <td><?= htmlspecialchars($entry['created_at']) ?></td>
+        <td colspan="2" class="text-center">No price history available</td>
       </tr>
-    <?php endforeach; ?>
+    <?php else: ?>
+      <?php foreach ($history as $entry): ?>
+        <tr>
+          <td>$<?= number_format($entry['price'], 2) ?></td>
+          <td><?= date('Y-m-d H:i:s', strtotime($entry['created_at'])) ?></td>
+        </tr>
+      <?php endforeach; ?>
+    <?php endif; ?>
   </tbody>
 </table>

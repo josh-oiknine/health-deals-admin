@@ -37,7 +37,8 @@ $containerBuilder->addDefinitions([
     }
 
     $renderer = new PhpRenderer($templatesPath);
-    $renderer->setLayout('layout.php');
+    // Don't set a default layout, let each render call decide
+    // $renderer->setLayout('layout.php');
 
     return $renderer;
   },

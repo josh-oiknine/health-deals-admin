@@ -17,6 +17,7 @@ class SettingsController
   public function __construct($container)
   {
     $this->view = $container->get('view');
+    $this->view->setLayout('layout.php'); // Set default layout
     $this->db = $container->get('db');
 
     // Initialize TwoFactorAuth with proper QR code provider

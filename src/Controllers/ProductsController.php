@@ -20,6 +20,7 @@ class ProductsController
   public function __construct($container)
   {
     $this->view = $container->get('view');
+    $this->view->setLayout('layout.php'); // Set default layout
   }
 
   public function index(Request $request, Response $response): Response
@@ -202,7 +203,16 @@ class ProductsController
     $id = (int)$args['id'];
     $history = PriceHistory::findByProduct($id);
 
-    return $this->view->render($response, 'products/history.php', ['history' => $history]);
+    // Don't use layout for this view
+    $this->view->setLayout('');
+    
+    return $this->view->render(
+      $response,
+      'products/history.php',
+      [
+        'history' => $history
+      ]
+    );
   }
 
   // API FUNCTIONS

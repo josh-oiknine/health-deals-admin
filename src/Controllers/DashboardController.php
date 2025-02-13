@@ -16,6 +16,7 @@ class DashboardController
   public function __construct($container)
   {
     $this->view = $container->get('view');
+    $this->view->setLayout('layout.php'); // Set default layout
   }
 
   public function index(Request $request, Response $response): Response

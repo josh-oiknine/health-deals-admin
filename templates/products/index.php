@@ -127,8 +127,8 @@ $baseUrl .= implode('&', $urlParts);
                 </a>
               </th>
               <th>
-                <a href="<?= getSortUrl($baseUrl, 'updated_at', $sortBy, $sortOrder) ?>" class="text-decoration-none text-dark">
-                  Updated <?= getSortIcon($sortBy, 'updated_at', $sortOrder) ?>
+                <a href="<?= getSortUrl($baseUrl, 'last_checked', $sortBy, $sortOrder) ?>" class="text-decoration-none text-dark">
+                  Last Checked <?= getSortIcon($sortBy, 'last_checked', $sortOrder) ?>
                 </a>
               </th>
               <th>Actions</th>
@@ -171,7 +171,7 @@ $baseUrl .= implode('&', $urlParts);
                     <?php endif; ?>
                   </td>
                   <td><?= $product['created_at'] ? date('Y-m-d', strtotime($product['created_at'])) : '' ?></td>
-                  <td><?= $product['updated_at'] ? date('Y-m-d', strtotime($product['updated_at'])) : '' ?></td>
+                  <td><?= $product['last_checked'] ? date('Y-m-d H:i:s', strtotime($product['last_checked'])) : 'Never' ?></td>
                   <td>
                     <div class="btn-group">
                       <button type="button" 
@@ -180,11 +180,12 @@ $baseUrl .= implode('&', $urlParts);
                         <i class="bi bi-pencil"></i>
                       </button>
                       <button type="button" 
-                          class="btn btn-sm btn-outline-primary"
+                          class="btn btn-sm btn-outline-primary show-history"
                           data-bs-toggle="modal" 
-                          data-bs-target="#historyModal<?= $product['id'] ?>"
+                          data-bs-target="#historyModal"
                           data-product-id="<?= $product['id'] ?>"
-                          data-last-checked="<?= htmlspecialchars($product['last_checked'] ?? 'Never') ?>">
+                          data-product-name="<?= htmlspecialchars($product['name']) ?>"
+                          data-last-checked="<?= $product['last_checked'] ? date('Y-m-d H:i:s', strtotime($product['last_checked'])) : 'Never' ?>">
                         <i class="bi bi-clock-history"></i>
                       </button>
                       <button type="button" 
@@ -198,49 +199,6 @@ $baseUrl .= implode('&', $urlParts);
                           style="display: none;">
                       </form>
                     </div>
-
-                    <!-- History Modal -->
-                    <div class="modal fade" 
-                       id="historyModal<?= $product['id'] ?>" 
-                       tabindex="-1" 
-                       aria-labelledby="historyModalLabel<?= $product['id'] ?>" 
-                       aria-hidden="true"
-                       style="padding-top: 80px;">
-                      <div class="modal-dialog modal-lg">
-                        <div class="modal-content">
-                          <div class="modal-header">
-                            <h5 class="modal-title" id="historyModalLabel<?= $product['id'] ?>">
-                              Price History - <?= htmlspecialchars(strlen($product['name']) > 80 ? substr($product['name'], 0, 47) . '...' : $product['name']) ?>
-                            </h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                          </div>
-                          
-                          <div class="modal-body">
-                            <div class="row">
-                              <div class="col-md-12 mb-3">
-                                <strong>Last Checked:</strong> 
-                                <span class="last-checked-date">
-                                  <?= $product['last_checked'] ? date('Y-m-d H:i:s', strtotime($product['last_checked'])) : 'Pending' ?>
-                                </span>
-                              </div>
-                            </div>
-
-                            <div class="row">
-                              <div class="col-md-12 price-history-container text-center" data-product-id="<?= $product['id'] ?>">
-                                <div class="spinner-border text-primary" role="status">
-                                  <span class="visually-hidden">Loading...</span>
-                                </div>
-                              </div>
-                            </div>
-
-                          </div>
-                          
-                          <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
                   </td>
                 </tr>
               <?php endforeach; ?>
@@ -251,86 +209,105 @@ $baseUrl .= implode('&', $urlParts);
 
       <!-- Pagination -->
       <?php if ($pagination['last_page'] > 1): ?>
-      <div class="d-flex justify-content-between align-items-center mt-4">
-        <div class="text-muted">
-          Showing <?= ($pagination['current_page'] - 1) * $pagination['per_page'] + 1 ?> 
-          to <?= min($pagination['current_page'] * $pagination['per_page'], $pagination['total']) ?> 
-          of <?= $pagination['total'] ?> results
+        <div class="d-flex justify-content-between align-items-center mt-4">
+          <div>
+            Showing <?= ($pagination['current_page'] - 1) * $pagination['per_page'] + 1 ?> 
+            to <?= min($pagination['current_page'] * $pagination['per_page'], $pagination['total']) ?> 
+            of <?= $pagination['total'] ?> entries
+          </div>
+          <nav aria-label="Page navigation">
+            <ul class="pagination mb-0">
+              <?php for ($i = 1; $i <= $pagination['last_page']; $i++): ?>
+                <li class="page-item <?= $i === $pagination['current_page'] ? 'active' : '' ?>">
+                  <a class="page-link" href="?page=<?= $i ?><?= !empty($baseUrl) ? '&' . ltrim($baseUrl, '?') : '' ?>">
+                    <?= $i ?>
+                  </a>
+                </li>
+              <?php endfor; ?>
+            </ul>
+          </nav>
         </div>
-        <nav aria-label="Page navigation">
-          <ul class="pagination mb-0">
-            <?php if ($pagination['current_page'] > 1): ?>
-              <li class="page-item">
-                <a class="page-link" href="<?= $baseUrl ?>&page=<?= $pagination['current_page'] - 1 ?>">
-                  Previous
-                </a>
-              </li>
-            <?php endif; ?>
-            
-            <?php
-            $start = max(1, $pagination['current_page'] - 2);
-            $end = min($pagination['last_page'], $pagination['current_page'] + 2);
-            
-            if ($start > 1): ?>
-              <li class="page-item">
-                <a class="page-link" href="<?= $baseUrl ?>&page=1">1</a>
-              </li>
-              <?php if ($start > 2): ?>
-                <li class="page-item disabled"><span class="page-link">...</span></li>
-              <?php endif; ?>
-            <?php endif; ?>
-            
-            <?php for ($i = $start; $i <= $end; $i++): ?>
-              <li class="page-item <?= $i === $pagination['current_page'] ? 'active' : '' ?>">
-                <a class="page-link" href="<?= $baseUrl ?>&page=<?= $i ?>"><?= $i ?></a>
-              </li>
-            <?php endfor; ?>
-            
-            <?php if ($end < $pagination['last_page']): ?>
-              <?php if ($end < $pagination['last_page'] - 1): ?>
-                <li class="page-item disabled"><span class="page-link">...</span></li>
-              <?php endif; ?>
-              <li class="page-item">
-                <a class="page-link" href="<?= $baseUrl ?>&page=<?= $pagination['last_page'] ?>">
-                  <?= $pagination['last_page'] ?>
-                </a>
-              </li>
-            <?php endif; ?>
-            
-            <?php if ($pagination['current_page'] < $pagination['last_page']): ?>
-              <li class="page-item">
-                <a class="page-link" href="<?= $baseUrl ?>&page=<?= $pagination['current_page'] + 1 ?>">
-                  Next
-                </a>
-              </li>
-            <?php endif; ?>
-          </ul>
-        </nav>
-      </div>
       <?php endif; ?>
     </div>
   </div>
-</div> 
+</div>
+
+<!-- History Modal -->
+<div class="modal fade" 
+     id="historyModal" 
+     tabindex="-1" 
+     aria-labelledby="historyModalLabel" 
+     aria-hidden="true"
+     style="padding-top: 80px;">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="historyModalLabel"></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-md-12 mb-3">
+            <strong>Last Checked:</strong> 
+            <span class="last-checked-date"></span>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-12 price-history-container text-center">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // Load price history when modal is shown
-  document.querySelectorAll('[data-bs-toggle="modal"]').forEach(button => {
+  const modal = document.getElementById('historyModal');
+  const modalTitle = modal.querySelector('.modal-title');
+  const lastCheckedSpan = modal.querySelector('.last-checked-date');
+  const historyContainer = modal.querySelector('.price-history-container');
+
+  // Handle history button clicks
+  document.querySelectorAll('.show-history').forEach(button => {
     button.addEventListener('click', function() {
       const productId = this.getAttribute('data-product-id');
-      const container = document.querySelector(`.price-history-container[data-product-id="${productId}"]`);
-      
-      // Fetch price history
+      const productName = this.getAttribute('data-product-name');
+      const lastChecked = this.getAttribute('data-last-checked');
+
+      // Update modal title and last checked date
+      modalTitle.textContent = (productName.length > 80 ? productName.substring(0, 77) + '...' : productName);
+      lastCheckedSpan.textContent = lastChecked;
+
+      // Load price history
       fetch(`/products/history/${productId}`)
         .then(response => response.text())
         .then(html => {
-          container.innerHTML = html;
+          historyContainer.innerHTML = html;
         })
         .catch(error => {
-          container.innerHTML = '<div class="alert alert-danger">Error loading price history</div>';
+          historyContainer.innerHTML = '<div class="alert alert-danger">Error loading price history</div>';
           console.error('Error:', error);
         });
     });
+  });
+
+  // Clear history container when modal is hidden
+  modal.addEventListener('hidden.bs.modal', function () {
+    historyContainer.innerHTML = `
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    `;
   });
 });
 
