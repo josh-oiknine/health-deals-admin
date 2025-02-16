@@ -13,11 +13,13 @@ use App\Controllers\DealsController;
 use App\Controllers\ProductsController;
 use App\Controllers\SettingsController;
 use App\Controllers\StoresController;
+use App\Controllers\UsersController;
 use App\Database\Database;
 use DI\Container;
 use DI\ContainerBuilder;
 use Slim\Factory\AppFactory;
 use Slim\Views\PhpRenderer;
+use App\Middleware\ViewDataMiddleware;
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -48,6 +50,9 @@ $containerBuilder->addDefinitions([
   'redis' => function () {
     return new Redis();
   },
+  ViewDataMiddleware::class => function (Container $container) {
+    return new ViewDataMiddleware($container->get('view'));
+  },
   AuthController::class => function (Container $container) {
     return new AuthController($container);
   },
@@ -68,6 +73,9 @@ $containerBuilder->addDefinitions([
   },
   SettingsController::class => function (Container $container) {
     return new SettingsController($container);
+  },
+  UsersController::class => function (Container $container) {
+    return new UsersController($container);
   }
 ]);
 
@@ -80,6 +88,9 @@ $app = AppFactory::create();
 
 // Add Error Middleware
 $errorMiddleware = $app->addErrorMiddleware(true, true, true);
+
+// Add ViewData Middleware (before routes)
+$app->add($container->get(ViewDataMiddleware::class));
 
 // Register routes
 require __DIR__ . '/../src/routes.php';
