@@ -232,26 +232,7 @@ $baseUrl .= implode('&', $urlParts);
       </div>
 
       <!-- Pagination -->
-      <?php if ($pagination['last_page'] > 1): ?>
-        <div class="d-flex justify-content-between align-items-center mt-4">
-          <div>
-            Showing <?= ($pagination['current_page'] - 1) * $pagination['per_page'] + 1 ?> 
-            to <?= min($pagination['current_page'] * $pagination['per_page'], $pagination['total']) ?> 
-            of <?= $pagination['total'] ?> entries
-          </div>
-          <nav aria-label="Page navigation">
-            <ul class="pagination mb-0">
-              <?php for ($i = 1; $i <= $pagination['last_page']; $i++): ?>
-                <li class="page-item <?= $i === $pagination['current_page'] ? 'active' : '' ?>">
-                  <a class="page-link" href="?page=<?= $i ?><?= !empty($baseUrl) ? '&' . ltrim($baseUrl, '?') : '' ?>">
-                    <?= $i ?>
-                  </a>
-                </li>
-              <?php endfor; ?>
-            </ul>
-          </nav>
-        </div>
-      <?php endif; ?>
+      <?php include __DIR__ . '/../components/pagination.php'; ?>
     </div>
   </div>
 </div>

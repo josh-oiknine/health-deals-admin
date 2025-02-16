@@ -200,64 +200,7 @@ $baseUrl .= implode('&', $urlParts);
       </div>
 
       <!-- Pagination -->
-      <?php if ($pagination['last_page'] > 1): ?>
-      <div class="d-flex justify-content-between align-items-center mt-4">
-        <div class="text-muted">
-          Showing <?= ($pagination['current_page'] - 1) * $pagination['per_page'] + 1 ?> 
-          to <?= min($pagination['current_page'] * $pagination['per_page'], $pagination['total']) ?> 
-          of <?= $pagination['total'] ?> results
-        </div>
-        <nav aria-label="Page navigation">
-          <ul class="pagination mb-0">
-            <?php if ($pagination['current_page'] > 1): ?>
-              <li class="page-item">
-                <a class="page-link" href="<?= $baseUrl ?>&page=<?= $pagination['current_page'] - 1 ?>">
-                  Previous
-                </a>
-              </li>
-            <?php endif; ?>
-            
-            <?php
-            $start = max(1, $pagination['current_page'] - 2);
-            $end = min($pagination['last_page'], $pagination['current_page'] + 2);
-            
-            if ($start > 1): ?>
-              <li class="page-item">
-                <a class="page-link" href="<?= $baseUrl ?>&page=1">1</a>
-              </li>
-              <?php if ($start > 2): ?>
-                <li class="page-item disabled"><span class="page-link">...</span></li>
-              <?php endif; ?>
-            <?php endif; ?>
-            
-            <?php for ($i = $start; $i <= $end; $i++): ?>
-              <li class="page-item <?= $i === $pagination['current_page'] ? 'active' : '' ?>">
-                <a class="page-link" href="<?= $baseUrl ?>&page=<?= $i ?>"><?= $i ?></a>
-              </li>
-            <?php endfor; ?>
-            
-            <?php if ($end < $pagination['last_page']): ?>
-              <?php if ($end < $pagination['last_page'] - 1): ?>
-                <li class="page-item disabled"><span class="page-link">...</span></li>
-              <?php endif; ?>
-              <li class="page-item">
-                <a class="page-link" href="<?= $baseUrl ?>&page=<?= $pagination['last_page'] ?>">
-                  <?= $pagination['last_page'] ?>
-                </a>
-              </li>
-            <?php endif; ?>
-            
-            <?php if ($pagination['current_page'] < $pagination['last_page']): ?>
-              <li class="page-item">
-                <a class="page-link" href="<?= $baseUrl ?>&page=<?= $pagination['current_page'] + 1 ?>">
-                  Next
-                </a>
-              </li>
-            <?php endif; ?>
-          </ul>
-        </nav>
-      </div>
-      <?php endif; ?>
+      <?php include __DIR__ . '/../components/pagination.php'; ?>
     </div>
   </div>
 </div> 
