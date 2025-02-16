@@ -9,6 +9,7 @@ use App\Controllers\DealsController;
 use App\Controllers\ProductsController;
 use App\Controllers\SettingsController;
 use App\Controllers\StoresController;
+use App\Controllers\UsersController;
 use App\Middleware\AuthMiddleware;
 use Slim\Routing\RouteCollectorProxy;
 
@@ -34,6 +35,16 @@ $app->group('', function (RouteCollectorProxy $group) {
 $app->group('', function (RouteCollectorProxy $group) {
   $group->get('/dashboard', [DashboardController::class, 'index'])->setName('dashboard');
 
+  // Users routes
+  $group->get('/users', [UsersController::class, 'index'])->setName('users');
+  $group->get('/users/add', [UsersController::class, 'add']);
+  $group->post('/users/add', [UsersController::class, 'add']);
+  $group->get('/users/edit/{id}', [UsersController::class, 'edit']);
+  $group->post('/users/edit/{id}', [UsersController::class, 'edit']);
+  $group->post('/users/delete/{id}', [UsersController::class, 'delete']);
+  $group->post('/users/remove-mfa/{id}', [UsersController::class, 'removeMfa']);
+
+  // Stores routes
   $group->get('/stores', [StoresController::class, 'index'])->setName('stores');
   $group->get('/stores/add', [StoresController::class, 'add']);
   $group->post('/stores/add', [StoresController::class, 'add']);

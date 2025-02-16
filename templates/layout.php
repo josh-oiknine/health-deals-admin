@@ -1,3 +1,25 @@
+<?php
+use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
+
+$currentUserEmail = null;
+$authToken = $_COOKIE['auth_token'] ?? null;
+
+if ($authToken) {
+  try {
+    $decoded = JWT::decode($authToken, new Key($_ENV['JWT_SECRET'], 'HS256'));
+    $currentUserEmail = $decoded->email ?? null;
+  } catch (Exception $e) {
+    // Token is invalid
+  }
+}
+
+$isLoginPage = $_SERVER['REQUEST_URI'] === '/';
+$isMFAPage = $_SERVER['REQUEST_URI'] === '/mfa';
+$isSetup2FAPage = $_SERVER['REQUEST_URI'] === '/setup-2fa';
+$isVerifyMFAPage = $_SERVER['REQUEST_URI'] === '/verify-mfa';
+$hasAuthToken = isset($_COOKIE['auth_token']);
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -29,14 +51,6 @@
   <link href="/assets/css/style.css" rel="stylesheet">
 </head>
 <body>
-  <?php
-  $isLoginPage = $_SERVER['REQUEST_URI'] === '/';
-  $isMFAPage = $_SERVER['REQUEST_URI'] === '/mfa';
-  $isSetup2FAPage = $_SERVER['REQUEST_URI'] === '/setup-2fa';
-  $isVerifyMFAPage = $_SERVER['REQUEST_URI'] === '/verify-mfa';
-  $hasAuthToken = isset($_COOKIE['auth_token']);
-  ?>
-
   <?php if ($isLoginPage || !$hasAuthToken || $isMFAPage || $isSetup2FAPage || $isVerifyMFAPage): ?>
     <?= $content ?>
   <?php else: ?>
@@ -93,6 +107,15 @@
           </li>
           <div class="divider"></div>
           
+          <?php if ($currentUserEmail === 'josh@udev.com'): ?>
+            <li class="nav-item">
+              <a class="nav-link <?= $_SERVER['REQUEST_URI'] === '/users' ? 'active' : '' ?>" href="/users" data-bs-toggle="tooltip" data-bs-placement="right" title="Users">
+                <i class="bi bi-people me-2"></i>
+                <span>Admin Users</span>
+              </a>
+            </li>
+          <?php endif; ?>
+
           <li class="nav-item">
             <a class="nav-link <?= $_SERVER['REQUEST_URI'] === '/settings' ? 'active' : '' ?>" href="/settings" data-bs-toggle="tooltip" data-bs-placement="right" title="Settings">
               <i class="bi bi-gear me-2"></i>

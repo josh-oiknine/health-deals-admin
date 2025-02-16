@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\PriceHistory;
 use App\Models\Product;
 use App\Models\Store;
+use App\Models\User;
 use Exception;
 use GuzzleHttp\Client;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -77,6 +78,8 @@ class ProductsController
   {
     $stores = Store::findAllActive();
     $categories = Category::findAllActive();
+    $currentUserEmail = $this->view->getAttribute('currentUserEmail');
+    $users = $currentUserEmail === 'josh@udev.com' ? User::findAll() : [];
     $error = null;
 
     if ($request->getMethod() === 'POST') {
@@ -94,7 +97,8 @@ class ProductsController
           (int)($data['store_id'] ?? 0),
           (float)($data['regular_price'] ?? 0.0),
           $data['sku'] ?? null,
-          isset($data['is_active']) && $data['is_active'] === 'on'
+          isset($data['is_active']) && $data['is_active'] === 'on',
+          $currentUserEmail === 'josh@udev.com' && !empty($data['user_id']) ? (int)$data['user_id'] : null
         );
 
         // Check for duplicates SKU
@@ -108,6 +112,7 @@ class ProductsController
               'product' => $product,
               'stores' => $stores,
               'categories' => $categories,
+              'users' => $users,
               'mode' => 'add',
               'error' => $error
             ]);
@@ -130,6 +135,7 @@ class ProductsController
       'product' => null,
       'stores' => $stores,
       'categories' => $categories,
+      'users' => $users,
       'mode' => 'add',
       'error' => $error
     ]);
@@ -139,6 +145,8 @@ class ProductsController
   {
     $id = (int)$args['id'];
     $productData = Product::findById($id);
+    $currentUserEmail = $this->view->getAttribute('currentUserEmail');
+    $users = $currentUserEmail === 'josh@udev.com' ? User::findAll() : [];
     $error = null;
 
     if (!$productData) {
@@ -164,7 +172,8 @@ class ProductsController
           (int)($data['store_id'] ?? 0),
           (float)($data['regular_price'] ?? 0.0),
           $data['sku'] ?? null,
-          isset($data['is_active']) && $data['is_active'] === 'on'
+          isset($data['is_active']) && $data['is_active'] === 'on',
+          $currentUserEmail === 'josh@udev.com' && !empty($data['user_id']) ? (int)$data['user_id'] : $productData['user_id']
         );
         $product->setId($id);
 
@@ -184,6 +193,7 @@ class ProductsController
       'product' => $productData,
       'stores' => $stores,
       'categories' => $categories,
+      'users' => $users,
       'mode' => 'edit',
       'error' => $error
     ]);
@@ -232,6 +242,9 @@ class ProductsController
     $url = $data['url'] ?? '';
     $regularPrice = $data['regular_price'] ?? 0.0;
     $sku = $data['sku'] ?? null;
+
+    // Retrieve user_id from the request attributes set by AuthMiddleware
+    $userId = $request->getAttribute('user_id');
 
     // JSON DATA
     if (empty($name) || empty($url) || empty($regularPrice) || empty($sku)) {
@@ -308,7 +321,8 @@ class ProductsController
       $storeId,
       (float)$regularPrice,
       $sku,
-      true // is_active
+      true, // is_active
+      userId // user_id
     );
 
     if ($product->save()) {
