@@ -118,6 +118,24 @@
                             </select>
                         </div>
 
+                        <?php if ($currentUserEmail === 'josh@udev.com'): ?>
+                        <div class="mb-3">
+                            <label for="user_id" class="form-label">Assigned User</label>
+                            <select class="form-select" id="user_id" name="user_id">
+                                <option value="">Select a user</option>
+                                <?php foreach ($users as $user): ?>
+                                    <option value="<?= $user->getId() ?>" 
+                                        <?= ($product['user_id'] ?? '') == $user->getId() ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($user->getFirstName()) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                            <div class="form-text">User who added/manages this product</div>
+                        </div>
+                        <?php else: ?>
+                            <input type="hidden" name="user_id" value="<?= $mode === 'edit' ? $product['user_id'] : $currentUserId ?>">
+                        <?php endif; ?>
+
                         <div class="mb-3">
                             <div class="form-check">
                                 <input type="checkbox" 

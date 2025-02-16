@@ -17,12 +17,6 @@ function getSortUrl($baseUrl, $thisSortBy, $currentSortBy, $currentSortOrder) {
 }
 
 // Build the base URL with current filters
-
-// echo '<pre>';
-// var_dump(isset($filters['category_id']));
-// echo '</pre>';
-// die();
-
 $baseUrl = '?';
 $urlParts = array_filter([
   !empty($filters['keyword']) ? 'keyword=' . urlencode($filters['keyword']) : null,
@@ -101,18 +95,13 @@ $baseUrl .= implode('&', $urlParts);
                 </a>
               </th>
               <th>
-                <a href="<?= getSortUrl($baseUrl, 'store_name', $sortBy, $sortOrder) ?>" class="text-decoration-none text-dark">
-                  Store <?= getSortIcon($sortBy, 'store_name', $sortOrder) ?>
-                </a>
-              </th>
-              <th>
                 <a href="<?= getSortUrl($baseUrl, 'sku', $sortBy, $sortOrder) ?>" class="text-decoration-none text-dark">
                   SKU <?= getSortIcon($sortBy, 'sku', $sortOrder) ?>
                 </a>
               </th>
               <th>
                 <a href="<?= getSortUrl($baseUrl, 'regular_price', $sortBy, $sortOrder) ?>" class="text-decoration-none text-dark">
-                  Regular Price <?= getSortIcon($sortBy, 'regular_price', $sortOrder) ?>
+                  Price <?= getSortIcon($sortBy, 'regular_price', $sortOrder) ?>
                 </a>
               </th>
               <th>
@@ -120,7 +109,6 @@ $baseUrl .= implode('&', $urlParts);
                   Category <?= getSortIcon($sortBy, 'category_name', $sortOrder) ?>
                 </a>
               </th>
-              <th>Status</th>
               <th>
                 <a href="<?= getSortUrl($baseUrl, 'created_at', $sortBy, $sortOrder) ?>" class="text-decoration-none text-dark">
                   Created <?= getSortIcon($sortBy, 'created_at', $sortOrder) ?>
@@ -129,6 +117,11 @@ $baseUrl .= implode('&', $urlParts);
               <th>
                 <a href="<?= getSortUrl($baseUrl, 'last_checked', $sortBy, $sortOrder) ?>" class="text-decoration-none text-dark">
                   Last Checked <?= getSortIcon($sortBy, 'last_checked', $sortOrder) ?>
+                </a>
+              </th>
+              <th>
+                <a href="<?= getSortUrl($baseUrl, 'user_id', $sortBy, $sortOrder) ?>" class="text-decoration-none text-dark">
+                  User<?= getSortIcon($sortBy, 'user_id', $sortOrder) ?>
                 </a>
               </th>
               <th>Actions</th>
@@ -143,16 +136,39 @@ $baseUrl .= implode('&', $urlParts);
               <?php foreach ($products as $product): ?>
                 <tr>
                   <td>
-                    <a href="<?= htmlspecialchars($product['url']) ?>" 
-                    target="_blank"
-                    class="text-decoration-none"
-                    >
-                    <?= htmlspecialchars($product['name']) ?>
-                    <small><i class="bi bi-box-arrow-up-right ms-1"></i></small>
-                    </a>
+                    <div class="d-flex align-items-center">
+                      <a href="<?= htmlspecialchars($product['url']) ?>" 
+                         target="_blank"
+                         class="text-decoration-none d-flex align-items-center"
+                         data-bs-toggle="tooltip" 
+                         data-bs-placement="top" 
+                         title="<?= htmlspecialchars($product['name']) ?>"
+                      >
+                        <img src="<?= htmlspecialchars($product['logo_url'] ?? '/assets/images/favicon-32x32.png') ?>" 
+                             alt="Product icon"
+                             class="me-2"
+                             style="width: 16px; height: 16px; object-fit: contain;"
+                             onerror="this.src='/assets/images/favicon-16x16.png'">
+                        <?= htmlspecialchars(mb_strlen($product['name']) > 52 ? mb_substr($product['name'], 0, 52) . '...' : $product['name']) ?>
+                        <small><i class="bi bi-box-arrow-up-right ms-1"></i></small>
+                      </a>
+                      <button class="btn btn-sm btn-link text-decoration-none ms-2" 
+                              onclick="copyToClipboard('<?= htmlspecialchars(addslashes($product['url'])) ?>')"
+                              data-bs-toggle="tooltip"
+                              data-bs-placement="top"
+                              title="Copy URL to clipboard">
+                        <i class="bi bi-clipboard"></i>
+                      </button>
+                    </div>
                   </td>
-                  <td><?= htmlspecialchars($product['store_name'] ?? 'N/A') ?></td>
-                  <td><?= htmlspecialchars($product['sku'] ?? 'N/A') ?></td>
+                  <td>
+                    <?= htmlspecialchars($product['sku'] ?? 'N/A') ?>
+                    <?php if ($product['is_active']): ?>
+                      <span class="badge bg-success">Active</span>
+                    <?php else: ?>
+                      <span class="badge bg-danger">Inactive</span>
+                    <?php endif; ?>
+                  </td>
                   <td>$<?= number_format($product['regular_price'], 2) ?></td>
                   <td>
                     <?php if (!empty($product['category_name'])): ?>
@@ -163,15 +179,9 @@ $baseUrl .= implode('&', $urlParts);
                       <span class="text-muted">No Category</span>
                     <?php endif; ?>
                   </td>
-                  <td>
-                    <?php if ($product['is_active']): ?>
-                      <span class="badge bg-success">Active</span>
-                    <?php else: ?>
-                      <span class="badge bg-danger">Inactive</span>
-                    <?php endif; ?>
-                  </td>
                   <td><?= $product['created_at'] ? date('Y-m-d', strtotime($product['created_at'])) : '' ?></td>
                   <td><?= $product['last_checked'] ? date('Y-m-d H:i:s', strtotime($product['last_checked'])) : 'Never' ?></td>
+                  <td><?= htmlspecialchars($product['user_first_name'] ?? 'N/A') ?></td>
                   <td>
                     <div class="btn-group">
                       <button type="button" 
@@ -272,6 +282,12 @@ $baseUrl .= implode('&', $urlParts);
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+  // Initialize all tooltips
+  const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+  const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl);
+  });
+
   const modal = document.getElementById('historyModal');
   const modalTitle = modal.querySelector('.modal-title');
   const lastCheckedSpan = modal.querySelector('.last-checked-date');
@@ -310,6 +326,22 @@ document.addEventListener('DOMContentLoaded', function() {
     `;
   });
 });
+
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    // Create and show a temporary tooltip
+    const tooltip = bootstrap.Tooltip.getInstance(event.currentTarget);
+    const originalTitle = event.currentTarget.getAttribute('data-bs-original-title');
+    
+    tooltip.setContent({ '.tooltip-inner': 'Copied!' });
+    
+    setTimeout(() => {
+      tooltip.setContent({ '.tooltip-inner': originalTitle });
+    }, 1000);
+  }).catch(err => {
+    console.error('Failed to copy text: ', err);
+  });
+}
 
 function deleteProduct(productId) {
   if (confirm('Are you sure you want to delete this product?')) {

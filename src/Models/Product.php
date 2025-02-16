@@ -19,6 +19,7 @@ class Product
   private float $regular_price;
   private ?string $sku;
   private bool $is_active;
+  private ?int $user_id = null;
   private ?string $created_at = null;
   private ?string $updated_at = null;
   private ?string $deleted_at = null;
@@ -33,7 +34,8 @@ class Product
     int $store_id = 0,
     float $regular_price = 0.0,
     ?string $sku = null,
-    bool $is_active = true
+    bool $is_active = true,
+    ?int $user_id = null
   ) {
     $this->name = $name;
     $this->slug = $slug;
@@ -43,6 +45,7 @@ class Product
     $this->regular_price = $regular_price;
     $this->sku = $sku;
     $this->is_active = $is_active;
+    $this->user_id = $user_id;
   }
 
   public static function findAll(): array
@@ -50,19 +53,27 @@ class Product
     try {
       $db = Database::getInstance()->getConnection();
       $stmt = $db->prepare("
-                SELECT p.*, s.name as store_name, c.name as category_name, c.color as category_color 
-                FROM products p 
-                LEFT JOIN stores s ON p.store_id = s.id 
-                LEFT JOIN categories c ON p.category_id = c.id
-                WHERE p.deleted_at IS NULL
-                ORDER BY p.created_at DESC
-            ");
+        SELECT
+          products.*,
+          stores.name as store_name,
+          categories.name as category_name,
+          categories.color as category_color,
+          users.first_name as user_first_name
+        FROM
+          products
+          LEFT JOIN stores ON products.store_id = stores.id 
+          LEFT JOIN categories ON products.category_id = categories.id
+          LEFT JOIN users ON products.user_id = users.id
+        WHERE
+          products.deleted_at IS NULL
+        ORDER BY
+          products.created_at DESC
+      ");
       $stmt->execute();
 
       return $stmt->fetchAll();
     } catch (PDOException $e) {
       error_log("Database error in Product::findAll(): " . $e->getMessage());
-
       return [];
     }
   }
@@ -91,11 +102,17 @@ class Product
     try {
       $db = Database::getInstance()->getConnection();
       $stmt = $db->prepare("
-                SELECT p.*, s.name as store_name, c.name as category_name, c.color as category_color 
-                FROM products p 
-                LEFT JOIN stores s ON p.store_id = s.id 
-                LEFT JOIN categories c ON p.category_id = c.id 
-                WHERE p.id = :id AND p.deleted_at IS NULL
+                SELECT
+                  products.*,
+                  stores.name as store_name,
+                  categories.name as category_name,
+                  categories.color as category_color,
+                  users.first_name as user_first_name
+                FROM products
+                LEFT JOIN stores ON products.store_id = stores.id 
+                LEFT JOIN categories ON products.category_id = categories.id 
+                LEFT JOIN users ON products.user_id = users.id
+                WHERE products.id = :id AND products.deleted_at IS NULL
             ");
       $stmt->execute(['id' => $id]);
       $result = $stmt->fetch();
@@ -103,7 +120,6 @@ class Product
       return $result ?: null;
     } catch (PDOException $e) {
       error_log("Database error in Product::findById(): " . $e->getMessage());
-
       return null;
     }
   }
@@ -113,11 +129,11 @@ class Product
     try {
       $db = Database::getInstance()->getConnection();
       $stmt = $db->prepare("
-                SELECT p.*, s.name as store_name, c.name as category_name, c.color as category_color 
-                FROM products p 
-                LEFT JOIN stores s ON p.store_id = s.id 
-                LEFT JOIN categories c ON p.category_id = c.id 
-                WHERE p.sku = :sku AND p.deleted_at IS NULL
+                SELECT products.*, stores.name as store_name, categories.name as category_name, categories.color as category_color 
+                FROM products
+                LEFT JOIN stores ON products.store_id = stores.id 
+                LEFT JOIN categories ON products.category_id = categories.id 
+                WHERE products.sku = :sku AND products.deleted_at IS NULL
             ");
       $stmt->execute(['sku' => $sku]);
       $result = $stmt->fetch();
@@ -156,14 +172,13 @@ class Product
       // Validate required fields
       if (empty($this->name) || empty($this->slug) || $this->store_id <= 0) {
         error_log("Product validation failed: name, slug, and store_id are required");
-
         return false;
       }
 
       if ($this->id === null) {
         $stmt = $db->prepare("
-                    INSERT INTO products (name, slug, url, category_id, store_id, regular_price, sku, is_active)
-                    VALUES (:name, :slug, :url, :category_id, :store_id, :regular_price, :sku, :is_active)
+                    INSERT INTO products (name, slug, url, category_id, store_id, regular_price, sku, is_active, user_id)
+                    VALUES (:name, :slug, :url, :category_id, :store_id, :regular_price, :sku, :is_active, :user_id)
                 ");
       } else {
         $stmt = $db->prepare("
@@ -176,6 +191,7 @@ class Product
                         regular_price = :regular_price,
                         sku = :sku,
                         is_active = :is_active,
+                        user_id = :user_id,
                         updated_at = CURRENT_TIMESTAMP
                     WHERE id = :id
                 ");
@@ -191,7 +207,8 @@ class Product
         'store_id' => $this->store_id,
         'regular_price' => $this->regular_price,
         'sku' => $this->sku,
-        'is_active' => $this->is_active
+        'is_active' => $this->is_active,
+        'user_id' => $this->user_id
       ]));
 
       $stmt->bindValue(':name', $this->name);
@@ -202,6 +219,7 @@ class Product
       $stmt->bindValue(':regular_price', $this->regular_price);
       $stmt->bindValue(':sku', $this->sku);
       $stmt->bindValue(':is_active', $this->is_active, PDO::PARAM_BOOL);
+      $stmt->bindValue(':user_id', $this->user_id);
 
       $result = $stmt->execute();
 
@@ -213,7 +231,6 @@ class Product
       return $result;
     } catch (PDOException $e) {
       error_log("Database error in Product::save(): " . $e->getMessage());
-
       return false;
     }
   }
@@ -355,6 +372,16 @@ class Product
     $this->is_active = $is_active;
   }
 
+  public function getUserId(): ?int
+  {
+    return $this->user_id;
+  }
+
+  public function setUserId(?int $user_id): void
+  {
+    $this->user_id = $user_id;
+  }
+
   public static function findFiltered(array $filters = [], string $sortBy = 'created_at', string $sortOrder = 'DESC', int $page = 1, int $perPage = 20): array
   {
     try {
@@ -362,11 +389,19 @@ class Product
 
       // Base query
       $query = "
-        SELECT p.*, s.name as store_name, c.name as category_name, c.color as category_color
-        FROM products p 
-        LEFT JOIN stores s ON p.store_id = s.id 
-        LEFT JOIN categories c ON p.category_id = c.id 
-        WHERE p.deleted_at IS NULL
+        SELECT
+          products.*,
+          stores.name as store_name,
+          categories.name as category_name,
+          categories.color as category_color,
+          users.first_name as user_first_name
+        FROM
+          products
+          LEFT JOIN stores ON products.store_id = stores.id
+          LEFT JOIN categories ON products.category_id = categories.id
+          LEFT JOIN users ON products.user_id = users.id
+        WHERE
+          products.deleted_at IS NULL
       ";
 
       $params = [];
@@ -374,47 +409,47 @@ class Product
       // Apply filters
       if (!empty($filters['keyword'])) {
         $keyword = '%' . $filters['keyword'] . '%';
-        $query .= " AND (p.name LIKE :keyword OR p.sku LIKE :keyword OR CAST(p.regular_price AS CHAR) LIKE :keyword)";
+        $query .= " AND (products.name LIKE :keyword OR products.sku LIKE :keyword OR CAST(products.regular_price AS CHAR) LIKE :keyword)";
         $params['keyword'] = $keyword;
       }
 
       if (!empty($filters['store_id'])) {
-        $query .= " AND p.store_id = :store_id";
+        $query .= " AND products.store_id = :store_id";
         $params['store_id'] = $filters['store_id'];
       }
 
       if (isset($filters['category_id'])) {
         if ($filters['category_id'] === 0) {
-          $query .= " AND p.category_id IS NULL";
+          $query .= " AND products.category_id IS NULL";
         } else {
-          $query .= " AND p.category_id = :category_id";
+          $query .= " AND products.category_id = :category_id";
           $params['category_id'] = $filters['category_id'];
         }
       }
 
       if (isset($filters['is_active'])) {
-        $query .= " AND p.is_active = :is_active";
+        $query .= " AND products.is_active = :is_active";
         $params['is_active'] = $filters['is_active'];
       }
 
       // Count total results
-      $countQuery = str_replace("p.*, s.name as store_name, c.name as category_name, c.color as category_color", "COUNT(*)", $query);
+      $countQuery = str_replace("products.*, stores.name as store_name, categories.name as category_name, categories.color as category_color", "COUNT(*)", $query);
       $countStmt = $db->prepare($countQuery);
       $countStmt->execute($params);
       $total = (int)$countStmt->fetchColumn();
 
       // Apply sorting
       $allowedSortFields = [
-        'name' => 'p.name',
-        'store_name' => 's.name',
-        'category_name' => 'c.name',
-        'sku' => 'p.sku',
-        'regular_price' => 'p.regular_price',
-        'created_at' => 'p.created_at',
-        'updated_at' => 'p.updated_at'
+        'name' => 'products.name',
+        'store_name' => 'stores.name',
+        'category_name' => 'categories.name',
+        'sku' => 'products.sku',
+        'regular_price' => 'products.regular_price',
+        'created_at' => 'products.created_at',
+        'updated_at' => 'products.updated_at'
       ];
 
-      $sortField = $allowedSortFields[$sortBy] ?? 'p.created_at';
+      $sortField = $allowedSortFields[$sortBy] ?? 'products.created_at';
       $query .= " ORDER BY {$sortField} {$sortOrder}";
 
       // Apply pagination
