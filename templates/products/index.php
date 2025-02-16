@@ -39,12 +39,12 @@ $baseUrl .= implode('&', $urlParts);
   <div class="card mb-4">
     <div class="card-body">
       <form method="GET" class="row g-3">
-        <div class="col-md-3">
+        <div class="col-md">
           <input type="text" name="keyword" class="form-control" 
                placeholder="Search by name, SKU or price" 
                value="<?= htmlspecialchars($filters['keyword'] ?? '') ?>">
         </div>
-        <div class="col-md-2">
+        <div class="col-md-auto">
           <select name="store_id" class="form-select">
             <option value="">All Stores</option>
             <?php foreach ($stores as $store): ?>
@@ -55,7 +55,7 @@ $baseUrl .= implode('&', $urlParts);
             <?php endforeach; ?>
           </select>
         </div>
-        <div class="col-md-2">
+        <div class="col-md-auto">
           <select name="category_id" class="form-select">
             <option value="">All Categories</option>
             <option value="0" <?= ($filters['category_id'] ?? '') == '0' ? 'selected' : '' ?>>No Category</option>
@@ -67,15 +67,29 @@ $baseUrl .= implode('&', $urlParts);
             <?php endforeach; ?>
           </select>
         </div>
-        <div class="col-md-2">
+        <div class="col-md-auto">
           <select name="is_active" class="form-select">
             <option value="" <?= isset($filters['is_active']) && $filters['is_active'] == '' ? 'selected' : '' ?>>All Status</option>
             <option value="1" <?= isset($filters['is_active']) && $filters['is_active'] == '1' ? 'selected' : '' ?>>Active</option>
             <option value="0" <?= isset($filters['is_active']) && $filters['is_active'] == '0' ? 'selected' : '' ?>>Inactive</option>
           </select>
         </div>
-        <div class="col-md-2 d-flex align-items-end">
-          <button type="submit" class="btn btn-sm btn-primary me-2">
+        <?php if ($currentUserEmail === 'josh@udev.com'): ?>
+        <div class="col-md-auto">
+          <select name="user_id" class="form-select">
+            <option value="">All Users</option>
+            <option value="0" <?= ($filters['user_id'] ?? '') === 0 ? 'selected' : '' ?>>N/A</option>
+            <?php foreach ($users as $user): ?>
+              <option value="<?= $user->getId() ?>" 
+                <?= ($filters['user_id'] ?? '') == $user->getId() ? 'selected' : '' ?>>
+                <?= htmlspecialchars($user->getFirstName()) ?>
+              </option>
+            <?php endforeach; ?>
+          </select>
+        </div>
+        <?php endif; ?>
+        <div class="col-md-auto ms-md-auto">
+          <button type="submit" class="btn btn-sm btn-primary">
             <i class="bi bi-search"></i> Search
           </button>
         </div>

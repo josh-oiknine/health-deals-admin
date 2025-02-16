@@ -45,6 +45,16 @@ class ProductsController
       $filters['is_active'] = $queryParams['is_active'] === '1';
     }
 
+    // Handle user filter for josh@udev.com
+    $currentUserEmail = $this->view->getAttribute('currentUserEmail');
+    $users = [];
+    if ($currentUserEmail === 'josh@udev.com') {
+      $users = User::findAll();
+      if (isset($queryParams['user_id']) && $queryParams['user_id'] !== '') {
+        $filters['user_id'] = (int)$queryParams['user_id'];
+      }
+    }
+
     // Get sorting parameters
     $sortBy = $queryParams['sort_by'] ?? 'created_at';
     $sortOrder = strtoupper($queryParams['sort_order'] ?? 'DESC') === 'ASC' ? 'ASC' : 'DESC';
@@ -70,7 +80,9 @@ class ProductsController
         'sort_order' => $sortOrder
       ],
       'stores' => $stores,
-      'categories' => $categories
+      'categories' => $categories,
+      'users' => $users,
+      'currentUserEmail' => $currentUserEmail
     ]);
   }
 
@@ -98,7 +110,7 @@ class ProductsController
           (float)($data['regular_price'] ?? 0.0),
           $data['sku'] ?? null,
           isset($data['is_active']) && $data['is_active'] === 'on',
-          $currentUserEmail === 'josh@udev.com' && !empty($data['user_id']) ? (int)$data['user_id'] : null
+          !empty($data['user_id']) ? (int)$data['user_id'] : null
         );
 
         // Check for duplicates SKU
@@ -199,14 +211,14 @@ class ProductsController
     ]);
   }
 
-  public function delete(Request $request, Response $response, array $args): Response
-  {
-    $id = (int)$args['id'];
-    Product::delete($id);
+  // public function delete(Request $request, Response $response, array $args): Response
+  // {
+  //   $id = (int)$args['id'];
+  //   Product::delete($id);
 
-    return $response->withHeader('Location', '/products')
-      ->withStatus(302);
-  }
+  //   return $response->withHeader('Location', '/products')
+  //     ->withStatus(302);
+  // }
 
   public function history(Request $request, Response $response, array $args): Response
   {

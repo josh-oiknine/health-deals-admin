@@ -438,6 +438,15 @@ class Product
         $params['is_active'] = $filters['is_active'];
       }
 
+      if (isset($filters['user_id'])) {
+        if ($filters['user_id'] === 0) {
+          $query .= " AND products.user_id IS NULL";
+        } else {
+          $query .= " AND products.user_id = :user_id";
+          $params['user_id'] = $filters['user_id'];
+        }
+      }
+
       // Count total results
       $countQuery = str_replace("{fields}", "COUNT(*)", $query);
       $countStmt = $db->prepare($countQuery);
@@ -462,7 +471,7 @@ class Product
       $offset = ($page - 1) * $perPage;
       $query .= " LIMIT :limit OFFSET :offset";
 
-      $query = str_replace("{fields}", "products.*, stores.name as store_name, stores.logo_url as store_logo_url, categories.name as category_name, categories.color as category_color", $query);
+      $query = str_replace("{fields}", "products.*, stores.name as store_name, stores.logo_url as store_logo_url, categories.name as category_name, categories.color as category_color, users.first_name as user_first_name", $query);
       $stmt = $db->prepare($query);
 
       // Bind all parameters

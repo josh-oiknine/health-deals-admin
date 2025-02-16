@@ -1,6 +1,6 @@
 <div class="container-fluid py-4">
   <div class="row">
-    <!-- Metric Cards -->
+    <!-- Products -->
     <div class="col-xl-3 col-sm-6 mb-4">
       <div class="card">
         <div class="card-body p-3">
@@ -30,6 +30,7 @@
       </div>
     </div>
 
+    <!-- Deals -->
     <div class="col-xl-3 col-sm-6 mb-4">
       <div class="card">
         <div class="card-body p-3">
@@ -59,6 +60,35 @@
       </div>
     </div>
 
+    <!-- Outbox -->
+    <div class="col-xl-2 col-sm-6 mb-4">
+      <div class="card">
+        <div class="card-body p-3">
+          <div class="row">
+            <div class="col-8">
+              <div class="numbers">
+                <p class="text-sm mb-0 text-muted d-flex">
+                  <a href="/outbox" class="text-decoration-none me-1">
+                    <span class="icon icon-shape bg-info text-center" style="width: 1.5rem; height: 1.5rem;">
+                      <i class="bi bi-envelope" style="font-size: 0.75rem;"></i>
+                    </span>
+                  </a>
+                  Outbox
+                </p>
+                <h3 class="font-weight-bolder m-2 mb-1">
+                  <?= $metrics['messagesSentToday'] ?>
+                </h3>
+              </div>
+            </div>
+            <div class="col-4 text-end">
+              <!-- Chart will go here -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Categories -->
     <div class="col-xl-2 col-sm-6 mb-4">
       <div class="card">
         <div class="card-body p-3">
@@ -86,6 +116,7 @@
       </div>
     </div>
 
+    <!-- Stores -->
     <div class="col-xl-2 col-sm-6 mb-4">
       <div class="card">
         <div class="card-body p-3">
@@ -102,33 +133,6 @@
                 </p>
                 <h3 class="font-weight-bolder m-2 mb-1">
                   <?= $metrics['activeStores'] ?>
-                </h3>
-              </div>
-            </div>
-            <div class="col-4 text-end">
-              <!-- Chart will go here -->
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-xl-2 col-sm-6 mb-4">
-      <div class="card">
-        <div class="card-body p-3">
-          <div class="row">
-            <div class="col-8">
-              <div class="numbers">
-                <p class="text-sm mb-0 text-muted d-flex">
-                  <a href="/outbox" class="text-decoration-none me-1">
-                    <span class="icon icon-shape bg-info text-center" style="width: 1.5rem; height: 1.5rem;">
-                      <i class="bi bi-envelope" style="font-size: 0.75rem;"></i>
-                    </span>
-                  </a>
-                  Outbox
-                </p>
-                <h3 class="font-weight-bolder m-2 mb-1">
-                  <?= $metrics['messagesSentToday'] ?>
                 </h3>
               </div>
             </div>
