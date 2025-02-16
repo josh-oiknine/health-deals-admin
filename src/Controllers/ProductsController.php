@@ -322,7 +322,7 @@ class ProductsController
       (float)$regularPrice,
       $sku,
       true, // is_active
-      userId // user_id
+      $userId // user_id
     );
 
     if ($product->save()) {

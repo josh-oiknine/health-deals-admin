@@ -56,6 +56,7 @@ class Product
         SELECT
           products.*,
           stores.name as store_name,
+          stores.logo_url as store_logo_url,
           categories.name as category_name,
           categories.color as category_color,
           users.first_name as user_first_name
@@ -105,6 +106,7 @@ class Product
                 SELECT
                   products.*,
                   stores.name as store_name,
+                  stores.logo_url as store_logo_url,
                   categories.name as category_name,
                   categories.color as category_color,
                   users.first_name as user_first_name
@@ -129,11 +131,19 @@ class Product
     try {
       $db = Database::getInstance()->getConnection();
       $stmt = $db->prepare("
-                SELECT products.*, stores.name as store_name, categories.name as category_name, categories.color as category_color 
-                FROM products
-                LEFT JOIN stores ON products.store_id = stores.id 
-                LEFT JOIN categories ON products.category_id = categories.id 
-                WHERE products.sku = :sku AND products.deleted_at IS NULL
+                SELECT
+                  products.*,
+                  stores.name as store_name,
+                  stores.logo_url as store_logo_url,
+                  categories.name as category_name,
+                  categories.color as category_color 
+                FROM
+                  products
+                  LEFT JOIN stores ON products.store_id = stores.id 
+                  LEFT JOIN categories ON products.category_id = categories.id 
+                WHERE
+                  products.sku = :sku
+                  AND products.deleted_at IS NULL
             ");
       $stmt->execute(['sku' => $sku]);
       $result = $stmt->fetch();
@@ -235,19 +245,19 @@ class Product
     }
   }
 
-  public static function delete(int $id): bool
-  {
-    try {
-      $db = Database::getInstance()->getConnection();
-      $stmt = $db->prepare("DELETE FROM products WHERE id = :id");
+  // public static function delete(int $id): bool
+  // {
+  //   try {
+  //     $db = Database::getInstance()->getConnection();
+  //     $stmt = $db->prepare("DELETE FROM products WHERE id = :id");
 
-      return $stmt->execute(['id' => $id]);
-    } catch (PDOException $e) {
-      error_log("Database error in Product::delete(): " . $e->getMessage());
+  //     return $stmt->execute(['id' => $id]);
+  //   } catch (PDOException $e) {
+  //     error_log("Database error in Product::delete(): " . $e->getMessage());
 
-      return false;
-    }
-  }
+  //     return false;
+  //   }
+  // }
 
   public function softDelete(): bool
   {
@@ -390,11 +400,7 @@ class Product
       // Base query
       $query = "
         SELECT
-          products.*,
-          stores.name as store_name,
-          categories.name as category_name,
-          categories.color as category_color,
-          users.first_name as user_first_name
+          {fields}
         FROM
           products
           LEFT JOIN stores ON products.store_id = stores.id
@@ -433,7 +439,7 @@ class Product
       }
 
       // Count total results
-      $countQuery = str_replace("products.*, stores.name as store_name, categories.name as category_name, categories.color as category_color", "COUNT(*)", $query);
+      $countQuery = str_replace("{fields}", "COUNT(*)", $query);
       $countStmt = $db->prepare($countQuery);
       $countStmt->execute($params);
       $total = (int)$countStmt->fetchColumn();
@@ -456,6 +462,7 @@ class Product
       $offset = ($page - 1) * $perPage;
       $query .= " LIMIT :limit OFFSET :offset";
 
+      $query = str_replace("{fields}", "products.*, stores.name as store_name, stores.logo_url as store_logo_url, categories.name as category_name, categories.color as category_color", $query);
       $stmt = $db->prepare($query);
 
       // Bind all parameters

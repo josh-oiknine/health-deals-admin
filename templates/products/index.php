@@ -144,10 +144,10 @@ $baseUrl .= implode('&', $urlParts);
                          data-bs-placement="top" 
                          title="<?= htmlspecialchars($product['name']) ?>"
                       >
-                        <img src="<?= htmlspecialchars($product['logo_url'] ?? '/assets/images/favicon-32x32.png') ?>" 
+                        <img src="<?= htmlspecialchars($product['store_logo_url'] ?? '/assets/images/favicon-32x32.png') ?>" 
                              alt="Product icon"
                              class="me-2"
-                             style="width: 16px; height: 16px; object-fit: contain;"
+                             style="width: 32px; height: 32px; object-fit: contain;"
                              onerror="this.src='/assets/images/favicon-16x16.png'">
                         <?= htmlspecialchars(mb_strlen($product['name']) > 52 ? mb_substr($product['name'], 0, 52) . '...' : $product['name']) ?>
                         <small><i class="bi bi-box-arrow-up-right ms-1"></i></small>
@@ -162,7 +162,7 @@ $baseUrl .= implode('&', $urlParts);
                     </div>
                   </td>
                   <td>
-                    <?= htmlspecialchars($product['sku'] ?? 'N/A') ?>
+                    <?= htmlspecialchars($product['sku'] ?? 'N/A') ?><br>
                     <?php if ($product['is_active']): ?>
                       <span class="badge bg-success">Active</span>
                     <?php else: ?>

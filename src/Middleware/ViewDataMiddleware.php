@@ -22,6 +22,7 @@ class ViewDataMiddleware
     {
         // Get current user info from JWT token
         $currentUserEmail = null;
+        $currentUserId = null;
         $authToken = $_COOKIE['auth_token'] ?? null;
 
         if ($authToken) {
