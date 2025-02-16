@@ -13,13 +13,13 @@ use PDOException;
 class Deal
 {
   private ?int $id = null;
+  private int $product_id;
+  private int $store_id;
+  private ?int $category_id;
   private string $title;
   private string $description;
   private string $affiliate_url;
   private string $image_url;
-  private int $product_id;
-  private int $store_id;
-  private ?int $category_id;
   private float $original_price;
   private float $deal_price;
   private bool $is_active;
