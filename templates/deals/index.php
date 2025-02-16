@@ -39,7 +39,7 @@ $baseUrl .= implode('&', $urlParts);
   <div class="card mb-4">
     <div class="card-body">
       <form method="GET" class="row g-3">
-        <div class="col-md-auto">
+        <div class="col-md">
           <input type="text" name="keyword" class="form-control" 
             placeholder="Search by title, description or coupon" 
             value="<?= htmlspecialchars($filters['keyword'] ?? '') ?>">
@@ -110,6 +110,7 @@ $baseUrl .= implode('&', $urlParts);
                   Deal Price <?= getSortIcon($sortBy, 'deal_price', $sortOrder) ?>
                 </a>
               </th>
+              <th>Discount</th>
               <th>
                 <a href="<?= getSortUrl($baseUrl, 'is_featured', $sortBy, $sortOrder) ?>" class="text-decoration-none text-dark">
                   Featured <?= getSortIcon($sortBy, 'is_featured', $sortOrder) ?>
@@ -127,16 +128,18 @@ $baseUrl .= implode('&', $urlParts);
             <?php else: ?>
               <?php foreach ($deals as $deal): ?>
                 <tr>
-                  <td>
-                    <?php
+                  <?php 
                     $expiredClass = '';
                     $expiredLinkClass = 'text-decoration-none';
                     if ($deal['is_expired']):
                       $expiredClass = 'grayscale-overlay';
                       $expiredLinkClass = 'text-decoration-line-through';
                     endif;
-                    ?>
-
+                    
+                    $savings = (($deal['original_price'] - $deal['deal_price']) / $deal['original_price']) * 100;
+                    $savingsFormatted = number_format($savings, 1);
+                  ?>
+                  <td>
                     <?php if (!empty($deal['image_url'])): ?>
                       <div class="<?= $expiredClass ?>">
                         <img src="<?= htmlspecialchars($deal['image_url']) ?>" 
@@ -153,7 +156,7 @@ $baseUrl .= implode('&', $urlParts);
                       target="_blank"
                       class="<?= $expiredLinkClass ?>"
                     >
-                      <?= htmlspecialchars($deal['title']) ?>
+                      <?= htmlspecialchars(mb_strlen($deal['title']) > 52 ? mb_substr($deal['title'], 0, 52) . '...' : $deal['title']) ?>
                       <small><i class="bi bi-box-arrow-up-right ms-1"></i></small>
                     </a>
                     <?php if (!empty($deal['category_name'])): ?>
@@ -166,6 +169,11 @@ $baseUrl .= implode('&', $urlParts);
                   <td><?= htmlspecialchars($deal['store_name'] ?? 'N/A') ?></td>
                   <td>$<?= number_format($deal['original_price'], 2) ?></td>
                   <td>$<?= number_format($deal['deal_price'], 2) ?></td>
+                  <td class="text-end">
+                    <span class="badge bg-success">
+                      <?= $savingsFormatted ?>%
+                    </span>
+                  </td>
                   <td>
                     <?php if ($deal['is_featured']): ?>
                       <span class="badge bg-warning text-dark">

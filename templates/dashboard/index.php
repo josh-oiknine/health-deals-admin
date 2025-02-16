@@ -183,7 +183,7 @@
                     <th>Featured</th>
                     <th class="text-end">Original</th>
                     <th class="text-end">Current</th>
-                    <th class="text-end">Savings</th>
+                    <th class="text-end">Discount</th>
                   </tr>
                 </thead>
                 <tbody>
