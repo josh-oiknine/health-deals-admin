@@ -10,14 +10,16 @@
  * ]
  * @param string $baseUrl The base URL for pagination links
  */
+?>
 
-if ($pagination['last_page'] > 1): ?>
 <div class="d-flex justify-content-between align-items-center mt-4">
   <div class="text-muted">
     Showing <?= ($pagination['current_page'] - 1) * $pagination['per_page'] + 1 ?> 
     to <?= min($pagination['current_page'] * $pagination['per_page'], $pagination['total']) ?> 
     of <?= $pagination['total'] ?> results
   </div>
+
+  <?php if ($pagination['last_page'] > 1): ?>
   <nav aria-label="Page navigation">
     <ul class="pagination mb-0">
       <!-- First Page -->
@@ -85,5 +87,5 @@ if ($pagination['last_page'] > 1): ?>
       <?php endif; ?>
     </ul>
   </nav>
+  <?php endif; ?>
 </div>
-<?php endif; ?> 

@@ -18,6 +18,7 @@ class Product
   private ?int $category_id;
   private float $regular_price;
   private ?string $sku;
+  private ?string $upc;
   private bool $is_active;
   private ?int $user_id = null;
   private ?string $created_at = null;
@@ -34,6 +35,7 @@ class Product
     int $store_id = 0,
     float $regular_price = 0.0,
     ?string $sku = null,
+    ?string $upc = null,
     bool $is_active = true,
     ?int $user_id = null
   ) {
@@ -44,6 +46,7 @@ class Product
     $this->store_id = $store_id;
     $this->regular_price = $regular_price;
     $this->sku = $sku;
+    $this->upc = $upc;
     $this->is_active = $is_active;
     $this->user_id = $user_id;
   }
@@ -187,8 +190,8 @@ class Product
 
       if ($this->id === null) {
         $stmt = $db->prepare("
-                    INSERT INTO products (name, slug, url, category_id, store_id, regular_price, sku, is_active, user_id)
-                    VALUES (:name, :slug, :url, :category_id, :store_id, :regular_price, :sku, :is_active, :user_id)
+                    INSERT INTO products (name, slug, url, category_id, store_id, regular_price, sku, upc, is_active, user_id)
+                    VALUES (:name, :slug, :url, :category_id, :store_id, :regular_price, :sku, :upc, :is_active, :user_id)
                 ");
       } else {
         $stmt = $db->prepare("
@@ -200,6 +203,7 @@ class Product
                         store_id = :store_id,
                         regular_price = :regular_price,
                         sku = :sku,
+                        upc = :upc,
                         is_active = :is_active,
                         user_id = :user_id,
                         updated_at = CURRENT_TIMESTAMP
@@ -217,6 +221,7 @@ class Product
         'store_id' => $this->store_id,
         'regular_price' => $this->regular_price,
         'sku' => $this->sku,
+        'upc' => $this->upc,
         'is_active' => $this->is_active,
         'user_id' => $this->user_id
       ]));
@@ -228,6 +233,7 @@ class Product
       $stmt->bindValue(':store_id', $this->store_id);
       $stmt->bindValue(':regular_price', $this->regular_price);
       $stmt->bindValue(':sku', $this->sku);
+      $stmt->bindValue(':upc', $this->upc);
       $stmt->bindValue(':is_active', $this->is_active, PDO::PARAM_BOOL);
       $stmt->bindValue(':user_id', $this->user_id);
 
@@ -373,6 +379,16 @@ class Product
     $this->sku = $sku;
   }
 
+  public function getUpc(): ?string
+  {
+    return $this->upc;
+  }
+
+  public function setUpc(?string $upc): void
+  {
+    $this->upc = $upc;
+  }
+
   public function getIsActive(): bool
   {
     return $this->is_active;
@@ -461,7 +477,8 @@ class Product
         'sku' => 'products.sku',
         'regular_price' => 'products.regular_price',
         'created_at' => 'products.created_at',
-        'updated_at' => 'products.updated_at'
+        'updated_at' => 'products.updated_at',
+        'last_checked' => 'products.last_checked'
       ];
 
       $sortField = $allowedSortFields[$sortBy] ?? 'products.created_at';

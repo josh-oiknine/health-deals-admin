@@ -41,7 +41,7 @@ $baseUrl .= implode('&', $urlParts);
       <form method="GET" class="row g-3">
         <div class="col-md">
           <input type="text" name="keyword" class="form-control" 
-               placeholder="Search by name, SKU or price" 
+               placeholder="Search by name, SKU, UPC or price" 
                value="<?= htmlspecialchars($filters['keyword'] ?? '') ?>">
         </div>
         <div class="col-md-auto">
@@ -177,10 +177,8 @@ $baseUrl .= implode('&', $urlParts);
                   </td>
                   <td>
                     <?= htmlspecialchars($product['sku'] ?? 'N/A') ?><br>
-                    <?php if ($product['is_active']): ?>
-                      <span class="badge bg-success">Active</span>
-                    <?php else: ?>
-                      <span class="badge bg-danger">Inactive</span>
+                    <?php if (!empty($product['upc'])): ?>
+                      <small class="text-muted">UPC: <?= htmlspecialchars($product['upc']) ?></small><br>
                     <?php endif; ?>
                   </td>
                   <td>$<?= number_format($product['regular_price'], 2) ?></td>
@@ -193,9 +191,21 @@ $baseUrl .= implode('&', $urlParts);
                       <span class="text-muted">No Category</span>
                     <?php endif; ?>
                   </td>
-                  <td><?= $product['created_at'] ? date('Y-m-d', strtotime($product['created_at'])) : '' ?></td>
-                  <td><?= $product['last_checked'] ? date('Y-m-d H:i:s', strtotime($product['last_checked'])) : 'Never' ?></td>
-                  <td><?= htmlspecialchars($product['user_first_name'] ?? 'N/A') ?></td>
+                  <td>
+                    <?= $product['created_at'] ? date('Y-m-d', strtotime($product['created_at'])) : '' ?>
+                    <br>
+                    <?php if ($product['is_active']): ?>
+                      <span class="badge bg-success">Active</span>
+                    <?php else: ?>
+                      <span class="badge bg-danger">Inactive</span>
+                    <?php endif; ?>
+                  </td>
+                  <td>
+                    <?= $product['last_checked'] ? date('Y-m-d H:i:s', strtotime($product['last_checked'])) : 'Never' ?>
+                  </td>
+                  <td>
+                    <?= htmlspecialchars($product['user_first_name'] ?? 'N/A') ?>
+                  </td>
                   <td>
                     <div class="btn-group">
                       <button type="button" 

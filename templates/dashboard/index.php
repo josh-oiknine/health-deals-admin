@@ -201,13 +201,18 @@
                       data-image-url="<?= $deal['image_url'] ?>"
                       data-created-at="<?= $deal['created_at'] ?>"
                     >
-                      <td><?= $index + 1 ?></td>
+                      <td>
+                        <a href="/deals?keyword=<?= $deal['product_sku'] ?>">
+                          <?= $index + 1 ?>
+                        </a>
+                      </td>
                       <td>
                         <a href="<?= $deal['affiliate_url'] ?>" 
                            target="_blank" 
-                           class="text-reset">
+                           class="text-reset d-inline-block text-truncate"
+                           style="max-width: 300px;"
+                        >
                           <?= $deal['title'] ?>
-                          <small><i class="bi bi-box-arrow-up-right"></i></small>
                         </a>
                       </td>
                       <td class="text-center">

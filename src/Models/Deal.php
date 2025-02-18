@@ -180,7 +180,7 @@ class Deal
 
       // Apply filters
       if (!empty($filters['keyword'])) {
-        $conditions[] = "(d.title LIKE :keyword OR d.description LIKE :keyword)";
+        $conditions[] = "(d.title LIKE :keyword OR d.description LIKE :keyword OR p.sku LIKE :keyword OR p.upc LIKE :keyword)";
         $params['keyword'] = "%{$filters['keyword']}%";
       }
 
@@ -209,11 +209,13 @@ class Deal
                 s.name as store_name,
                 c.name as category_name,
                 c.color as category_color,
-                p.name as product_name
+                p.name as product_name,
+                p.sku as product_sku,
+                p.upc as product_upc
             FROM deals d
-            LEFT JOIN stores s ON d.store_id = s.id
-            LEFT JOIN categories c ON d.category_id = c.id
-            LEFT JOIN products p ON d.product_id = p.id
+                LEFT JOIN stores s ON d.store_id = s.id
+                LEFT JOIN categories c ON d.category_id = c.id
+                LEFT JOIN products p ON d.product_id = p.id
             WHERE " . implode(' AND ', $conditions);
 
       // Add sorting
@@ -228,7 +230,7 @@ class Deal
       $sql .= " ORDER BY $sortBy $sortOrder";
 
       // Get total count for pagination
-      $countSql = "SELECT COUNT(*) FROM deals d WHERE " . implode(' AND ', $conditions);
+      $countSql = "SELECT COUNT(*) FROM deals d LEFT JOIN products p ON d.product_id = p.id WHERE " . implode(' AND ', $conditions);
       $countStmt = $db->prepare($countSql);
       $countStmt->execute($params);
       $total = $countStmt->fetchColumn();
@@ -338,9 +340,16 @@ class Deal
     try {
       $db = Database::getInstance()->getConnection();
       $stmt = $db->prepare("
-        SELECT * FROM deals
-        ORDER BY created_at DESC
-        LIMIT :limit
+        SELECT
+            deals.*,
+            products.sku as product_sku
+        FROM
+            deals
+            LEFT JOIN products on deals.product_id = products.id
+        ORDER BY
+            deals.created_at DESC
+        LIMIT
+            :limit
       ");
       $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
       $stmt->execute();

@@ -109,6 +109,7 @@ class ProductsController
           (int)($data['store_id'] ?? 0),
           (float)($data['regular_price'] ?? 0.0),
           $data['sku'] ?? null,
+          $data['upc'] ?? null,
           isset($data['is_active']) && $data['is_active'] === 'on',
           !empty($data['user_id']) ? (int)$data['user_id'] : null
         );
@@ -184,6 +185,7 @@ class ProductsController
           (int)($data['store_id'] ?? 0),
           (float)($data['regular_price'] ?? 0.0),
           $data['sku'] ?? null,
+          $data['upc'] ?? null,
           isset($data['is_active']) && $data['is_active'] === 'on',
           $currentUserEmail === 'josh@udev.com' && !empty($data['user_id']) ? (int)$data['user_id'] : $productData['user_id']
         );
@@ -308,8 +310,8 @@ class ProductsController
     $slug = self::makeSlug($name);
 
     // Make sure the slug is unique
-    $existingProduct = Product::findBySlug($slug);
-    if ($existingProduct && $existingProduct > 0) {
+    $existingSlug = Product::findBySlug($slug);
+    if ($existingSlug && $existingSlug > 0) {
       if (strlen($slug) > 85) {
         $slug = substr($slug, 0, 85);
       
@@ -318,7 +320,7 @@ class ProductsController
           $slug = substr($slug, 0, $lastUnderscore);
         }
       }
-      
+
       $slug = $slug . '_' . date('YmdHis');
     }
 
@@ -334,7 +336,8 @@ class ProductsController
       (float)$regularPrice,
       $sku,
       true, // is_active
-      $userId // user_id
+      $userId, // user_id
+      $sku
     );
 
     if ($product->save()) {

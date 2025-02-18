@@ -88,6 +88,18 @@
                         </div>
 
                         <div class="mb-3">
+                            <label for="upc" class="form-label">UPC</label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="upc" 
+                                   name="upc" 
+                                   value="<?= htmlspecialchars($product['upc'] ?? '') ?>"
+                                   pattern="[0-9]{12}"
+                                   maxlength="12">
+                            <div class="form-text">12-digit Universal Product Code</div>
+                        </div>
+
+                        <div class="mb-3">
                             <label for="regular_price" class="form-label">Regular Price *</label>
                             <div class="input-group">
                                 <span class="input-group-text">$</span>
