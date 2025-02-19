@@ -69,6 +69,8 @@ $app->group('', function (RouteCollectorProxy $group) {
   $group->get('/products/history/{id}', [ProductsController::class, 'history']);
 
   $group->post('/api/products/add', [ProductsController::class, 'apiAdd']);
+  $group->get('/api/products/find', [ProductsController::class, 'apiFind']);
+  $group->post('/api/products/update-price', [ProductsController::class, 'apiUpdatePrice']);
 
   // Deal routes
   $group->get('/deals', [DealsController::class, 'index'])->setName('deals');

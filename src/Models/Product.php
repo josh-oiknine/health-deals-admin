@@ -51,362 +51,6 @@ class Product
     $this->user_id = $user_id;
   }
 
-  public static function findAll(): array
-  {
-    try {
-      $db = Database::getInstance()->getConnection();
-      $stmt = $db->prepare("
-        SELECT
-          products.*,
-          stores.name as store_name,
-          stores.logo_url as store_logo_url,
-          categories.name as category_name,
-          categories.color as category_color,
-          users.first_name as user_first_name
-        FROM
-          products
-          LEFT JOIN stores ON products.store_id = stores.id 
-          LEFT JOIN categories ON products.category_id = categories.id
-          LEFT JOIN users ON products.user_id = users.id
-        WHERE
-          products.deleted_at IS NULL
-        ORDER BY
-          products.created_at DESC
-      ");
-      $stmt->execute();
-
-      return $stmt->fetchAll();
-    } catch (PDOException $e) {
-      error_log("Database error in Product::findAll(): " . $e->getMessage());
-      return [];
-    }
-  }
-
-  public static function findByStore(int $store_id): array
-  {
-    try {
-      $db = Database::getInstance()->getConnection();
-      $stmt = $db->prepare("
-                SELECT * FROM products 
-                WHERE store_id = :store_id AND deleted_at IS NULL
-                ORDER BY created_at DESC
-            ");
-      $stmt->execute(['store_id' => $store_id]);
-
-      return $stmt->fetchAll();
-    } catch (PDOException $e) {
-      error_log("Database error in Product::findByStore(): " . $e->getMessage());
-
-      return [];
-    }
-  }
-
-  public static function findById(int $id): ?array
-  {
-    try {
-      $db = Database::getInstance()->getConnection();
-      $stmt = $db->prepare("
-                SELECT
-                  products.*,
-                  stores.name as store_name,
-                  stores.logo_url as store_logo_url,
-                  categories.name as category_name,
-                  categories.color as category_color,
-                  users.first_name as user_first_name
-                FROM products
-                LEFT JOIN stores ON products.store_id = stores.id 
-                LEFT JOIN categories ON products.category_id = categories.id 
-                LEFT JOIN users ON products.user_id = users.id
-                WHERE products.id = :id AND products.deleted_at IS NULL
-            ");
-      $stmt->execute(['id' => $id]);
-      $result = $stmt->fetch();
-
-      return $result ?: null;
-    } catch (PDOException $e) {
-      error_log("Database error in Product::findById(): " . $e->getMessage());
-      return null;
-    }
-  }
-
-  public static function findBySku(string $sku): ?array
-  {
-    try {
-      $db = Database::getInstance()->getConnection();
-      $stmt = $db->prepare("
-                SELECT
-                  products.*,
-                  stores.name as store_name,
-                  stores.logo_url as store_logo_url,
-                  categories.name as category_name,
-                  categories.color as category_color 
-                FROM
-                  products
-                  LEFT JOIN stores ON products.store_id = stores.id 
-                  LEFT JOIN categories ON products.category_id = categories.id 
-                WHERE
-                  products.sku = :sku
-                  AND products.deleted_at IS NULL
-            ");
-      $stmt->execute(['sku' => $sku]);
-      $result = $stmt->fetch();
-
-      return $result ?: null;
-    } catch (PDOException $e) {
-      error_log("Database error in Product::findBySku(): " . $e->getMessage());
-
-      return null;
-    }
-  }
-
-  public static function findBySlug(string $slug): ?array
-  {
-    try {
-      $db = Database::getInstance()->getConnection();
-      $stmt = $db->prepare("
-        SELECT COUNT(*) FROM products WHERE slug = :slug AND deleted_at IS NULL
-      ");
-      $stmt->execute(['slug' => $slug]);
-      $result = $stmt->fetchColumn();
-
-      return $result ?: null;
-    } catch (PDOException $e) {
-      error_log("Database error in Product::findBySlug(): " . $e->getMessage());
-
-      return null;
-    }
-  }
-
-  public function save(): bool
-  {
-    try {
-      $db = Database::getInstance()->getConnection();
-
-      // Validate required fields
-      if (empty($this->name) || empty($this->slug) || $this->store_id <= 0) {
-        error_log("Product validation failed: name, slug, and store_id are required");
-        return false;
-      }
-
-      if ($this->id === null) {
-        $stmt = $db->prepare("
-                    INSERT INTO products (name, slug, url, category_id, store_id, regular_price, sku, upc, is_active, user_id)
-                    VALUES (:name, :slug, :url, :category_id, :store_id, :regular_price, :sku, :upc, :is_active, :user_id)
-                ");
-      } else {
-        $stmt = $db->prepare("
-                    UPDATE products 
-                    SET name = :name, 
-                        slug = :slug,
-                        url = :url,
-                        category_id = :category_id,
-                        store_id = :store_id,
-                        regular_price = :regular_price,
-                        sku = :sku,
-                        upc = :upc,
-                        is_active = :is_active,
-                        user_id = :user_id,
-                        updated_at = CURRENT_TIMESTAMP
-                    WHERE id = :id
-                ");
-        $stmt->bindValue(':id', $this->id);
-      }
-
-      // Log the values being saved for debugging
-      error_log("Saving product with values: " . json_encode([
-        'name' => $this->name,
-        'slug' => $this->slug,
-        'url' => $this->url,
-        'category_id' => $this->category_id,
-        'store_id' => $this->store_id,
-        'regular_price' => $this->regular_price,
-        'sku' => $this->sku,
-        'upc' => $this->upc,
-        'is_active' => $this->is_active,
-        'user_id' => $this->user_id
-      ]));
-
-      $stmt->bindValue(':name', $this->name);
-      $stmt->bindValue(':slug', $this->slug);
-      $stmt->bindValue(':url', $this->url);
-      $stmt->bindValue(':category_id', $this->category_id);
-      $stmt->bindValue(':store_id', $this->store_id);
-      $stmt->bindValue(':regular_price', $this->regular_price);
-      $stmt->bindValue(':sku', $this->sku);
-      $stmt->bindValue(':upc', $this->upc);
-      $stmt->bindValue(':is_active', $this->is_active, PDO::PARAM_BOOL);
-      $stmt->bindValue(':user_id', $this->user_id);
-
-      $result = $stmt->execute();
-
-      if (!$result) {
-        $error = $stmt->errorInfo();
-        error_log("Database error in Product::save(): " . json_encode($error));
-      }
-
-      return $result;
-    } catch (PDOException $e) {
-      error_log("Database error in Product::save(): " . $e->getMessage());
-      return false;
-    }
-  }
-
-  // public static function delete(int $id): bool
-  // {
-  //   try {
-  //     $db = Database::getInstance()->getConnection();
-  //     $stmt = $db->prepare("DELETE FROM products WHERE id = :id");
-
-  //     return $stmt->execute(['id' => $id]);
-  //   } catch (PDOException $e) {
-  //     error_log("Database error in Product::delete(): " . $e->getMessage());
-
-  //     return false;
-  //   }
-  // }
-
-  public function softDelete(): bool
-  {
-    if ($this->id === null) {
-      return false;
-    }
-    try {
-      $db = Database::getInstance()->getConnection();
-      $stmt = $db->prepare("UPDATE products SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?");
-
-      return $stmt->execute([$this->id]);
-    } catch (PDOException $e) {
-      error_log("Database error in Product::softDelete(): " . $e->getMessage());
-
-      return false;
-    }
-  }
-
-  public static function countActive(): int
-  {
-    try {
-      $db = Database::getInstance()->getConnection();
-      $stmt = $db->prepare("SELECT COUNT(*) FROM products WHERE is_active = true AND deleted_at IS NULL");
-      $stmt->execute();
-
-      return (int)$stmt->fetchColumn();
-    } catch (PDOException $e) {
-      error_log("Database error in Product::countActive(): " . $e->getMessage());
-
-      return 0;
-    }
-  }
-
-  public function getStore(): ?Store
-  {
-    if ($this->store === null && $this->store_id) {
-      $this->store = Store::findById($this->store_id);
-    }
-
-    return $this->store;
-  }
-
-  // Getters and setters
-  public function getId(): ?int
-  {
-    return $this->id;
-  }
-  public function setId(?int $id): void
-  {
-    $this->id = $id;
-  }
-
-  public function getName(): string
-  {
-    return $this->name;
-  }
-  public function setName(string $name): void
-  {
-    $this->name = $name;
-  }
-
-  public function getSlug(): string
-  {
-    return $this->slug;
-  }
-  public function setSlug(string $slug): void
-  {
-    $this->slug = $slug;
-  }
-
-  public function getUrl(): string
-  {
-    return $this->url;
-  }
-  public function setUrl(string $url): void
-  {
-    $this->url = $url;
-  }
-
-  public function getCategoryId(): ?int
-  {
-    return $this->category_id;
-  }
-  public function setCategoryId(?int $category_id): void
-  {
-    $this->category_id = $category_id;
-  }
-
-  public function getStoreId(): int
-  {
-    return $this->store_id;
-  }
-  public function setStoreId(int $store_id): void
-  {
-    $this->store_id = $store_id;
-  }
-
-  public function getRegularPrice(): float
-  {
-    return $this->regular_price;
-  }
-  public function setRegularPrice(float $regular_price): void
-  {
-    $this->regular_price = $regular_price;
-  }
-
-  public function getSku(): ?string
-  {
-    return $this->sku;
-  }
-  public function setSku(?string $sku): void
-  {
-    $this->sku = $sku;
-  }
-
-  public function getUpc(): ?string
-  {
-    return $this->upc;
-  }
-
-  public function setUpc(?string $upc): void
-  {
-    $this->upc = $upc;
-  }
-
-  public function getIsActive(): bool
-  {
-    return $this->is_active;
-  }
-  public function setIsActive(bool $is_active): void
-  {
-    $this->is_active = $is_active;
-  }
-
-  public function getUserId(): ?int
-  {
-    return $this->user_id;
-  }
-
-  public function setUserId(?int $user_id): void
-  {
-    $this->user_id = $user_id;
-  }
 
   public static function findFiltered(array $filters = [], string $sortBy = 'created_at', string $sortOrder = 'DESC', int $page = 1, int $perPage = 20): array
   {
@@ -523,6 +167,243 @@ class Product
     }
   }
 
+  public static function findAll(): array
+  {
+    try {
+      $db = Database::getInstance()->getConnection();
+      $stmt = $db->prepare("
+        SELECT
+          products.*,
+          stores.name as store_name,
+          stores.logo_url as store_logo_url,
+          categories.name as category_name,
+          categories.color as category_color,
+          users.first_name as user_first_name
+        FROM
+          products
+          LEFT JOIN stores ON products.store_id = stores.id 
+          LEFT JOIN categories ON products.category_id = categories.id
+          LEFT JOIN users ON products.user_id = users.id
+        WHERE
+          products.deleted_at IS NULL
+        ORDER BY
+          products.created_at DESC
+      ");
+      $stmt->execute();
+
+      return $stmt->fetchAll();
+    } catch (PDOException $e) {
+      error_log("Database error in Product::findAll(): " . $e->getMessage());
+      return [];
+    }
+  }
+
+  public static function findByStore(int $store_id): array
+  {
+    try {
+      $db = Database::getInstance()->getConnection();
+      $stmt = $db->prepare("
+                SELECT * FROM products 
+                WHERE store_id = :store_id AND deleted_at IS NULL
+                ORDER BY created_at DESC
+            ");
+      $stmt->execute(['store_id' => $store_id]);
+
+      return $stmt->fetchAll();
+    } catch (PDOException $e) {
+      error_log("Database error in Product::findByStore(): " . $e->getMessage());
+
+      return [];
+    }
+  }
+
+  public static function findById(int $id): ?array
+  {
+    try {
+      $db = Database::getInstance()->getConnection();
+      $stmt = $db->prepare("
+                SELECT
+                  products.*,
+                  stores.name as store_name,
+                  stores.logo_url as store_logo_url,
+                  categories.name as category_name,
+                  categories.color as category_color,
+                  users.first_name as user_first_name
+                FROM products
+                LEFT JOIN stores ON products.store_id = stores.id 
+                LEFT JOIN categories ON products.category_id = categories.id 
+                LEFT JOIN users ON products.user_id = users.id
+                WHERE products.id = :id AND products.deleted_at IS NULL
+            ");
+      $stmt->execute(['id' => $id]);
+      $result = $stmt->fetch();
+
+      return $result ?: null;
+    } catch (PDOException $e) {
+      error_log("Database error in Product::findById(): " . $e->getMessage());
+      return null;
+    }
+  }
+
+  public static function findBySku(string $sku): ?array
+  {
+    try {
+      $db = Database::getInstance()->getConnection();
+      $stmt = $db->prepare("
+                SELECT
+                  products.*,
+                  stores.name as store_name,
+                  stores.logo_url as store_logo_url,
+                  categories.name as category_name,
+                  categories.color as category_color 
+                FROM
+                  products
+                  LEFT JOIN stores ON products.store_id = stores.id 
+                  LEFT JOIN categories ON products.category_id = categories.id 
+                WHERE
+                  products.sku = :sku
+                  AND products.deleted_at IS NULL
+            ");
+      $stmt->execute(['sku' => $sku]);
+      $result = $stmt->fetch();
+
+      return $result ?: null;
+    } catch (PDOException $e) {
+      error_log("Database error in Product::findBySku(): " . $e->getMessage());
+
+      return null;
+    }
+  }
+
+  public static function findBySlug(string $slug): ?array
+  {
+    try {
+      $db = Database::getInstance()->getConnection();
+      $stmt = $db->prepare("
+        SELECT * FROM products WHERE slug = :slug AND deleted_at IS NULL
+      ");
+      $stmt->execute(['slug' => $slug]);
+      $result = $stmt->fetch();
+
+      return $result ?: null;
+    } catch (PDOException $e) {
+      error_log("Database error in Product::findBySlug(): " . $e->getMessage());
+
+      return null;
+    }
+  }
+
+  public static function countBySlug(string $slug): ?int
+  {
+    return self::findBySlug($slug) ? 1 : 0;
+  }
+
+  public function save(): bool
+  {
+    try {
+      $db = Database::getInstance()->getConnection();
+
+      // Validate required fields
+      if (empty($this->name) || empty($this->slug) || $this->store_id <= 0) {
+        error_log("Product validation failed: name, slug, and store_id are required");
+        return false;
+      }
+
+      if ($this->id === null) {
+        $stmt = $db->prepare("
+                    INSERT INTO products (name, slug, url, category_id, store_id, regular_price, sku, upc, is_active, user_id)
+                    VALUES (:name, :slug, :url, :category_id, :store_id, :regular_price, :sku, :upc, :is_active, :user_id)
+                ");
+      } else {
+        $stmt = $db->prepare("
+                    UPDATE products 
+                    SET name = :name, 
+                        slug = :slug,
+                        url = :url,
+                        category_id = :category_id,
+                        store_id = :store_id,
+                        regular_price = :regular_price,
+                        sku = :sku,
+                        upc = :upc,
+                        is_active = :is_active,
+                        user_id = :user_id,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = :id
+                ");
+        $stmt->bindValue(':id', $this->id);
+      }
+
+      // Log the values being saved for debugging
+      error_log("Saving product with values: " . json_encode([
+        'name' => $this->name,
+        'slug' => $this->slug,
+        'url' => $this->url,
+        'category_id' => $this->category_id,
+        'store_id' => $this->store_id,
+        'regular_price' => $this->regular_price,
+        'sku' => $this->sku,
+        'upc' => $this->upc,
+        'is_active' => $this->is_active,
+        'user_id' => $this->user_id
+      ]));
+
+      $stmt->bindValue(':name', $this->name);
+      $stmt->bindValue(':slug', $this->slug);
+      $stmt->bindValue(':url', $this->url);
+      $stmt->bindValue(':category_id', $this->category_id);
+      $stmt->bindValue(':store_id', $this->store_id);
+      $stmt->bindValue(':regular_price', $this->regular_price);
+      $stmt->bindValue(':sku', $this->sku);
+      $stmt->bindValue(':upc', $this->upc);
+      $stmt->bindValue(':is_active', $this->is_active, PDO::PARAM_BOOL);
+      $stmt->bindValue(':user_id', $this->user_id);
+
+      $result = $stmt->execute();
+
+      if (!$result) {
+        $error = $stmt->errorInfo();
+        error_log("Database error in Product::save(): " . json_encode($error));
+      }
+
+      return $result;
+    } catch (PDOException $e) {
+      error_log("Database error in Product::save(): " . $e->getMessage());
+      return false;
+    }
+  }
+
+  public function softDelete(): bool
+  {
+    if ($this->id === null) {
+      return false;
+    }
+    try {
+      $db = Database::getInstance()->getConnection();
+      $stmt = $db->prepare("UPDATE products SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?");
+
+      return $stmt->execute([$this->id]);
+    } catch (PDOException $e) {
+      error_log("Database error in Product::softDelete(): " . $e->getMessage());
+
+      return false;
+    }
+  }
+
+  public static function countActive(): int
+  {
+    try {
+      $db = Database::getInstance()->getConnection();
+      $stmt = $db->prepare("SELECT COUNT(*) FROM products WHERE is_active = true AND deleted_at IS NULL");
+      $stmt->execute();
+
+      return (int)$stmt->fetchColumn();
+    } catch (PDOException $e) {
+      error_log("Database error in Product::countActive(): " . $e->getMessage());
+
+      return 0;
+    }
+  }
+
   public static function getProductsPerDay(int $days = 7): array
   {
     try {
@@ -544,4 +425,128 @@ class Product
       return [];
     }
   }
+
+  public function getStore(): ?Store
+  {
+    if ($this->store === null && $this->store_id) {
+      $this->store = Store::findById($this->store_id);
+    }
+
+    return $this->store;
+  }
+
+  ///////////////////////////////////////////////////////////////////////////////
+  // Getters and setters
+  ///////////////////////////////////////////////////////////////////////////////
+  public function getId(): ?int
+  {
+    return $this->id;
+  }
+  public function setId(?int $id): void
+  {
+    $this->id = $id;
+  }
+
+  public function getName(): string
+  {
+    return $this->name;
+  }
+  public function setName(string $name): void
+  {
+    $this->name = $name;
+  }
+
+  public function getSlug(): string
+  {
+    return $this->slug;
+  }
+  public function setSlug(string $slug): void
+  {
+    $this->slug = $slug;
+  }
+
+  public function getUrl(): string
+  {
+    return $this->url;
+  }
+  public function setUrl(string $url): void
+  {
+    $this->url = $url;
+  }
+
+  public function getCategoryId(): ?int
+  {
+    return $this->category_id;
+  }
+  public function setCategoryId(?int $category_id): void
+  {
+    $this->category_id = $category_id;
+  }
+
+  public function getStoreId(): int
+  {
+    return $this->store_id;
+  }
+  public function setStoreId(int $store_id): void
+  {
+    $this->store_id = $store_id;
+  }
+
+  public function getRegularPrice(): float
+  {
+    return $this->regular_price;
+  }
+  public function setRegularPrice(float $regular_price): void
+  {
+    $this->regular_price = $regular_price;
+  }
+
+  public function getSku(): ?string
+  {
+    return $this->sku;
+  }
+  public function setSku(?string $sku): void
+  {
+    $this->sku = $sku;
+  }
+
+  public function getUpc(): ?string
+  {
+    return $this->upc;
+  }
+
+  public function setUpc(?string $upc): void
+  {
+    $this->upc = $upc;
+  }
+
+  public function getIsActive(): bool
+  {
+    return $this->is_active;
+  }
+  public function setIsActive(bool $is_active): void
+  {
+    $this->is_active = $is_active;
+  }
+
+  public function getUserId(): ?int
+  {
+    return $this->user_id;
+  }
+
+  public function setUserId(?int $user_id): void
+  {
+    $this->user_id = $user_id;
+  }
+
+  public function getLastChecked(): ?string
+  {
+    return $this->last_checked;
+  }
+  public function setLastChecked(?string $last_checked): void
+  {
+    $this->last_checked = $last_checked;
+  }
+
+///////////////////////////////////////////////////////////////////////////////
 }

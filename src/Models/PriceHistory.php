@@ -24,7 +24,7 @@ class PriceHistory
     $this->created_at = $created_at;
   }
 
-  public static function findByProduct(int $product_id): array
+  public static function findByProduct(int $product_id, int $limit = 99999999): array
   {
     try {
       $db = Database::getInstance()->getConnection();
@@ -32,8 +32,9 @@ class PriceHistory
                 SELECT * FROM price_history 
                 WHERE product_id = :product_id
                 ORDER BY created_at DESC
+                LIMIT :limit
             ");
-      $stmt->execute(['product_id' => $product_id]);
+      $stmt->execute(['product_id' => $product_id, 'limit' => $limit]);
 
       return $stmt->fetchAll();
     } catch (PDOException $e) {

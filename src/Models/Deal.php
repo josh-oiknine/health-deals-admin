@@ -266,21 +266,27 @@ class Deal
     }
   }
 
-  public static function findById(int $id): ?array
+  public static function findById(int $id, bool $active = true): ?array
   {
     try {
       $db = Database::getInstance()->getConnection();
 
       $sql = "SELECT 
-                d.*,
-                s.name as store_name,
-                c.name as category_name,
-                p.name as product_name
-            FROM deals d
-            LEFT JOIN stores s ON d.store_id = s.id
-            LEFT JOIN categories c ON d.category_id = c.id
-            LEFT JOIN products p ON d.product_id = p.id
-            WHERE d.id = :id";
+          d.*,
+          s.name as store_name,
+          c.name as category_name,
+          p.name as product_name
+        FROM
+          deals d
+          LEFT JOIN stores s ON d.store_id = s.id
+          LEFT JOIN categories c ON d.category_id = c.id
+          LEFT JOIN products p ON d.product_id = p.id
+        WHERE
+          d.id = :id";
+    
+      if ($active) {
+        $sql .= " AND (d.is_active = TRUE OR d.is_expired = FALSE)";
+      }
 
       $stmt = $db->prepare($sql);
       $stmt->execute(['id' => $id]);

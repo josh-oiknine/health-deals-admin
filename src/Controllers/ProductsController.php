@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Models\Category;
+use App\Models\Deal;
 use App\Models\PriceHistory;
 use App\Models\Product;
 use App\Models\Store;
@@ -213,15 +214,6 @@ class ProductsController
     ]);
   }
 
-  // public function delete(Request $request, Response $response, array $args): Response
-  // {
-  //   $id = (int)$args['id'];
-  //   Product::delete($id);
-
-  //   return $response->withHeader('Location', '/products')
-  //     ->withStatus(302);
-  // }
-
   public function history(Request $request, Response $response, array $args): Response
   {
     $id = (int)$args['id'];
@@ -239,7 +231,9 @@ class ProductsController
     );
   }
 
+  ////////////////////////////////////////////////////////////////////////
   // API FUNCTIONS
+  ////////////////////////////////////////////////////////////////////////
   public function apiAdd(Request $request, Response $response): Response
   {
     // Add CORS headers
@@ -256,7 +250,7 @@ class ProductsController
     $url = $data['url'] ?? '';
     $regularPrice = $data['regular_price'] ?? 0.0;
     $sku = $data['sku'] ?? null;
-
+    $upc = isset($data['upc']) ? (string)$data['upc'] : null;
     // Retrieve user_id from the request attributes set by AuthMiddleware
     $userId = $request->getAttribute('user_id');
 
@@ -268,6 +262,7 @@ class ProductsController
       $url = $data['url'] ?? '';
       $regularPrice = $data['regular_price'] ?? 0.0;
       $sku = $data['sku'] ?? null;
+      $upc = isset($data['upc']) ? (string)$data['upc'] : null;
     }
 
     if (empty($name) || empty($url) || empty($regularPrice) || empty($sku)) {
@@ -310,7 +305,7 @@ class ProductsController
     $slug = self::makeSlug($name);
 
     // Make sure the slug is unique
-    $existingSlug = Product::findBySlug($slug);
+    $existingSlug = Product::countBySlug($slug);
     if ($existingSlug && $existingSlug > 0) {
       if (strlen($slug) > 85) {
         $slug = substr($slug, 0, 85);
@@ -335,9 +330,9 @@ class ProductsController
       $storeId,
       (float)$regularPrice,
       $sku,
+      $upc,
       true, // is_active
-      $userId, // user_id
-      $sku
+      $userId
     );
 
     if ($product->save()) {
@@ -364,6 +359,173 @@ class ProductsController
     return $response->withStatus(400);
   }
 
+  public function apiFind(Request $request, Response $response): Response
+  {
+    // Add CORS headers
+    $response = $response
+      ->withHeader('Access-Control-Allow-Origin', $_ENV['APP_URL'] ?? '*')
+      ->withHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
+      ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+      ->withHeader('Access-Control-Allow-Credentials', 'true')
+      ->withHeader('Content-Type', 'application/json');
+
+    // POST DATA
+    $data = $request->getQueryParams();
+    $sku = $data['sku'] ?? null;
+    
+    if (empty($sku)) {
+      $response->getBody()->write(json_encode([
+        'status' => 'error',
+        'message' => 'Missing required fields'
+      ]));
+
+      return $response->withStatus(400);
+    }
+
+    // Check for duplicates SKU
+    $existingProduct = Product::findBySku($sku);
+    if ($existingProduct) {
+      $response->getBody()->write(json_encode([
+        'status' => 'success',
+        'message' => 'Product found',
+        'product' => $existingProduct
+      ]));
+
+      return $response->withStatus(200);
+    }
+
+    $response->getBody()->write(json_encode([
+      'status' => 'success',
+      'message' => 'No product found',
+      'product' => null
+    ]));
+
+    return $response->withStatus(200);
+  }
+
+  public function apiUpdatePrice(Request $request, Response $response): Response
+  {
+    // Add CORS headers
+    $response = $response
+      ->withHeader('Access-Control-Allow-Origin', $_ENV['APP_URL'] ?? '*')
+      ->withHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
+      ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+      ->withHeader('Access-Control-Allow-Credentials', 'true')
+      ->withHeader('Content-Type', 'application/json');
+
+    // POST DATA
+    $data = $request->getParsedBody();
+    $regularPrice = $data['regular_price'] ?? null;
+    $sku = $data['sku'] ?? null;
+    $upc = $data['upc'] ?? null;
+    $description = $data['description'] ?? null;
+    $imageUrl = $data['image_url'] ?? null;
+
+    // JSON DATA
+    if (empty($regularPrice) || empty($sku)) {
+      $rawBody = $request->getBody()->__toString();
+      $data = json_decode($rawBody, true);
+      $regularPrice = $data['regular_price'] ?? null;
+      $sku = $data['sku'] ?? null;
+      $upc = $data['upc'] ?? null;
+      $description = $data['description'] ?? null;
+      $imageUrl = $data['image_url'] ?? null;
+    }
+
+    if (empty($regularPrice) || empty($sku)) {
+      $response->getBody()->write(json_encode([
+        'status' => 'error',
+        'message' => 'Missing required fields'
+      ]));
+
+      return $response->withStatus(400);
+    }
+
+    // Check for duplicates SKU
+    $existingProduct = Product::findBySku($sku);
+    if (!$existingProduct) {
+      $response->getBody()->write(json_encode([
+        'status' => 'error',
+        'message' => 'Product not found'
+      ]));
+
+      return $response->withStatus(400);
+    }
+
+    $originalPrice = $existingProduct['regular_price'];
+
+    $product = new Product(
+      $existingProduct['name'],
+      $existingProduct['slug'],
+      $existingProduct['url'],
+      $existingProduct['category_id'],
+      $existingProduct['store_id'],
+      (float)($regularPrice ?? $existingProduct['regular_price']),
+      $existingProduct['sku'],
+      $upc ?? $existingProduct['upc'],
+      $existingProduct['is_active'],
+      $existingProduct['user_id']
+    );
+    $product->setId($existingProduct['id']);
+    $product->setLastChecked(date('Y-m-d H:i:s'));
+    
+    if ($product->save()) {
+      // Record a price change
+      $lastPrice = PriceHistory::findByProduct($existingProduct['id'], 1);
+      if ($lastPrice && $lastPrice['price'] !== $existingProduct['regular_price']) {
+        $priceHistory = new PriceHistory(
+          $existingProduct['id'],
+          $existingProduct['regular_price'],
+          $existingProduct['last_updated']
+        );
+        $priceHistory->save();
+      }
+
+      // Add a deal if there isn't an active one
+
+      $deal = Deal::findById($existingProduct['id'], true);
+      if (!$deal) {
+        $deal = new Deal(
+          $existingProduct['name'],
+          $description ?? '',
+          $existingProduct['url'],
+          $imageUrl ?? '',
+          $existingProduct['id'],
+          $existingProduct['store_id'],
+          $existingProduct['category_id'],
+          (float)($originalPrice ?? 0.0),
+          (float)($regularPrice ?? 0.0),
+          $description !== null && $imageUrl !== null, // is_active
+          false, // is_featured
+          false // is_expired
+        );
+        $deal->save();
+      }
+
+      $response->getBody()->write(json_encode([
+        'status' => 'success',
+        'message' => 'Product updated successfully'
+      ]));
+
+      return $response->withStatus(200);
+    } else {
+      $response->getBody()->write(json_encode([
+        'status' => 'error',
+        'message' => 'Failed to save the product. Please try again.'
+      ]));
+
+      return $response->withStatus(400);
+    }
+
+    $response->getBody()->write(json_encode([
+      'status' => 'error',
+      'message' => 'Failed to save the product. Please try again.'
+    ]));
+
+    return $response->withStatus(400);
+  }
+  
+
   // Private Static Helper Functions
   private static function makeSlug($name, $maxLength = 100): string
   {
@@ -387,7 +549,7 @@ class ProductsController
   private static function decideCategory($name, $url): ?int
   {
     try {
-      $apiKey = $_ENV['GEMINI_API_KEY'];
+      $apiKey = $_ENV['GEMINI_API_KEY'] ?? '';
 
       if (empty($apiKey)) {
         error_log('Gemini API key is not configured');
@@ -482,4 +644,6 @@ class ProductsController
       return null;
     }
   }
+  
+///////////////////////////////////////////////////////////////////////////////
 }

@@ -9,7 +9,16 @@
  *   'last_page' => int
  * ]
  * @param string $baseUrl The base URL for pagination links
+ * @param array $params Additional URL parameters to maintain (sorting, filters, etc.) [optional]
  */
+
+$existingParams = !empty($params) ? array_filter($params, fn($value) => $value !== null && $value !== '') : [];
+$buildUrl = function($page) use ($baseUrl, $existingParams) {
+  $urlParams = array_merge(['page' => $page], $existingParams);
+  $queryString = http_build_query($urlParams);
+  $baseUrl = rtrim($baseUrl, '&');
+  return $baseUrl . (strpos($baseUrl, '?') === false ? '?' : '&') . $queryString;
+};
 ?>
 
 <div class="d-flex justify-content-between align-items-center mt-4">
@@ -25,7 +34,7 @@
       <!-- First Page -->
       <?php if ($pagination['current_page'] > 1): ?>
         <li class="page-item">
-          <a class="page-link" href="<?= $baseUrl ?>&page=1" aria-label="First Page">
+          <a class="page-link" href="<?= $buildUrl(1) ?>" aria-label="First Page">
             <i class="bi bi-chevron-bar-left"></i>
           </a>
         </li>
@@ -34,7 +43,7 @@
       <!-- Previous Page -->
       <?php if ($pagination['current_page'] > 1): ?>
         <li class="page-item">
-          <a class="page-link" href="<?= $baseUrl ?>&page=<?= $pagination['current_page'] - 1 ?>">
+          <a class="page-link" href="<?= $buildUrl($pagination['current_page'] - 1) ?>">
             <i class="bi bi-chevron-left"></i>
           </a>
         </li>
@@ -49,7 +58,7 @@
       // Show first page if we're not starting at 1
       if ($start > 1): ?>
         <li class="page-item">
-          <a class="page-link" href="<?= $baseUrl ?>&page=1">1</a>
+          <a class="page-link" href="<?= $buildUrl(1) ?>">1</a>
         </li>
         <?php if ($start > 2): ?>
           <li class="page-item disabled"><span class="page-link">...</span></li>
@@ -58,7 +67,7 @@
       
       <?php for ($i = $start; $i <= $end; $i++): ?>
         <li class="page-item <?= $i === $pagination['current_page'] ? 'active' : '' ?>">
-          <a class="page-link" href="<?= $baseUrl ?>&page=<?= $i ?>"><?= $i ?></a>
+          <a class="page-link" href="<?= $buildUrl($i) ?>"><?= $i ?></a>
         </li>
       <?php endfor; ?>
       
@@ -66,12 +75,15 @@
         <?php if ($end < $pagination['last_page'] - 1): ?>
           <li class="page-item disabled"><span class="page-link">...</span></li>
         <?php endif; ?>
+        <li class="page-item">
+          <a class="page-link" href="<?= $buildUrl($pagination['last_page']) ?>"><?= $pagination['last_page'] ?></a>
+        </li>
       <?php endif; ?>
 
       <!-- Next Page -->
       <?php if ($pagination['current_page'] < $pagination['last_page']): ?>
         <li class="page-item">
-          <a class="page-link" href="<?= $baseUrl ?>&page=<?= $pagination['current_page'] + 1 ?>">
+          <a class="page-link" href="<?= $buildUrl($pagination['current_page'] + 1) ?>">
             <i class="bi bi-chevron-right"></i>
           </a>
         </li>
@@ -80,7 +92,7 @@
       <!-- Last Page -->
       <?php if ($pagination['current_page'] < $pagination['last_page']): ?>
         <li class="page-item">
-          <a class="page-link" href="<?= $baseUrl ?>&page=<?= $pagination['last_page'] ?>" aria-label="Last Page">
+          <a class="page-link" href="<?= $buildUrl($pagination['last_page']) ?>" aria-label="Last Page">
             <i class="bi bi-chevron-bar-right"></i>
           </a>
         </li>
