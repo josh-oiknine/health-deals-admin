@@ -185,6 +185,13 @@
   border-right-color: #212529;
 }
 
+/* Table Padding */
+.table.padded > tbody > tr > td {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+/* Grayscale styles for expired deals */
 .grayscale {
   filter: grayscale(100%);
   -webkit-filter: grayscale(100%); /* For Safari 6.0 - 9.0 */

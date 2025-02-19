@@ -100,7 +100,7 @@ $baseUrl .= implode('&', $urlParts);
   <div class="card">
     <div class="card-body">
       <div class="table-responsive">
-        <table class="table table-striped">
+        <table class="table table-striped padded">
           <thead>
             <tr>
               <th>
@@ -141,7 +141,7 @@ $baseUrl .= implode('&', $urlParts);
               <th>Actions</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody class="align-middle">
             <?php if (empty($products)): ?>
               <tr>
                 <td colspan="9" class="text-center">No products found</td>

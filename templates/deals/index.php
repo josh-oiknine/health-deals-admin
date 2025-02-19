@@ -83,10 +83,11 @@ $baseUrl .= implode('&', $urlParts);
     </div>
   </div>
 
+  <!-- Deals Table -->
   <div class="card">
     <div class="card-body">
       <div class="table-responsive">
-        <table class="table table-striped">
+        <table class="table table-striped padded">
           <thead>
             <tr>
               <th>Image</th>
@@ -120,7 +121,7 @@ $baseUrl .= implode('&', $urlParts);
               <th>Actions</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody class="align-middle">
             <?php if (empty($deals)): ?>
               <tr>
                 <td colspan="10" class="text-center">No deals found</td>
@@ -194,6 +195,10 @@ $baseUrl .= implode('&', $urlParts);
                   </td>
                   <td>
                     <div class="btn-group">
+                      <a href="/products?keyword=<?= $deal['product_sku'] ?>" 
+                         class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-eye"></i>
+                      </a>
                       <a href="/deals/edit/<?= $deal['id'] ?>" 
                          class="btn btn-sm btn-outline-success">
                         <i class="bi bi-pencil"></i>
