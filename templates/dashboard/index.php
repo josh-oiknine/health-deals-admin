@@ -191,6 +191,11 @@
                     <?php 
                       $savings = (($deal['original_price'] - $deal['deal_price']) / $deal['original_price']) * 100;
                       $savingsFormatted = number_format($savings, 1);
+
+                      $expiredPriceClass = '';
+                      if ($deal['is_expired']):
+                        $expiredPriceClass = 'text-decoration-line-through';
+                      endif;
                     ?>
                     <tr
                       data-deal-id="<?= $deal['id'] ?>"
@@ -209,20 +214,25 @@
                       <td>
                         <a href="<?= $deal['affiliate_url'] ?>" 
                            target="_blank" 
-                           class="text-reset d-inline-block text-truncate"
+                           class="text-reset d-inline-block text-truncate text-decoration-none"
                            style="max-width: 260px;"
                         >
                           <?= $deal['title'] ?>
                         </a>
                       </td>
                       <td class="text-center">
+                        <?= $deal['is_active'] ? '<i class="bi bi-check-circle-fill text-success"></i>' : '' ?>
+                        <?= !$deal['is_active'] ? '<i class="bi bi-dash-circle-fill text-danger"></i>' : '' ?>
                         <?= $deal['is_featured'] ? '<i class="bi bi-star-fill text-warning"></i>' : '' ?>
+                        <?= !$deal['is_featured'] ? '<i class="bi bi-star text-muted"></i>' : '' ?>
                       </td>
                       <td class="text-end">
                         $<?= number_format($deal['original_price'], 2) ?>
                       </td>
                       <td class="text-end">
-                        $<?= number_format($deal['deal_price'], 2) ?>
+                        <span class="<?= $expiredPriceClass ?>">
+                          $<?= number_format($deal['deal_price'], 2) ?>
+                        </span>
                       </td>
                       <td class="text-end">
                         <span class="badge bg-success">

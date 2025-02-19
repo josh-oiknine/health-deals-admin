@@ -131,10 +131,10 @@ $baseUrl .= implode('&', $urlParts);
                 <tr>
                   <?php 
                     $expiredClass = '';
-                    $expiredLinkClass = 'text-decoration-none';
+                    $expiredPriceClass = '';
                     if ($deal['is_expired']):
                       $expiredClass = 'grayscale-overlay';
-                      $expiredLinkClass = 'text-decoration-line-through';
+                      $expiredPriceClass = 'text-decoration-line-through';
                     endif;
                     
                     $savings = (($deal['original_price'] - $deal['deal_price']) / $deal['original_price']) * 100;
@@ -155,7 +155,7 @@ $baseUrl .= implode('&', $urlParts);
                   <td>
                     <a href="<?= htmlspecialchars($deal['affiliate_url']) ?>" 
                       target="_blank"
-                      class="<?= $expiredLinkClass ?>"
+                      class="text-decoration-none"
                     >
                       <?= htmlspecialchars(mb_strlen($deal['title']) > 52 ? mb_substr($deal['title'], 0, 52) . '...' : $deal['title']) ?>
                       <small><i class="bi bi-box-arrow-up-right ms-1"></i></small>
@@ -167,9 +167,17 @@ $baseUrl .= implode('&', $urlParts);
                       </span>
                     <?php endif; ?>
                   </td>
-                  <td><?= htmlspecialchars($deal['store_name'] ?? 'N/A') ?></td>
-                  <td>$<?= number_format($deal['original_price'], 2) ?></td>
-                  <td>$<?= number_format($deal['deal_price'], 2) ?></td>
+                  <td>
+                    <?= htmlspecialchars($deal['store_name'] ?? 'N/A') ?>
+                  </td>
+                  <td>
+                    $<?= number_format($deal['original_price'], 2) ?>
+                  </td>
+                  <td>
+                    <span class="<?= $expiredPriceClass ?>">
+                      $<?= number_format($deal['deal_price'], 2) ?>
+                    </span>
+                  </td>
                   <td class="text-end">
                     <span class="badge bg-success">
                       <?= $savingsFormatted ?>%
