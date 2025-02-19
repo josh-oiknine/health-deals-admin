@@ -210,7 +210,7 @@
                         <a href="<?= $deal['affiliate_url'] ?>" 
                            target="_blank" 
                            class="text-reset d-inline-block text-truncate"
-                           style="max-width: 300px;"
+                           style="max-width: 260px;"
                         >
                           <?= $deal['title'] ?>
                         </a>

@@ -198,6 +198,12 @@ $baseUrl .= implode('&', $urlParts);
                          class="btn btn-sm btn-outline-success">
                         <i class="bi bi-pencil"></i>
                       </a>
+                      <button type="button" 
+                              class="btn btn-sm btn-outline-danger delete-deal" 
+                              data-deal-id="<?= $deal['id'] ?>"
+                              data-click-count="0">
+                        <i class="bi bi-trash"></i>
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -212,3 +218,62 @@ $baseUrl .= implode('&', $urlParts);
     </div>
   </div>
 </div> 
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Get all delete buttons
+  const deleteButtons = document.querySelectorAll('.delete-deal');
+  
+  // Add click event listener to each button
+  deleteButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      const dealId = this.getAttribute('data-deal-id');
+      let clickCount = parseInt(this.getAttribute('data-click-count'));
+      
+      // Increment click count
+      clickCount++;
+      this.setAttribute('data-click-count', clickCount);
+      
+      if (clickCount === 1) {
+        // First click - change icon to question mark
+        this.innerHTML = '<i class="bi bi-question-lg"></i>';
+        
+        // Reset after 3 seconds if second click doesn't happen
+        setTimeout(() => {
+          if (parseInt(this.getAttribute('data-click-count')) === 1) {
+            this.innerHTML = '<i class="bi bi-trash"></i>';
+            this.setAttribute('data-click-count', '0');
+          }
+        }, 3000);
+      } else if (clickCount === 2) {
+        // Second click - show confirmation dialog
+        if (confirm('Are you sure you want to delete this deal? This will also delete all price history for the matching product.')) {
+          fetch(`/deals/delete/${dealId}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }).then(response => {
+            if (response.ok) {
+              window.location.reload();
+            } else {
+              alert('Failed to delete the deal.');
+              this.innerHTML = '<i class="bi bi-trash"></i>';
+              this.setAttribute('data-click-count', '0');
+            }
+          }).catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while deleting the deal.');
+            this.innerHTML = '<i class="bi bi-trash"></i>';
+            this.setAttribute('data-click-count', '0');
+          });
+        } else {
+          // Reset button if user cancels
+          this.innerHTML = '<i class="bi bi-trash"></i>';
+          this.setAttribute('data-click-count', '0');
+        }
+      }
+    });
+  });
+});
+</script> 

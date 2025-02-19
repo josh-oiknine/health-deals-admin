@@ -201,7 +201,15 @@ $baseUrl .= implode('&', $urlParts);
                     <?php endif; ?>
                   </td>
                   <td>
-                    <?= $product['last_checked'] ? date('Y-m-d H:i:s', strtotime($product['last_checked'])) : 'Never' ?>
+                    <?php
+                      $lastChecked = 'Never';
+                      if ($product['last_checked']) {
+                        $lastChecked = date('Y-m-d H:i:s', strtotime($product['last_checked']));
+                        $lastChecked = explode(' ', $lastChecked);
+                        $lastChecked = $lastChecked[0] . '<br><span class="ms-5">' . $lastChecked[1] . '</span>';
+                      }
+                    ?>
+                    <?= $lastChecked ?>
                   </td>
                   <td>
                     <?= htmlspecialchars($product['user_first_name'] ?? 'N/A') ?>

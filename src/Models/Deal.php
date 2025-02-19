@@ -368,17 +368,45 @@ class Deal
     }
   }
 
-  //   public static function delete(int $id): bool
-  //   {
-  //     try {
-  //       $db = Database::getInstance()->getConnection();
-  //       $stmt = $db->prepare("DELETE FROM deals WHERE id = :id");
+  public static function delete(int $id): bool
+  {
+    try {
+      $db = Database::getInstance()->getConnection();
+      
+      // Start transaction
+      $db->beginTransaction();
+      
+      // Get the product_id before deleting the deal
+      $stmt = $db->prepare("SELECT product_id FROM deals WHERE id = :id");
+      $stmt->execute(['id' => $id]);
+      $deal = $stmt->fetch(PDO::FETCH_ASSOC);
+      
+      if ($deal) {
+        // Delete price history records for the product
+        $stmt = $db->prepare("DELETE FROM price_history WHERE product_id = :product_id");
+        $stmt->execute(['product_id' => $deal['product_id']]);
 
-  //       return $stmt->execute(['id' => $id]);
-  //     } catch (PDOException $e) {
-  //       error_log("Error deleting deal: " . $e->getMessage());
-
-  //       return false;
-  //     }
-  //   }
+        // Update the product's last_checked to NULL
+        $stmt = $db->prepare("UPDATE products SET last_checked = NULL WHERE id = :product_id");
+        $stmt->execute(['product_id' => $deal['product_id']]);
+        
+        // Delete the deal
+        $stmt = $db->prepare("DELETE FROM deals WHERE id = :id");
+        $stmt->execute(['id' => $id]);
+        
+        // Commit transaction
+        $db->commit();
+        return true;
+      }
+      
+      $db->rollBack();
+      return false;
+    } catch (PDOException $e) {
+      error_log("Error deleting deal: " . $e->getMessage());
+      if ($db->inTransaction()) {
+        $db->rollBack();
+      }
+      return false;
+    }
+  }
 }

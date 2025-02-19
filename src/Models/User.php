@@ -183,7 +183,7 @@ class User
   {
     try {
       $db = Database::getInstance()->getConnection();
-      $stmt = $db->prepare("UPDATE users SET mfa_secret = NULL, last_mfa_at = NULL WHERE id = ?");
+      $stmt = $db->prepare("UPDATE users SET totp_secret = NULL, totp_setup_complete = FALSE WHERE id = ?");
       return $stmt->execute([$id]);
     } catch (PDOException $e) {
       error_log("Database error in User::removeMfa(): " . $e->getMessage());
