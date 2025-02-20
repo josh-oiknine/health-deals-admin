@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Models\Category;
 use App\Models\Deal;
 use App\Models\Product;
+use App\Models\ScrapingJob;
 use App\Models\Store;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -28,10 +29,14 @@ class DashboardController
       'dealsPerDay' => Deal::getDealsPerDay(7),
       'activeStores' => Store::countActive(),
       'activeCategories' => Category::countActive(),
-      'messagesSentToday' => 0, // TODO: Implement when Outbox model is ready
+      'messagesSentToday' => 0, // TODO: Implement when Outbox model is ready,
+      'pendingJobsCount' => ScrapingJob::findCountByStatus('pending'),
+      'runningJobsCount' => ScrapingJob::findCountByStatus('running'),
+      'completedJobsCount' => ScrapingJob::findCountByStatus('completed') + ScrapingJob::findCountByStatus('stopped'),
+      'failedJobsCount' => ScrapingJob::findCountByStatus('failed')
     ];
 
-    $latestDeals = Deal::getLatestDeals(18);
+    $latestDeals = Deal::getLatestDeals(10);
 
     return $this->view->render($response, 'dashboard/index.php', [
       'metrics' => $metrics,

@@ -108,9 +108,6 @@
                 </h3>
               </div>
             </div>
-            <div class="col-4 text-end">
-              <!-- Chart will go here -->
-            </div>
           </div>
         </div>
       </div>
@@ -136,8 +133,93 @@
                 </h3>
               </div>
             </div>
-            <div class="col-4 text-end">
-              <!-- Chart will go here -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Scrapping Jobs -->
+  <div class="row mt-4">
+  
+  <div class="col-xl-4 col-sm-6 mb-4">
+    <div class="card">
+      <div class="card-body p-3">  
+        <h3>Scraping Jobs</h3>
+        <p class="text-sm mb-0 text-muted d-flex">
+          Counts of Jobs in the scrapping queue
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-2 col-sm-6 mb-4">
+      <div class="card">
+        <div class="card-body p-3">
+          <div class="row">
+            <div class="col-8">
+              <div class="numbers">
+                <p class="text-sm mb-0 text-muted d-flex">
+                  Pending
+                </p>
+                <h3 class="font-weight-bolder m-2 mb-1">
+                  <?= $metrics['pendingJobsCount'] ?>
+                </h3>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-2 col-sm-6 mb-4">
+      <div class="card">
+        <div class="card-body p-3">
+          <div class="row">
+            <div class="col-8">
+              <div class="numbers">
+                <p class="text-sm mb-0 text-muted d-flex">
+                  Running
+                </p>
+                <h3 class="font-weight-bolder m-2 mb-1">
+                  <?= $metrics['runningJobsCount'] ?>
+                </h3>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-2 col-sm-6 mb-4">
+      <div class="card">
+        <div class="card-body p-3">
+          <div class="row">
+            <div class="col-8">
+              <div class="numbers">
+                <p class="text-sm mb-0 text-muted d-flex">
+                  Completed
+                </p>
+                <h3 class="font-weight-bolder m-2 mb-1">
+                  <?= $metrics['completedJobsCount'] ?>
+                </h3>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-2 col-sm-6 mb-4">
+      <div class="card">
+        <div class="card-body p-3">
+          <div class="row">
+            <div class="col-8">
+              <div class="numbers">
+                <p class="text-sm mb-0 text-muted d-flex">
+                  Failed
+                </p>
+                <h3 class="font-weight-bolder m-2 mb-1">
+                  <?= $metrics['failedJobsCount'] ?>
+                </h3>
+              </div>
             </div>
           </div>
         </div>
@@ -146,8 +228,11 @@
 
   </div>
 
+
   <!-- Charts Row -->
   <div class="row mt-4">
+
+    <!-- Messages Sent -->
     <div class="col-lg-6 mb-4">
       <div class="card">
         <div class="card-header pb-0">
@@ -163,6 +248,8 @@
         </div>
       </div>
     </div>
+
+    <!-- Latest Deals -->
     <div class="col-lg-6 mb-4">
       <div class="card">
         <div class="card-header pb-0">

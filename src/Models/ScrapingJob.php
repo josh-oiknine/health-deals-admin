@@ -149,21 +149,24 @@ class ScrapingJob
     try {
       $db = Database::getInstance()->getConnection();
       $stmt = $db->prepare("
-        SELECT
-          COUNT(*)
+        SELECT COUNT(*)
         FROM scraping_jobs
-        WHERE
-          1=1
+        WHERE status = :status
       ");
 
-      $stmt->bindValue(':status', $status);
+      $stmt->bindValue(':status', $status, PDO::PARAM_STR);
 
       $stmt->execute();
       $result = $stmt->fetchColumn();
 
-      return $result ?: 0;
+      if ($result === false) {
+        error_log("No result found for status: " . $status);
+        return 0;
+      }
+
+      return (int)$result;
     } catch (PDOException $e) {
-      error_log("Database error in ScrapingJob::findCount(): " . $e->getMessage());
+      error_log("Database error in ScrapingJob::findCountByStatus(): " . $e->getMessage());
       return 0;
     }
   }
