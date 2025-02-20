@@ -231,6 +231,11 @@ $baseUrl .= implode('&', $urlParts);
                         <i class="bi bi-clock-history"></i>
                       </button>
                       <button type="button" 
+                          class="btn btn-sm btn-outline-info"
+                          onclick="document.getElementById('scrapeProductForm<?= $product['id'] ?>').submit()">
+                        <i class="bi bi-stopwatch"></i>
+                      </button>
+                      <button type="button" 
                           class="btn btn-sm btn-outline-danger"
                           onclick="deleteProduct(<?= $product['id'] ?>)">
                         <i class="bi bi-trash"></i>
@@ -239,6 +244,14 @@ $baseUrl .= implode('&', $urlParts);
                           action="/products/delete/<?= $product['id'] ?>" 
                           method="POST" 
                           style="display: none;">
+                      </form>
+                      <form id="scrapeProductForm<?= $product['id'] ?>" 
+                          action="/scraping-jobs/add" 
+                          method="POST" 
+                          style="display: none;">
+                          <input type="hidden" name="product_id" value="<?= $product['id'] ?>">
+                          <input type="hidden" name="job_type" value="on-demand">
+                          <input type="hidden" name="status" value="pending">
                       </form>
                     </div>
                   </td>

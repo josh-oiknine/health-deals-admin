@@ -7,6 +7,7 @@ use App\Controllers\CategoriesController;
 use App\Controllers\DashboardController;
 use App\Controllers\DealsController;
 use App\Controllers\ProductsController;
+use App\Controllers\ScrapingJobsController;
 use App\Controllers\SettingsController;
 use App\Controllers\StoresController;
 use App\Controllers\UsersController;
@@ -71,6 +72,11 @@ $app->group('', function (RouteCollectorProxy $group) {
   $group->post('/api/products/add', [ProductsController::class, 'apiAdd']);
   $group->get('/api/products/find', [ProductsController::class, 'apiFind']);
   $group->post('/api/products/update-price', [ProductsController::class, 'apiUpdatePrice']);
+
+  // Scraping Jobs routes
+  $group->get('/scraping-jobs', [ScrapingJobsController::class, 'index'])->setName('scraping-jobs');
+  $group->post('/scraping-jobs/add', [ScrapingJobsController::class, 'add']);
+  $group->post('/scraping-jobs/stop/{id}', [ScrapingJobsController::class, 'stop']);
 
   // Deal routes
   $group->get('/deals', [DealsController::class, 'index'])->setName('deals');

@@ -11,6 +11,7 @@ use App\Controllers\CategoriesController;
 use App\Controllers\DashboardController;
 use App\Controllers\DealsController;
 use App\Controllers\ProductsController;
+use App\Controllers\ScrapingJobsController;
 use App\Controllers\SettingsController;
 use App\Controllers\StoresController;
 use App\Controllers\UsersController;
@@ -76,6 +77,9 @@ $containerBuilder->addDefinitions([
   },
   UsersController::class => function (Container $container) {
     return new UsersController($container);
+  },
+  ScrapingJobsController::class => function (Container $container) {
+    return new ScrapingJobsController($container);
   }
 ]);
 

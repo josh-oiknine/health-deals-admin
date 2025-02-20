@@ -25,7 +25,7 @@ $hasAuthToken = isset($_COOKIE['auth_token']);
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Your Healthy Deals Admin</title>
+  <title>Your Healthy Deals Admin<?= ' - '.$title ?? '' ?></title>
 
   <!-- Apple Touch Icon -->
   <link rel="apple-touch-icon" sizes="57x57" href="/assets/images/apple-icon-57x57.png">
@@ -108,6 +108,12 @@ $hasAuthToken = isset($_COOKIE['auth_token']);
           <div class="divider"></div>
           
           <?php if ($currentUserEmail === 'josh@udev.com'): ?>
+            <li class="nav-item">
+              <a class="nav-link <?= $_SERVER['REQUEST_URI'] === '/scraping-jobs' ? 'active' : '' ?>" href="/scraping-jobs" data-bs-toggle="tooltip" data-bs-placement="right" title="Scraping Jobs">
+                <i class="bi bi-stopwatch me-2"></i>
+                <span>Scraping Jobs</span>
+              </a>
+            </li>
             <li class="nav-item">
               <a class="nav-link <?= $_SERVER['REQUEST_URI'] === '/users' ? 'active' : '' ?>" href="/users" data-bs-toggle="tooltip" data-bs-placement="right" title="Users">
                 <i class="bi bi-people me-2"></i>
