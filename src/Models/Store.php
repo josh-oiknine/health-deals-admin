@@ -54,7 +54,7 @@ class Store
       $db = Database::getInstance()->getConnection();
       $stmt = $db->prepare(
         "SELECT * FROM stores 
-         WHERE is_active = 1 
+         WHERE is_active = true
          AND deleted_at IS NULL 
          ORDER BY name ASC"
       );
@@ -109,7 +109,34 @@ class Store
   {
     try {
       $db = Database::getInstance()->getConnection();
-      error_log("Attempting to save store with name: " . $this->name);
+
+      if ($this->id === null) {
+        $stmt = $db->prepare(
+          "INSERT INTO stores (name, logo_url, url, is_active) 
+                     VALUES (:name, :logo_url, :url, :is_active)"
+        );
+      } else {
+        $stmt = $db->prepare(
+          "UPDATE stores 
+            SET name = :name, logo_url = :logo_url, url = :url, is_active = :is_active, updated_at = CURRENT_TIMESTAMP 
+            WHERE id = :id AND deleted_at IS NULL"
+        );
+        
+        $stmt->bindValue(':id', $this->id);
+      }
+
+      $stmt->bindValue(':name', $this->name);
+      $stmt->bindValue(':logo_url', $this->logo_url);
+      $stmt->bindValue(':url', $this->url);
+      $stmt->bindValue(':is_active', $this->is_active);
+
+      $result = $stmt->execute();
+      if ($result) {
+        return true;
+      }
+
+      return false;
+    } catch (PDOException $e) {
       error_log("Store data before save: " . print_r([
         'id' => $this->id,
         'name' => $this->name,
@@ -119,40 +146,6 @@ class Store
         'is_active_type' => gettype($this->is_active)
       ], true));
 
-      if ($this->id === null) {
-        $stmt = $db->prepare(
-          "INSERT INTO stores (name, logo_url, url, is_active) 
-                     VALUES (?, ?, ?, ?)"
-        );
-        $result = $stmt->execute([$this->name, $this->logo_url, $this->url, (int)$this->is_active]);
-        if ($result) {
-          $this->id = (int)$db->lastInsertId();
-          error_log("Successfully inserted store with ID: " . $this->id);
-
-          return true;
-        }
-        error_log("Failed to insert store");
-
-        return false;
-      } else {
-        $stmt = $db->prepare(
-          "UPDATE stores 
-                     SET name = ?, logo_url = ?, url = ?, is_active = ?, updated_at = CURRENT_TIMESTAMP 
-                     WHERE id = ? AND deleted_at IS NULL"
-        );
-        $params = [$this->name, $this->logo_url, $this->url, (int)$this->is_active, $this->id];
-        error_log("Update params: " . print_r($params, true));
-        $result = $stmt->execute($params);
-        if ($result) {
-          error_log("Successfully updated store with ID: " . $this->id);
-
-          return true;
-        }
-        error_log("Failed to update store");
-
-        return false;
-      }
-    } catch (PDOException $e) {
       error_log("Database error in Store::save(): " . $e->getMessage());
       error_log("SQL State: " . $e->getCode());
 

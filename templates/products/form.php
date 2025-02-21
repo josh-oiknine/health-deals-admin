@@ -136,9 +136,9 @@
                             <select class="form-select" id="user_id" name="user_id">
                                 <option value="">Select a user</option>
                                 <?php foreach ($users as $user): ?>
-                                    <option value="<?= $user->getId() ?>" 
-                                        <?= ($product['user_id'] ?? '') == $user->getId() ? 'selected' : '' ?>>
-                                        <?= htmlspecialchars($user->getFirstName()) ?>
+                                    <option value="<?= $user['id'] ?>" 
+                                        <?= ($product['user_id'] ?? '') == $user['id'] ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($user['first_name']) ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>

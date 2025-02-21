@@ -30,22 +30,22 @@
                             <?php foreach ($stores as $store): ?>
                                 <tr>
                                     <td>
-                                        <?php if ($store->getLogoUrl()): ?>
-                                            <img src="<?= htmlspecialchars($store->getLogoUrl()) ?>" 
-                                                alt="<?= htmlspecialchars($store->getName()) ?>" 
+                                        <?php if ($store['logo_url']): ?>
+                                            <img src="<?= htmlspecialchars($store['logo_url']) ?>" 
+                                                alt="<?= htmlspecialchars($store['name']) ?>" 
                                                 class="store-logo"
                                                 style="max-width: 50px; max-height: 50px;">
                                         <?php else: ?>
                                             <div class="text-muted">No logo</div>
                                         <?php endif; ?>
                                     </td>
-                                    <td><?= htmlspecialchars($store->getName()) ?></td>
+                                    <td><?= htmlspecialchars($store['name']) ?></td>
                                     <td>
-                                        <?php if ($store->getUrl()): ?>
-                                            <a href="<?= htmlspecialchars($store->getUrl()) ?>" 
+                                        <?php if ($store['url']): ?>
+                                            <a href="<?= htmlspecialchars($store['url']) ?>" 
                                                target="_blank"
                                                class="text-decoration-none">
-                                                <?= htmlspecialchars($store->getUrl()) ?>
+                                                <?= htmlspecialchars($store['url']) ?>
                                                 <i class="bi bi-box-arrow-up-right ms-1"></i>
                                             </a>
                                         <?php else: ?>
@@ -53,21 +53,21 @@
                                         <?php endif; ?>
                                     </td>
                                     <td>
-                                        <?php if ($store->isActive()): ?>
+                                        <?php if ($store['is_active']): ?>
                                             <span class="badge bg-success">Active</span>
                                         <?php else: ?>
                                             <span class="badge bg-danger">Inactive</span>
                                         <?php endif; ?>
                                     </td>
-                                    <td><?= $store->getCreatedAt() ? date('Y-m-d', strtotime($store->getCreatedAt())) : '' ?></td>
-                                    <td><?= $store->getUpdatedAt() ? date('Y-m-d', strtotime($store->getUpdatedAt())) : '' ?></td>
+                                    <td><?= $store['created_at'] ? date('Y-m-d', strtotime($store['created_at'])) : '' ?></td>
+                                    <td><?= $store['updated_at'] ? date('Y-m-d', strtotime($store['updated_at'])) : '' ?></td>
                                     <td>
                                         <div class="btn-group">
-                                            <a href="/stores/edit/<?= $store->getId() ?>" 
+                                            <a href="/stores/edit/<?= $store['id'] ?>" 
                                                class="btn btn-sm btn-outline-success">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
-                                            <form action="/stores/delete/<?= $store->getId() ?>" 
+                                            <form action="/stores/delete/<?= $store['id'] ?>" 
                                                   method="POST" 
                                                   class="d-inline"
                                                   onsubmit="return confirm('Are you sure you want to delete this store?');">

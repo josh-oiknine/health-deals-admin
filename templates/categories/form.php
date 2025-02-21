@@ -38,7 +38,7 @@
                                    class="form-control" 
                                    id="name" 
                                    name="name" 
-                                   value="<?= htmlspecialchars($category->getName()) ?>"
+                                   value="<?= htmlspecialchars($category['name']) ?>"
                                    required>
                             <div class="invalid-feedback">
                                 Please provide a category name.
@@ -51,7 +51,7 @@
                                    class="form-control" 
                                    id="slug" 
                                    name="slug" 
-                                   value="<?= htmlspecialchars($category->getSlug()) ?>"
+                                   value="<?= htmlspecialchars($category['slug']) ?>"
                                    required>
                             <div class="invalid-feedback">
                                 Please provide a category slug.
@@ -80,12 +80,12 @@
                                        class="form-control form-control-color" 
                                        id="color" 
                                        name="color" 
-                                       value="<?= htmlspecialchars($category->getColor() ?? '#6c757d') ?>"
+                                       value="<?= htmlspecialchars($category['color'] ?? '#6c757d') ?>"
                                        title="Choose category badge color">
                                 <input type="text" 
                                        class="form-control" 
                                        id="colorHex" 
-                                       value="<?= htmlspecialchars($category->getColor() ?? '#6c757d') ?>" 
+                                       value="<?= htmlspecialchars($category['color'] ?? '#6c757d') ?>" 
                                        readonly>
                             </div>
                             <div class="form-text">Choose a color for the category badge</div>
@@ -97,7 +97,7 @@
                                        class="form-check-input" 
                                        id="is_active" 
                                        name="is_active" 
-                                       <?= $category->isActive() ? 'checked' : '' ?>>
+                                    <?= $category['is_active'] ? 'checked' : '' ?>>
                                 <label class="form-check-label" for="is_active">Active</label>
                             </div>
                             <div class="form-text">Inactive categories won't be visible to users</div>

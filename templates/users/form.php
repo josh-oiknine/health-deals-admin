@@ -20,7 +20,7 @@
                    class="form-control" 
                    id="email" 
                    name="email" 
-                   value="<?= htmlspecialchars($user->getEmail()) ?>"
+                   value="<?= htmlspecialchars($user['email']) ?>"
                    required>
               <div class="invalid-feedback">
                 Please provide a valid email address.
@@ -47,7 +47,7 @@
                    class="form-control" 
                    id="first_name" 
                    name="first_name" 
-                   value="<?= htmlspecialchars($user->getFirstName()) ?>"
+                   value="<?= htmlspecialchars($user['first_name']) ?>"
                    required>
               <div class="invalid-feedback">
                 Please provide a first name.
@@ -60,7 +60,7 @@
                    class="form-control" 
                    id="last_name" 
                    name="last_name" 
-                   value="<?= htmlspecialchars($user->getLastName()) ?>"
+                   value="<?= htmlspecialchars($user['last_name']) ?>"
                    required>
               <div class="invalid-feedback">
                 Please provide a last name.
@@ -73,7 +73,7 @@
                      class="form-check-input" 
                      id="is_active" 
                      name="is_active"
-                     <?= $user->isActive() ? 'checked' : '' ?>>
+                     <?= $user['is_active'] ? 'checked' : '' ?>>
                 <label class="form-check-label" for="is_active">Active</label>
               </div>
             </div>

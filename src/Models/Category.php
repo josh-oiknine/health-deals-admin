@@ -52,7 +52,7 @@ class Category
       $db = Database::getInstance()->getConnection();
       $stmt = $db->prepare(
         "SELECT * FROM categories 
-         WHERE is_active = 1 
+         WHERE is_active = true
          ORDER BY name ASC"
       );
       $stmt->execute();
@@ -90,7 +90,7 @@ class Category
           "INSERT INTO categories (name, slug, is_active, color) 
                      VALUES (?, ?, ?, ?)"
         );
-        $result = $stmt->execute([$this->name, $this->slug, (int)$this->is_active, $this->color]);
+        $result = $stmt->execute([$this->name, $this->slug, (bool)$this->is_active, $this->color]);
         if ($result) {
           $this->id = (int)$db->lastInsertId();
 
@@ -105,7 +105,7 @@ class Category
                      WHERE id = ?"
         );
 
-        return $stmt->execute([$this->name, $this->slug, (int)$this->is_active, $this->color, $this->id]);
+        return $stmt->execute([$this->name, $this->slug, (bool)$this->is_active, $this->color, $this->id]);
       }
     } catch (PDOException $e) {
       error_log("Database error in Category::save(): " . $e->getMessage());
