@@ -35,24 +35,15 @@ class Store
   {
     try {
       $db = Database::getInstance()->getConnection();
-      error_log("Executing findAll query");
-      $stmt = $db->prepare("SELECT * FROM stores WHERE deleted_at IS NULL ORDER BY name");
+      $stmt = $db->prepare(
+        "SELECT * FROM stores 
+         WHERE deleted_at IS NULL 
+         ORDER BY name ASC"
+      );
       $stmt->execute();
-      $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-      $stores = [];
-      foreach ($rows as $row) {
-        $store = new self();
-        $store->initFromArray($row);
-        $stores[] = $store;
-      }
-
-      error_log("FindAll results: " . print_r($stores, true));
-
-      return $stores;
+      return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
       error_log("Database error in Store::findAll(): " . $e->getMessage());
-
       return [];
     }
   }
@@ -61,43 +52,34 @@ class Store
   {
     try {
       $db = Database::getInstance()->getConnection();
-      $stmt = $db->prepare("
-        SELECT * FROM stores 
-        WHERE deleted_at IS NULL 
-        AND is_active = true 
-        ORDER BY name
-      ");
+      $stmt = $db->prepare(
+        "SELECT * FROM stores 
+         WHERE is_active = 1 
+         AND deleted_at IS NULL 
+         ORDER BY name ASC"
+      );
       $stmt->execute();
-
       return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
       error_log("Database error in Store::findAllActive(): " . $e->getMessage());
-
       return [];
     }
   }
 
-  public static function findById(int $id): ?self
+  public static function findById(int $id): ?array
   {
     try {
       $db = Database::getInstance()->getConnection();
-      error_log("Finding store with ID: " . $id);
-      $stmt = $db->prepare("SELECT * FROM stores WHERE id = ? AND deleted_at IS NULL");
+      $stmt = $db->prepare(
+        "SELECT * FROM stores 
+         WHERE id = ? 
+         AND deleted_at IS NULL"
+      );
       $stmt->execute([$id]);
-      $row = $stmt->fetch(PDO::FETCH_ASSOC);
-
-      if ($row) {
-        $store = new self();
-        $store->initFromArray($row);
-        error_log("FindById result: " . print_r($store, true));
-
-        return $store;
-      }
-
-      return null;
+      $result = $stmt->fetch(PDO::FETCH_ASSOC);
+      return $result ?: null;
     } catch (PDOException $e) {
       error_log("Database error in Store::findById(): " . $e->getMessage());
-
       return null;
     }
   }
@@ -204,61 +186,80 @@ class Store
     }
   }
 
-  // Getters and setters
+  ///////////////////////////////////////////////////////////////////////////////
+  // Getters and Setters
+  
   public function getId(): ?int
   {
     return $this->id;
   }
+
   public function getName(): string
   {
     return $this->name;
   }
+
   public function setName(string $name): void
   {
     $this->name = $name;
   }
+
   public function getLogoUrl(): ?string
   {
     return $this->logo_url;
   }
+
   public function setLogoUrl(?string $logo_url): void
   {
     $this->logo_url = $logo_url;
   }
+
   public function getUrl(): ?string
   {
     return $this->url;
   }
+
   public function setUrl(?string $url): void
   {
     $this->url = $url;
   }
+
   public function isActive(): bool
   {
     return $this->is_active;
   }
+
   public function setIsActive(bool $is_active): void
   {
     $this->is_active = $is_active;
   }
+
   public function getCreatedAt(): ?string
   {
     return $this->created_at;
   }
+
   public function getUpdatedAt(): ?string
   {
     return $this->updated_at;
   }
 
-  private function initFromArray(array $data): void
+  public function getDeletedAt(): ?string
   {
-    $this->id = isset($data['id']) ? (int)$data['id'] : null;
-    $this->name = $data['name'] ?? '';
-    $this->logo_url = $data['logo_url'] ?? null;
-    $this->url = $data['url'] ?? null;
-    $this->is_active = isset($data['is_active']) ? (bool)$data['is_active'] : true;
-    $this->created_at = $data['created_at'] ?? null;
-    $this->updated_at = $data['updated_at'] ?? null;
-    $this->deleted_at = $data['deleted_at'] ?? null;
+    return $this->deleted_at;
+  }
+
+  public function toArray(): array
+  {
+    return [
+      'id' => $this->id,
+      'name' => $this->name,
+      'logo_url' => $this->logo_url,
+      'url' => $this->url,
+      'is_active' => $this->is_active,
+      'created_at' => $this->created_at,
+      'updated_at' => $this->updated_at,
+      'deleted_at' => $this->deleted_at
+    ];
   }
 }

@@ -34,21 +34,14 @@ class Category
   {
     try {
       $db = Database::getInstance()->getConnection();
-      $stmt = $db->prepare("SELECT * FROM categories ORDER BY name");
+      $stmt = $db->prepare(
+        "SELECT * FROM categories 
+         ORDER BY name ASC"
+      );
       $stmt->execute();
-      $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-      $categories = [];
-      foreach ($rows as $row) {
-        $category = new self();
-        $category->initFromArray($row);
-        $categories[] = $category;
-      }
-
-      return $categories;
+      return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
       error_log("Database error in Category::findAll(): " . $e->getMessage());
-
       return [];
     }
   }
@@ -57,40 +50,32 @@ class Category
   {
     try {
       $db = Database::getInstance()->getConnection();
-      $stmt = $db->prepare("
-                SELECT * FROM categories 
-                WHERE is_active = true 
-                ORDER BY name
-            ");
+      $stmt = $db->prepare(
+        "SELECT * FROM categories 
+         WHERE is_active = 1 
+         ORDER BY name ASC"
+      );
       $stmt->execute();
-
       return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
       error_log("Database error in Category::findAllActive(): " . $e->getMessage());
-
       return [];
     }
   }
 
-  public static function findById(int $id): ?self
+  public static function findById(int $id): ?array
   {
     try {
       $db = Database::getInstance()->getConnection();
-      $stmt = $db->prepare("SELECT * FROM categories WHERE id = ?");
+      $stmt = $db->prepare(
+        "SELECT * FROM categories 
+         WHERE id = ?"
+      );
       $stmt->execute([$id]);
-      $row = $stmt->fetch(PDO::FETCH_ASSOC);
-
-      if ($row) {
-        $category = new self();
-        $category->initFromArray($row);
-
-        return $category;
-      }
-
-      return null;
+      $result = $stmt->fetch(PDO::FETCH_ASSOC);
+      return $result ?: null;
     } catch (PDOException $e) {
       error_log("Database error in Category::findById(): " . $e->getMessage());
-
       return null;
     }
   }
@@ -209,5 +194,18 @@ class Category
     $this->color = $data['color'] ?? '#6c757d';
     $this->created_at = $data['created_at'] ?? null;
     $this->updated_at = $data['updated_at'] ?? null;
+  }
+
+  public function toArray(): array
+  {
+    return [
+      'id' => $this->id,
+      'name' => $this->name,
+      'slug' => $this->slug,
+      'is_active' => $this->is_active,
+      'color' => $this->color,
+      'created_at' => $this->created_at,
+      'updated_at' => $this->updated_at
+    ];
   }
 }

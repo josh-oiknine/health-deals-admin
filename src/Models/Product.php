@@ -202,17 +202,19 @@ class Product
   {
     try {
       $db = Database::getInstance()->getConnection();
-      $stmt = $db->prepare("
-                SELECT * FROM products 
-                WHERE store_id = :store_id AND deleted_at IS NULL
-                ORDER BY created_at DESC
-            ");
-      $stmt->execute(['store_id' => $store_id]);
-
-      return $stmt->fetchAll();
+      $stmt = $db->prepare(
+        "SELECT p.*, s.name as store_name, c.name as category_name 
+         FROM products p 
+         LEFT JOIN stores s ON p.store_id = s.id 
+         LEFT JOIN categories c ON p.category_id = c.id 
+         WHERE p.store_id = ? 
+         AND p.deleted_at IS NULL 
+         ORDER BY p.name ASC"
+      );
+      $stmt->execute([$store_id]);
+      return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
       error_log("Database error in Product::findByStore(): " . $e->getMessage());
-
       return [];
     }
   }
@@ -221,24 +223,16 @@ class Product
   {
     try {
       $db = Database::getInstance()->getConnection();
-      $stmt = $db->prepare("
-                SELECT
-                  products.*,
-                  stores.name as store_name,
-                  stores.logo_url as store_logo_url,
-                  categories.name as category_name,
-                  categories.color as category_color,
-                  users.first_name as user_first_name
-                FROM products
-                LEFT JOIN stores ON products.store_id = stores.id 
-                LEFT JOIN categories ON products.category_id = categories.id 
-                LEFT JOIN users ON products.user_id = users.id
-                WHERE products.id = :id AND products.deleted_at IS NULL
-            ");
-      $stmt->execute(['id' => $id]);
-      $result = $stmt->fetch();
-
-      return $result ?: null;
+      $stmt = $db->prepare(
+        "SELECT p.*, s.name as store_name, c.name as category_name 
+         FROM products p 
+         LEFT JOIN stores s ON p.store_id = s.id 
+         LEFT JOIN categories c ON p.category_id = c.id 
+         WHERE p.id = ? 
+         AND p.deleted_at IS NULL"
+      );
+      $stmt->execute([$id]);
+      return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     } catch (PDOException $e) {
       error_log("Database error in Product::findById(): " . $e->getMessage());
       return null;
@@ -249,28 +243,18 @@ class Product
   {
     try {
       $db = Database::getInstance()->getConnection();
-      $stmt = $db->prepare("
-                SELECT
-                  products.*,
-                  stores.name as store_name,
-                  stores.logo_url as store_logo_url,
-                  categories.name as category_name,
-                  categories.color as category_color 
-                FROM
-                  products
-                  LEFT JOIN stores ON products.store_id = stores.id 
-                  LEFT JOIN categories ON products.category_id = categories.id 
-                WHERE
-                  products.sku = :sku
-                  AND products.deleted_at IS NULL
-            ");
-      $stmt->execute(['sku' => $sku]);
-      $result = $stmt->fetch();
-
-      return $result ?: null;
+      $stmt = $db->prepare(
+        "SELECT p.*, s.name as store_name, c.name as category_name 
+         FROM products p 
+         LEFT JOIN stores s ON p.store_id = s.id 
+         LEFT JOIN categories c ON p.category_id = c.id 
+         WHERE p.sku = ? 
+         AND p.deleted_at IS NULL"
+      );
+      $stmt->execute([$sku]);
+      return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     } catch (PDOException $e) {
       error_log("Database error in Product::findBySku(): " . $e->getMessage());
-
       return null;
     }
   }
@@ -546,6 +530,28 @@ class Product
   public function setLastChecked(?string $last_checked): void
   {
     $this->last_checked = $last_checked;
+  }
+
+  public function toArray(): array
+  {
+    return [
+      'id' => $this->id,
+      'store_id' => $this->store_id,
+      'name' => $this->name,
+      'slug' => $this->slug,
+      'url' => $this->url,
+      'category_id' => $this->category_id,
+      'regular_price' => $this->regular_price,
+      'sku' => $this->sku,
+      'upc' => $this->upc,
+      'is_active' => $this->is_active,
+      'user_id' => $this->user_id,
+      'created_at' => $this->created_at,
+      'updated_at' => $this->updated_at,
+      'deleted_at' => $this->deleted_at,
+      'last_checked' => $this->last_checked,
+      'store' => $this->store ? $this->store->toArray() : null
+    ];
   }
 
 ///////////////////////////////////////////////////////////////////////////////

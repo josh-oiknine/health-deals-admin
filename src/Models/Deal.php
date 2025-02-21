@@ -409,4 +409,160 @@ class Deal
       return false;
     }
   }
+
+  public function getId(): ?int
+  {
+    return $this->id;
+  }
+
+  public function getTitle(): string
+  {
+    return $this->title;
+  }
+
+  public function setTitle(string $title): void
+  {
+    $this->title = $title;
+  }
+
+  public function getDescription(): string
+  {
+    return $this->description;
+  }
+
+  public function setDescription(string $description): void
+  {
+    $this->description = $description;
+  }
+
+  public function getAffiliateUrl(): string
+  {
+    return $this->affiliate_url;
+  }
+
+  public function setAffiliateUrl(string $affiliate_url): void
+  {
+    $this->affiliate_url = $affiliate_url;
+  }
+
+  public function getImageUrl(): string
+  {
+    return $this->image_url;
+  }
+
+  public function setImageUrl(string $image_url): void
+  {
+    $this->image_url = $image_url;
+  }
+
+  public function getProductId(): int
+  {
+    return $this->product_id;
+  }
+
+  public function setProductId(int $product_id): void
+  {
+    $this->product_id = $product_id;
+  }
+
+  public function getStoreId(): int
+  {
+    return $this->store_id;
+  }
+
+  public function setStoreId(int $store_id): void
+  {
+    $this->store_id = $store_id;
+  }
+
+  public function getCategoryId(): ?int
+  {
+    return $this->category_id;
+  }
+
+  public function setCategoryId(?int $category_id): void
+  {
+    $this->category_id = $category_id;
+  }
+
+  public function getOriginalPrice(): float
+  {
+    return $this->original_price;
+  }
+
+  public function setOriginalPrice(float $original_price): void
+  {
+    $this->original_price = $original_price;
+  }
+
+  public function getDealPrice(): float
+  {
+    return $this->deal_price;
+  }
+
+  public function setDealPrice(float $deal_price): void
+  {
+    $this->deal_price = $deal_price;
+  }
+
+  public function isActive(): bool
+  {
+    return $this->is_active;
+  }
+
+  public function setIsActive(bool $is_active): void
+  {
+    $this->is_active = $is_active;
+  }
+
+  public function isFeatured(): bool
+  {
+    return $this->is_featured;
+  }
+
+  public function setIsFeatured(bool $is_featured): void
+  {
+    $this->is_featured = $is_featured;
+  }
+
+  public function isExpired(): bool
+  {
+    return $this->is_expired;
+  }
+
+  public function setIsExpired(bool $is_expired): void
+  {
+    $this->is_expired = $is_expired;
+  }
+
+  public function getCreatedAt(): ?DateTime
+  {
+    return $this->created_at;
+  }
+
+  public function getUpdatedAt(): ?DateTime
+  {
+    return $this->updated_at;
+  }
+
+  public function toArray(): array
+  {
+    return [
+      'id' => $this->id,
+      'product_id' => $this->product_id,
+      'store_id' => $this->store_id,
+      'category_id' => $this->category_id,
+      'title' => $this->title,
+      'description' => $this->description,
+      'affiliate_url' => $this->affiliate_url,
+      'image_url' => $this->image_url,
+      'original_price' => $this->original_price,
+      'deal_price' => $this->deal_price,
+      'is_active' => $this->is_active,
+      'is_featured' => $this->is_featured,
+      'is_expired' => $this->is_expired,
+      'created_at' => $this->created_at ? $this->created_at->format('Y-m-d H:i:s') : null,
+      'updated_at' => $this->updated_at ? $this->updated_at->format('Y-m-d H:i:s') : null
+    ];
+  }
 }

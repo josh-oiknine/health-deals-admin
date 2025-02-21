@@ -37,60 +37,49 @@ class User
   {
     try {
       $db = Database::getInstance()->getConnection();
-      $stmt = $db->prepare("SELECT * FROM users WHERE deleted_at IS NULL ORDER BY email");
+      $stmt = $db->prepare(
+        "SELECT * FROM users 
+         WHERE deleted_at IS NULL 
+         ORDER BY email ASC"
+      );
       $stmt->execute();
-      $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-      $users = [];
-      foreach ($rows as $row) {
-        $user = new self();
-        $user->initFromArray($row);
-        $users[] = $user;
-      }
-
-      return $users;
+      return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
       error_log("Database error in User::findAll(): " . $e->getMessage());
       return [];
     }
   }
 
-  public static function findById(int $id): ?self
+  public static function findById(int $id): ?array
   {
     try {
       $db = Database::getInstance()->getConnection();
-      $stmt = $db->prepare("SELECT * FROM users WHERE id = ? AND deleted_at IS NULL");
+      $stmt = $db->prepare(
+        "SELECT * FROM users 
+         WHERE id = ? 
+         AND deleted_at IS NULL"
+      );
       $stmt->execute([$id]);
-      $row = $stmt->fetch(PDO::FETCH_ASSOC);
-
-      if ($row) {
-        $user = new self();
-        $user->initFromArray($row);
-        return $user;
-      }
-
-      return null;
+      $result = $stmt->fetch(PDO::FETCH_ASSOC);
+      return $result ?: null;
     } catch (PDOException $e) {
       error_log("Database error in User::findById(): " . $e->getMessage());
       return null;
     }
   }
 
-  public static function findByEmail(string $email): ?self
+  public static function findByEmail(string $email): ?array
   {
     try {
       $db = Database::getInstance()->getConnection();
-      $stmt = $db->prepare("SELECT * FROM users WHERE email = ? AND deleted_at IS NULL");
+      $stmt = $db->prepare(
+        "SELECT * FROM users 
+         WHERE email = ? 
+         AND deleted_at IS NULL"
+      );
       $stmt->execute([$email]);
-      $row = $stmt->fetch(PDO::FETCH_ASSOC);
-
-      if ($row) {
-        $user = new self();
-        $user->initFromArray($row);
-        return $user;
-      }
-
-      return null;
+      $result = $stmt->fetch(PDO::FETCH_ASSOC);
+      return $result ?: null;
     } catch (PDOException $e) {
       error_log("Database error in User::findByEmail(): " . $e->getMessage());
       return null;
@@ -262,5 +251,19 @@ class User
     $this->is_active = isset($data['is_active']) ? (bool)$data['is_active'] : true;
     $this->created_at = $data['created_at'] ?? null;
     $this->updated_at = $data['updated_at'] ?? null;
+  }
+
+  public function toArray(): array
+  {
+    return [
+      'id' => $this->id,
+      'email' => $this->email,
+      'first_name' => $this->first_name,
+      'last_name' => $this->last_name,
+      'is_active' => $this->is_active,
+      'created_at' => $this->created_at,
+      'updated_at' => $this->updated_at,
+      'totp_setup_complete' => $this->totp_setup_complete
+    ];
   }
 } 
