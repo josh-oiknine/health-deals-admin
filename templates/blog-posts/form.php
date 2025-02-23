@@ -67,7 +67,7 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="user_id" class="form-label">Author</label>
-                                <?php if ($currentUserEmail === 'josh+123@udev.com'): ?>
+                                <?php if ($currentUserEmail === 'josh@udev.com'): ?>
                                     <select class="form-select" id="user_id" name="user_id">
                                         <option value="">Select an author</option>
                                         <?php foreach ($users as $user): ?>
