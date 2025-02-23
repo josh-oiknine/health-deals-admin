@@ -30,32 +30,43 @@
                             <?php foreach ($categories as $category): ?>
                                 <tr>
                                     <td>
-                                        <span class="badge" style="background-color: <?= htmlspecialchars($category->getColor()) ?>">
-                                            <?= htmlspecialchars($category->getName()) ?>
+                                        <span class="badge" style="background-color: <?= htmlspecialchars($category['color']) ?>">
+                                            <?= htmlspecialchars($category['name']) ?>
                                         </span>
                                     </td>
-                                    <td><?= htmlspecialchars($category->getSlug()) ?></td>
+                                    <td><?= htmlspecialchars($category['slug']) ?></td>
                                     <td>
                                         <div class="d-flex align-items-center gap-2">
-                                            <div style="width: 25px; height: 25px; border-radius: 4px; background-color: <?= htmlspecialchars($category->getColor()) ?>"></div>
-                                            <code class="small text-dark"><?= htmlspecialchars($category->getColor()) ?></code>
+                                            <div style="width: 25px; height: 25px; border-radius: 4px; background-color: <?= htmlspecialchars($category['color']) ?>"></div>
+                                            <code class="small text-dark"><?= htmlspecialchars($category['color']) ?></code>
                                         </div>
                                     </td>
                                     <td>
-                                        <?php if ($category->isActive()): ?>
+                                        <?php if ($category['is_active']): ?>
                                             <span class="badge bg-success">Active</span>
                                         <?php else: ?>
                                             <span class="badge bg-danger">Inactive</span>
                                         <?php endif; ?>
                                     </td>
-                                    <td><?= $category->getCreatedAt() ? date('Y-m-d', strtotime($category->getCreatedAt())) : '' ?></td>
-                                    <td><?= $category->getUpdatedAt() ? date('Y-m-d', strtotime($category->getUpdatedAt())) : '' ?></td>
+                                    <td><?= $category['created_at'] ? date('Y-m-d', strtotime($category['created_at'])) : '' ?></td>
+                                    <td><?= $category['updated_at'] ? date('Y-m-d', strtotime($category['updated_at'])) : '' ?></td>
                                     <td>
                                         <div class="btn-group">
-                                            <a href="/categories/edit/<?= $category->getId() ?>" 
+                                            <a href="/categories/edit/<?= $category['id'] ?>" 
                                                class="btn btn-sm btn-outline-success">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
+                                            <button type="button" 
+                                                class="btn btn-sm btn-outline-danger delete-category" 
+                                                data-category-id="<?= $category['id'] ?>"
+                                                onclick="deleteCategory(<?= $category['id'] ?>)">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                            <form id="deleteForm<?= $category['id'] ?>" 
+                                                action="/categories/delete/<?= $category['id'] ?>" 
+                                                method="POST" 
+                                                style="display: none;">
+                                            </form>
                                         </div>
                                     </td>
                                 </tr>
@@ -67,3 +78,11 @@
         </div>
     </div>
 </div> 
+
+<script>
+function deleteCategory(categoryId) {
+  if (confirm('Are you sure you want to delete this category?')) {
+    document.getElementById('deleteForm' + categoryId).submit();
+  }
+}
+</script>   

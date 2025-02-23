@@ -20,7 +20,7 @@
                                    class="form-control" 
                                    id="name" 
                                    name="name" 
-                                   value="<?= htmlspecialchars($store->getName()) ?>"
+                                   value="<?= htmlspecialchars($store['name'] ?? '') ?>"
                                    required>
                             <div class="invalid-feedback">
                                 Please provide a store name.
@@ -33,7 +33,7 @@
                                    class="form-control" 
                                    id="url" 
                                    name="url" 
-                                   value="<?= htmlspecialchars($store->getUrl() ?? '') ?>"
+                                   value="<?= htmlspecialchars($store['url'] ?? '') ?>"
                                    placeholder="https://example.com">
                             <div class="form-text">The store's website URL</div>
                         </div>
@@ -44,7 +44,7 @@
                                    class="form-control" 
                                    id="logo_url" 
                                    name="logo_url" 
-                                   value="<?= htmlspecialchars($store->getLogoUrl() ?? 'https://img.logo.dev/xxxxx.com?token=pk_BItyJ-OPQR2skfIDI-whLQ&size=100&retina=true') ?>"
+                                   value="<?= htmlspecialchars($store['logo_url'] ?? 'https://img.logo.dev/xxxxx.com?token=pk_BItyJ-OPQR2skfIDI-whLQ&size=100&retina=true') ?>"
                                    placeholder="https://example.com/logo.png">
                             <div class="form-text">Direct URL to the store's logo image</div>
                         </div>
@@ -55,7 +55,7 @@
                                        class="form-check-input" 
                                        id="is_active" 
                                        name="is_active" 
-                                       <?= $store->isActive() ? 'checked' : '' ?>>
+                                       <?= $store['is_active'] ?? false ? 'checked' : '' ?>>
                                 <label class="form-check-label" for="is_active">Active</label>
                             </div>
                             <div class="form-text">Inactive stores won't be visible to users</div>

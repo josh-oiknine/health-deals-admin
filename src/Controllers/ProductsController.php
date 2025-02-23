@@ -68,6 +68,7 @@ class ProductsController
     $categories = Category::findAllActive();
 
     return $this->view->render($response, 'products/index.php', [
+      'title' => 'Products',
       'products' => $result['data'],
       'pagination' => [
         'current_page' => $result['page'],
@@ -89,55 +90,40 @@ class ProductsController
 
   public function add(Request $request, Response $response): Response
   {
-    $stores = Store::findAllActive();
-    $categories = Category::findAllActive();
-    $currentUserEmail = $this->view->getAttribute('currentUserEmail');
-    $users = $currentUserEmail === 'josh@udev.com' ? User::findAll() : [];
+    $productData = [];
     $error = null;
 
     if ($request->getMethod() === 'POST') {
       try {
-        $data = $request->getParsedBody();
-
-        // Log the incoming data
-        error_log("Received form data: " . json_encode($data));
+        $productData = $request->getParsedBody();
 
         $product = new Product(
-          $data['name'] ?? '',
-          $data['slug'] ?? '',
-          $data['url'] ?? '',
-          !empty($data['category_id']) ? (int)$data['category_id'] : null,
-          (int)($data['store_id'] ?? 0),
-          (float)($data['regular_price'] ?? 0.0),
-          $data['sku'] ?? null,
-          $data['upc'] ?? null,
-          isset($data['is_active']) && $data['is_active'] === 'on',
-          !empty($data['user_id']) ? (int)$data['user_id'] : null
+          $productData['name'] ?? '',
+          $productData['slug'] ?? '',
+          $productData['url'] ?? '',
+          !empty($productData['category_id']) ? (int)$productData['category_id'] : null,
+          (int)($productData['store_id'] ?? 0),
+          (float)($productData['regular_price'] ?? 0.0),
+          $productData['sku'] ?? null,
+          $productData['upc'] ?? null,
+          isset($productData['is_active']) && $productData['is_active'] === 'on',
+          !empty($productData['user_id']) ? (int)$productData['user_id'] : null
         );
 
         // Check for duplicates SKU
-        $sku = $data['sku'] ?? null;
+        $sku = $productData['sku'] ?? null;
         if ($sku) {
           $existingProduct = Product::findBySku($sku);
           if ($existingProduct) {
             $error = 'Duplicate SKU. Please use a unique SKU.';
-
-            return $this->view->render($response, 'products/form.php', [
-              'product' => $product,
-              'stores' => $stores,
-              'categories' => $categories,
-              'users' => $users,
-              'mode' => 'add',
-              'error' => $error
-            ]);
+          } else {
+            if ($product->save()) {
+              return $response->withHeader('Location', '/products')
+                ->withStatus(302);
+            } else {
+              $error = 'Failed to save the product. Please try again.';
+            }
           }
-        }
-
-        if ($product->save()) {
-          return $response->withHeader('Location', '/products')
-            ->withStatus(302);
-        } else {
-          $error = 'Failed to save the product. Please try again.';
         }
       } catch (Exception $e) {
         error_log("Error in ProductsController::add(): " . $e->getMessage());
@@ -145,12 +131,18 @@ class ProductsController
       }
     }
 
+    $stores = Store::findAllActive();
+    $categories = Category::findAllActive();
+    $currentUserEmail = $this->view->getAttribute('currentUserEmail');
+    $users = $currentUserEmail === 'josh@udev.com' ? User::findAll() : [];
+
     return $this->view->render($response, 'products/form.php', [
+      'title' => 'Add Product',
       'product' => null,
       'stores' => $stores,
       'categories' => $categories,
       'users' => $users,
-      'mode' => 'add',
+      'isEdit' => false,
       'error' => $error
     ]);
   }
@@ -158,18 +150,7 @@ class ProductsController
   public function edit(Request $request, Response $response, array $args): Response
   {
     $id = (int)$args['id'];
-    $productData = Product::findById($id);
-    $currentUserEmail = $this->view->getAttribute('currentUserEmail');
-    $users = $currentUserEmail === 'josh@udev.com' ? User::findAll() : [];
     $error = null;
-
-    if (!$productData) {
-      return $response->withHeader('Location', '/products')
-        ->withStatus(302);
-    }
-
-    $stores = Store::findAllActive();
-    $categories = Category::findAllActive();
 
     if ($request->getMethod() === 'POST') {
       try {
@@ -202,14 +183,27 @@ class ProductsController
         error_log("Error in ProductsController::edit(): " . $e->getMessage());
         $error = 'An error occurred while updating the product.';
       }
+    } else {
+      $productData = Product::findById($id);
     }
 
+    if (!$productData) {
+      return $response->withHeader('Location', '/products')
+        ->withStatus(302);
+    }
+
+    $stores = Store::findAllActive();
+    $categories = Category::findAllActive();
+    $currentUserEmail = $this->view->getAttribute('currentUserEmail');
+    $users = $currentUserEmail === 'josh@udev.com' ? User::findAll() : [];
+
     return $this->view->render($response, 'products/form.php', [
+      'title' => 'Edit Product',
       'product' => $productData,
       'stores' => $stores,
       'categories' => $categories,
       'users' => $users,
-      'mode' => 'edit',
+      'isEdit' => true, 
       'error' => $error
     ]);
   }

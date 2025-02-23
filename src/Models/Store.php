@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Database\Database;
+use DateTime;
+use InvalidArgumentException;
 use PDO;
 use PDOException;
 
@@ -15,9 +17,9 @@ class Store
   private $logo_url;
   private $url;
   private $is_active;
-  private $created_at;
-  private $updated_at;
-  private $deleted_at;
+  private ?DateTime $created_at = null;
+  private ?DateTime $updated_at = null;
+  private ?DateTime $deleted_at = null;
 
   public function __construct(
     string $name = '',
@@ -31,28 +33,34 @@ class Store
     $this->is_active = $is_active;
   }
 
+  public function validate(): bool
+  {
+    if (empty($this->name)) {
+      throw new InvalidArgumentException('Name is required');
+    }
+    if (empty($this->url)) {
+      throw new InvalidArgumentException('URL is required');
+    }
+    if (empty($this->logo_url)) {
+      throw new InvalidArgumentException('Logo URL is required');
+    }
+
+    return true;
+  }
+
   public static function findAll(): array
   {
     try {
       $db = Database::getInstance()->getConnection();
-      error_log("Executing findAll query");
-      $stmt = $db->prepare("SELECT * FROM stores WHERE deleted_at IS NULL ORDER BY name");
+      $stmt = $db->prepare(
+        "SELECT * FROM stores 
+         WHERE deleted_at IS NULL 
+         ORDER BY name ASC"
+      );
       $stmt->execute();
-      $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-      $stores = [];
-      foreach ($rows as $row) {
-        $store = new self();
-        $store->initFromArray($row);
-        $stores[] = $store;
-      }
-
-      error_log("FindAll results: " . print_r($stores, true));
-
-      return $stores;
+      return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
       error_log("Database error in Store::findAll(): " . $e->getMessage());
-
       return [];
     }
   }
@@ -61,43 +69,34 @@ class Store
   {
     try {
       $db = Database::getInstance()->getConnection();
-      $stmt = $db->prepare("
-        SELECT * FROM stores 
-        WHERE deleted_at IS NULL 
-        AND is_active = true 
-        ORDER BY name
-      ");
+      $stmt = $db->prepare(
+        "SELECT * FROM stores 
+         WHERE is_active = true
+         AND deleted_at IS NULL 
+         ORDER BY name ASC"
+      );
       $stmt->execute();
-
       return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
       error_log("Database error in Store::findAllActive(): " . $e->getMessage());
-
       return [];
     }
   }
 
-  public static function findById(int $id): ?self
+  public static function findById(int $id): ?array
   {
     try {
       $db = Database::getInstance()->getConnection();
-      error_log("Finding store with ID: " . $id);
-      $stmt = $db->prepare("SELECT * FROM stores WHERE id = ? AND deleted_at IS NULL");
+      $stmt = $db->prepare(
+        "SELECT * FROM stores 
+         WHERE id = ? 
+         AND deleted_at IS NULL"
+      );
       $stmt->execute([$id]);
-      $row = $stmt->fetch(PDO::FETCH_ASSOC);
-
-      if ($row) {
-        $store = new self();
-        $store->initFromArray($row);
-        error_log("FindById result: " . print_r($store, true));
-
-        return $store;
-      }
-
-      return null;
+      $result = $stmt->fetch(PDO::FETCH_ASSOC);
+      return $result ?: null;
     } catch (PDOException $e) {
       error_log("Database error in Store::findById(): " . $e->getMessage());
-
       return null;
     }
   }
@@ -127,7 +126,59 @@ class Store
   {
     try {
       $db = Database::getInstance()->getConnection();
-      error_log("Attempting to save store with name: " . $this->name);
+
+      if (!$this->validate()) {
+        return false;
+      }
+
+      if ($this->id === null) {
+        $stmt = $db->prepare(
+          "INSERT INTO stores (
+            name,
+            logo_url,
+            url,
+            is_active,
+            created_at,
+            updated_at
+          ) VALUES (
+            :name, 
+            :logo_url, 
+            :url, 
+            :is_active,
+            NOW(),
+            NOW()
+          )"
+        );
+      } else {
+        $stmt = $db->prepare(
+          "UPDATE
+              stores
+            SET
+              name = :name,
+              logo_url = :logo_url,
+              url = :url,
+              is_active = :is_active,
+              updated_at = NOW()
+            WHERE
+              id = :id
+          "
+        );
+        
+        $stmt->bindValue(':id', $this->id);
+      }
+
+      $stmt->bindValue(':name', $this->name);
+      $stmt->bindValue(':logo_url', $this->logo_url);
+      $stmt->bindValue(':url', $this->url);
+      $stmt->bindValue(':is_active', $this->is_active, PDO::PARAM_BOOL);
+
+      $result = $stmt->execute();
+      if ($result) {
+        return true;
+      }
+
+      return false;
+    } catch (PDOException $e) {
       error_log("Store data before save: " . print_r([
         'id' => $this->id,
         'name' => $this->name,
@@ -137,40 +188,6 @@ class Store
         'is_active_type' => gettype($this->is_active)
       ], true));
 
-      if ($this->id === null) {
-        $stmt = $db->prepare(
-          "INSERT INTO stores (name, logo_url, url, is_active) 
-                     VALUES (?, ?, ?, ?)"
-        );
-        $result = $stmt->execute([$this->name, $this->logo_url, $this->url, (int)$this->is_active]);
-        if ($result) {
-          $this->id = (int)$db->lastInsertId();
-          error_log("Successfully inserted store with ID: " . $this->id);
-
-          return true;
-        }
-        error_log("Failed to insert store");
-
-        return false;
-      } else {
-        $stmt = $db->prepare(
-          "UPDATE stores 
-                     SET name = ?, logo_url = ?, url = ?, is_active = ?, updated_at = CURRENT_TIMESTAMP 
-                     WHERE id = ? AND deleted_at IS NULL"
-        );
-        $params = [$this->name, $this->logo_url, $this->url, (int)$this->is_active, $this->id];
-        error_log("Update params: " . print_r($params, true));
-        $result = $stmt->execute($params);
-        if ($result) {
-          error_log("Successfully updated store with ID: " . $this->id);
-
-          return true;
-        }
-        error_log("Failed to update store");
-
-        return false;
-      }
-    } catch (PDOException $e) {
       error_log("Database error in Store::save(): " . $e->getMessage());
       error_log("SQL State: " . $e->getCode());
 
@@ -184,7 +201,7 @@ class Store
       return false;
     }
     $db = Database::getInstance()->getConnection();
-    $stmt = $db->prepare("UPDATE stores SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?");
+    $stmt = $db->prepare("UPDATE stores SET deleted_at = NOW() WHERE id = ?");
 
     return $stmt->execute([$this->id]);
   }
@@ -204,61 +221,93 @@ class Store
     }
   }
 
-  // Getters and setters
+  ///////////////////////////////////////////////////////////////////////////////
+  // Getters and Setters
+  
   public function getId(): ?int
   {
     return $this->id;
   }
+
+  public function setId(int $id): void
+  {
+    $this->id = $id;
+  }
+
   public function getName(): string
   {
     return $this->name;
   }
+
   public function setName(string $name): void
   {
     $this->name = $name;
   }
+
   public function getLogoUrl(): ?string
   {
     return $this->logo_url;
   }
+
   public function setLogoUrl(?string $logo_url): void
   {
     $this->logo_url = $logo_url;
   }
+
   public function getUrl(): ?string
   {
     return $this->url;
   }
+
   public function setUrl(?string $url): void
   {
     $this->url = $url;
   }
+
   public function isActive(): bool
   {
     return $this->is_active;
   }
+
   public function setIsActive(bool $is_active): void
   {
     $this->is_active = $is_active;
   }
+
   public function getCreatedAt(): ?string
   {
     return $this->created_at;
   }
+
   public function getUpdatedAt(): ?string
   {
     return $this->updated_at;
   }
 
-  private function initFromArray(array $data): void
+  public function getDeletedAt(): ?string
+  {
+    return $this->deleted_at;
+  }
+
+  public function initFromArray(array $data): void
   {
     $this->id = isset($data['id']) ? (int)$data['id'] : null;
     $this->name = $data['name'] ?? '';
     $this->logo_url = $data['logo_url'] ?? null;
     $this->url = $data['url'] ?? null;
-    $this->is_active = isset($data['is_active']) ? (bool)$data['is_active'] : true;
-    $this->created_at = $data['created_at'] ?? null;
-    $this->updated_at = $data['updated_at'] ?? null;
-    $this->deleted_at = $data['deleted_at'] ?? null;
+  }
+
+  public function toArray(): array
+  {
+    return [
+      'id' => $this->id,
+      'name' => $this->name,
+      'logo_url' => $this->logo_url,
+      'url' => $this->url,
+      'is_active' => $this->is_active,
+      'created_at' => $this->created_at,
+      'updated_at' => $this->updated_at,
+      'deleted_at' => $this->deleted_at
+    ];
   }
 }

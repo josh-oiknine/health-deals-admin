@@ -32,6 +32,7 @@ class AuthController
   {
     try {
       $result = $this->view->render($response, 'auth/login.php', [
+        'title' => 'Login',
         'error' => null
       ]);
 
@@ -88,6 +89,7 @@ class AuthController
     }
 
     return $this->view->render($response, 'auth/login.php', [
+      'title' => 'Login',
       'error' => 'Invalid credentials'
     ]);
   }
@@ -111,6 +113,7 @@ class AuthController
     );
 
     return $this->view->render($response, 'auth/setup-2fa.php', [
+      'title' => 'Setup 2FA',
       'qrCode' => $qrCodeUrl,
       'secret' => $secret,
       'error' => null
@@ -144,6 +147,7 @@ class AuthController
     }
 
     return $this->view->render($response, 'auth/setup-2fa.php', [
+      'title' => 'Setup 2FA',
       'qrCode' => $this->tfa->getQRCodeImageAsDataUri('Health Deals Admin', $secret),
       'secret' => $secret,
       'error' => 'Invalid verification code'
@@ -157,6 +161,7 @@ class AuthController
     }
 
     return $this->view->render($response, 'auth/mfa.php', [
+      'title' => 'MFA Verification',
       'error' => null
     ]);
   }
@@ -191,6 +196,7 @@ class AuthController
     }
 
     return $this->view->render($response, 'auth/mfa.php', [
+      'title' => 'MFA Verification',
       'error' => 'Invalid verification code'
     ]);
   }

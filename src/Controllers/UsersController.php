@@ -147,11 +147,9 @@ class UsersController
       throw new HttpNotFoundException($request);
     }
 
-    $id = (int)$args['id'];
-    $user = User::findById($id);
-    if ($user) {
-      $user->softDelete();
-    }
+    $user = new User();
+    $user->setId((int)$args['id']);
+    $user->softDelete();
 
     return $response->withHeader('Location', '/users')
       ->withStatus(302);

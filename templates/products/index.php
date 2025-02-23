@@ -80,9 +80,9 @@ $baseUrl .= implode('&', $urlParts);
             <option value="">All Users</option>
             <option value="0" <?= ($filters['user_id'] ?? '') === 0 ? 'selected' : '' ?>>N/A</option>
             <?php foreach ($users as $user): ?>
-              <option value="<?= $user->getId() ?>" 
-                <?= ($filters['user_id'] ?? '') == $user->getId() ? 'selected' : '' ?>>
-                <?= htmlspecialchars($user->getFirstName()) ?>
+              <option value="<?= $user['id'] ?>" 
+                <?= ($filters['user_id'] ?? '') == $user['id'] ? 'selected' : '' ?>>
+                <?= htmlspecialchars($user['first_name']) ?>
               </option>
             <?php endforeach; ?>
           </select>
