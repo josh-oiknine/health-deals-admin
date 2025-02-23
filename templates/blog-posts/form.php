@@ -14,7 +14,7 @@
                     <?php endif; ?>
 
                     <form method="POST" class="needs-validation" novalidate>
-                        <div class="mb-3">
+                        <div class="mb-1">
                             <label for="title" class="form-label">Title *</label>
                             <input type="text" 
                                    class="form-control" 
@@ -27,21 +27,21 @@
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label for="slug" class="form-label">Slug *</label>
+                        <div class="mb-1">
+                            <label for="slug" class="form-label">Slug * <span class="text-muted small">URL-friendly version of the title</span></label>
                             <input type="text" 
                                 class="form-control" 
                                 id="slug" 
                                 name="slug" 
                                 value="<?= htmlspecialchars($blogPost['slug'] ?? '') ?>"
                                 required>
-                            <div class="form-text">URL-friendly version of the title</div>
+                            
                             <div class="invalid-feedback">
                                 Please provide a slug.
                             </div>
                         </div>
 
-                        <div class="mb-3">
+                        <div class="mb-1">
                             <label for="body" class="form-label">Content *</label>
                             <textarea class="form-control" 
                                       id="body" 
@@ -53,7 +53,7 @@
                             </div>
                         </div>
 
-                        <div class="mb-3">
+                        <div class="mb-1">
                             <label for="seo_keywords" class="form-label">SEO Keywords</label>
                             <input type="text" 
                                    class="form-control" 
@@ -65,7 +65,7 @@
                         </div>
 
                         <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6 mb-1">
                                 <label for="user_id" class="form-label">Author</label>
                                 <?php if ($currentUserEmail === 'josh+123@udev.com'): ?>
                                     <select class="form-select" id="user_id" name="user_id">
@@ -89,7 +89,7 @@
                                 <?php endif; ?>
                             </div>
 
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6 mb-1">
                                 <div class="form-check mb-2">
                                     <input type="checkbox" 
                                            class="form-check-input" 
@@ -180,9 +180,9 @@ tinymce.init({
     height: 500,
     menubar: false,
     plugins: [
-        'advlist', 'autolink', 'emoticons', 'lists', 'link', 'image', 'charmap', 'preview',
-        'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-        'insertdatetime', 'media', 'table', 'help', 'wordcount',
+        'advlist', 'anchor', 'autolink', 'charmap', 'code', 'contextmenu', 'emoticons',
+        'fullscreen', 'help', 'image', 'insertdatetime', 'link', 'lists', 'media', 'paste',
+        'preview', 'searchreplace', 'table', 'visualblocks', 'wordcount'
 
         // Your account includes a free trial of TinyMCE premium features
         // Try the most popular premium features until Mar 8, 2025:
@@ -192,11 +192,14 @@ tinymce.init({
         // 'footnotes', 'mergetags', 'autocorrect', 'typography', 'inlinecss', 'markdown',
         // 'importword', 'exportword', 'exportpdf'
     ],
+    paste_as_text: false,  // Allows formatting to be preserved
+    paste_word_valid_elements: 'b,strong,i,em,u,h1,h2,h3,p,br',
     toolbar: [
         // 1st Row
         'undo redo | blocks fontfamily fontsize | ' +
         'bold italic | alignleft aligncenter alignright alignjustify | ',
         // 2nd Row
+        'copy paste | ' +
         'link image media table mergetags | ' +
         'spellcheckdialog a11ycheck typography | ' +
         'bullist numlist indent outdent | ' +

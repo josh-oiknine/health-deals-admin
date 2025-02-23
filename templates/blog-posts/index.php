@@ -114,8 +114,8 @@ $baseUrl = '?' . http_build_query(array_filter([
                     ?>
                     <br>
                     <small class="text-muted">
-                        <?= htmlspecialchars($post['slug']) ?>
-                        <a href="#" onclick="copyToClipboard('https:\/\/www.yourhealthydeals.com\/blog\/<?= htmlspecialchars($post['slug']) ?>')"><i class="bi bi-clipboard"></i></a>
+                      <?= htmlspecialchars($post['slug']) ?>
+                      <a href="#" onclick="copyToClipboard('https://www.yourhealthydeals.com/blog/<?= htmlspecialchars($post['slug']) ?>')"><i class="bi bi-clipboard"></i></a>
                     </small>
                   </td>
                   <td><?= date('Y-m-d g:i A', strtotime($post['created_at'])) ?></td>
@@ -144,15 +144,15 @@ $baseUrl = '?' . http_build_query(array_filter([
                         <i class="bi bi-eye"></i>
                       </a>
                       <button type="button" 
-                              class="btn btn-sm btn-outline-danger"
-                              onclick="deletePost(<?= $post['id'] ?>)">
+                          class="btn btn-sm btn-outline-danger"
+                          onclick="deletePost(<?= $post['id'] ?>)">
                         <i class="bi bi-trash"></i>
                       </button>
                     </div>
                     <form id="deleteForm<?= $post['id'] ?>" 
-                          action="/blog-posts/delete/<?= $post['id'] ?>" 
-                          method="POST" 
-                          style="display: none;">
+                      action="/blog-posts/delete/<?= $post['id'] ?>" 
+                      method="POST" 
+                      style="display: none;">
                     </form>
                   </td>
                 </tr>
@@ -170,11 +170,11 @@ $baseUrl = '?' . http_build_query(array_filter([
 
 <!-- Preview Modal -->
 <div class="modal fade" 
-     id="previewModal" 
-     tabindex="-1" 
-     aria-labelledby="previewModalLabel" 
-     aria-hidden="true"
-     style="padding-top: 80px;">
+    id="previewModal" 
+    tabindex="-1" 
+    aria-labelledby="previewModalLabel" 
+    aria-hidden="true"
+    style="padding-top: 80px;">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
@@ -183,12 +183,6 @@ $baseUrl = '?' . http_build_query(array_filter([
       </div>
       
       <div class="modal-body">
-        <div class="row">
-          <div class="col-md-12 mb-3">
-            <strong>Preview:</strong>
-          </div>
-        </div>
-
         <div class="row">
           <div class="col-md-12 blog-post-container">
             <div class="spinner-border text-primary" role="status">
@@ -215,19 +209,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Convert UTC times
     document.querySelectorAll('.utc-time').forEach(function(element) {
-        const utcTime = element.dataset.utc;
-        if (utcTime) {
-            const localDate = new Date(utcTime);
-            const options = {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: true
-            };
-            element.textContent = localDate.toLocaleString(undefined, options);
-        }
+      const utcTime = element.dataset.utc;
+      if (utcTime) {
+        const localDate = new Date(utcTime);
+        const options = {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true
+        };
+        element.textContent = localDate.toLocaleString(undefined, options);
+      }
     });
 });
 
@@ -247,6 +241,16 @@ function viewPost(postId) {
       modal.querySelector('.blog-post-container').innerHTML = html;
       const modalInstance = new bootstrap.Modal(modal);
       modalInstance.show();
+    });
+}
+
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text)
+    .then(() => {
+      // alert('Link copied to clipboard');
+    })
+    .catch(err => {
+      console.error('Failed to copy text: ', err);
     });
 }
 </script> 
