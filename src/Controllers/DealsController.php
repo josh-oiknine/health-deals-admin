@@ -54,6 +54,7 @@ class DealsController
     $categories = Category::findAllActive();
 
     return $this->view->render($response, 'deals/index.php', [
+      'title' => 'Deals',
       'deals' => $result['data'],
       'pagination' => [
         'current_page' => $result['page'],
@@ -77,24 +78,24 @@ class DealsController
     $categories = Category::findAllActive();
     $error = null;
     $formData = null;
+    $dealData = [];
 
     if ($request->getMethod() === 'POST') {
       try {
-        $data = $request->getParsedBody();
-        $formData = $data; // Use submitted data to preserve form state
+        $dealData = $request->getParsedBody();
 
         $deal = new Deal(
-          $data['title'],
-          $data['description'],
-          $data['affiliate_url'],
-          $data['image_url'],
-          (int)$data['product_id'],
-          (int)$data['store_id'],
-          !empty($data['category_id']) ? (int)$data['category_id'] : null,
-          (float)$data['original_price'],
-          (float)$data['deal_price'],
-          isset($data['is_active']) && $data['is_active'] === 'on' ? true : false,
-          isset($data['is_featured']) && $data['is_featured'] === 'on' ? true : false,
+          $dealData['title'],
+          $dealData['description'],
+          $dealData['affiliate_url'],
+          $dealData['image_url'],
+          (int)$dealData['product_id'],
+          (int)$dealData['store_id'],
+          !empty($dealData['category_id']) ? (int)$dealData['category_id'] : null,
+          (float)$dealData['original_price'],
+          (float)$dealData['deal_price'],
+          isset($dealData['is_active']) && $dealData['is_active'] === 'on' ? true : false,
+          isset($dealData['is_featured']) && $dealData['is_featured'] === 'on' ? true : false,
           isset($data['is_expired']) && $data['is_expired'] === 'on' ? true : false
         );
 
@@ -110,6 +111,7 @@ class DealsController
     }
 
     return $this->view->render($response, 'deals/form.php', [
+      'title' => 'Add Deal',
       'deal' => $dealData,
       'stores' => $stores,
       'categories' => $categories,
@@ -121,39 +123,26 @@ class DealsController
   public function edit(Request $request, Response $response, array $args): Response
   {
     $id = (int)$args['id'];
-    $dealData = Deal::findById($id);
     $error = null;
-
-    if (!$dealData) {
-      return $response->withHeader('Location', '/deals')
-        ->withStatus(302);
-    }
-
-    $stores = Store::findAllActive();
-    $categories = Category::findAllActive();
+    $dealData = [];
 
     if ($request->getMethod() === 'POST') {
       try {
-        $data = $request->getParsedBody();
-        $dealData = $data; // Use submitted data to preserve form state
-
-        echo '<pre>';
-        var_dump(isset($data['is_featured']));
-        echo '</pre>';
-
+        $dealData = $request->getParsedBody();
+        
         $deal = new Deal(
-          $data['title'],
-          $data['description'],
-          $data['affiliate_url'],
-          $data['image_url'],
-          (int)$data['product_id'],
-          (int)$data['store_id'],
-          !empty($data['category_id']) ? (int)$data['category_id'] : null,
-          (float)$data['original_price'],
-          (float)$data['deal_price'],
-          isset($data['is_active']) && $data['is_active'] === 'on' ? true : false,
-          isset($data['is_featured']) && $data['is_featured'] === 'on' ? true : false,
-          isset($data['is_expired']) && $data['is_expired'] === 'on' ? true : false
+          $dealData['title'],
+          $dealData['description'],
+          $dealData['affiliate_url'],
+          $dealData['image_url'],
+          (int)$dealData['product_id'],
+          (int)$dealData['store_id'],
+          !empty($dealData['category_id']) ? (int)$dealData['category_id'] : null,
+          (float)$dealData['original_price'],
+          (float)$dealData['deal_price'],
+          isset($dealData['is_active']) && $dealData['is_active'] === 'on' ? true : false,
+          isset($dealData['is_featured']) && $dealData['is_featured'] === 'on' ? true : false,
+          isset($dealData['is_expired']) && $dealData['is_expired'] === 'on' ? true : false
         );
         $deal->setId($id);
 
@@ -169,7 +158,17 @@ class DealsController
       }
     }
 
+    $dealData = Deal::findById($id);
+    if (!$dealData) {
+      return $response->withHeader('Location', '/deals')
+        ->withStatus(302);
+    }
+
+    $stores = Store::findAllActive();
+    $categories = Category::findAllActive();
+
     return $this->view->render($response, 'deals/form.php', [
+      'title' => 'Edit Deal',
       'deal' => $dealData,
       'stores' => $stores,
       'categories' => $categories,
@@ -180,8 +179,9 @@ class DealsController
 
   public function delete(Request $request, Response $response, array $args): Response
   {
-    $id = (int)$args['id'];
-    Deal::delete($id);
+    $deal = new Deal();
+    $deal->setId((int)$args['id']);
+    $deal->softDelete();
 
     return $response->withHeader('Location', '/deals')
       ->withStatus(302);

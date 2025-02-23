@@ -59,7 +59,7 @@ $app->group('', function (RouteCollectorProxy $group) {
   $group->post('/categories/add', [CategoriesController::class, 'add']);
   $group->get('/categories/edit/{id}', [CategoriesController::class, 'edit']);
   $group->post('/categories/edit/{id}', [CategoriesController::class, 'edit']);
-
+  $group->post('/categories/delete/{id}', [CategoriesController::class, 'delete']);
   // Product routes
   $group->get('/products', [ProductsController::class, 'index'])->setName('products');
   $group->get('/products/add', [ProductsController::class, 'add']);

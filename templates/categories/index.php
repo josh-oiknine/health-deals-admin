@@ -56,6 +56,17 @@
                                                class="btn btn-sm btn-outline-success">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
+                                            <button type="button" 
+                                                class="btn btn-sm btn-outline-danger delete-category" 
+                                                data-category-id="<?= $category['id'] ?>"
+                                                onclick="deleteCategory(<?= $category['id'] ?>)">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                            <form id="deleteForm<?= $category['id'] ?>" 
+                                                action="/categories/delete/<?= $category['id'] ?>" 
+                                                method="POST" 
+                                                style="display: none;">
+                                            </form>
                                         </div>
                                     </td>
                                 </tr>
@@ -67,3 +78,11 @@
         </div>
     </div>
 </div> 
+
+<script>
+function deleteCategory(categoryId) {
+  if (confirm('Are you sure you want to delete this category?')) {
+    document.getElementById('deleteForm' + categoryId).submit();
+  }
+}
+</script>   

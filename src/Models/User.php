@@ -127,7 +127,7 @@ class User
           "first_name = ?",
           "last_name = ?",
           "is_active = ?",
-          "updated_at = CURRENT_TIMESTAMP"
+          "updated_at = NOW()"
         ]);
 
         $params = array_merge($params, [
@@ -160,7 +160,7 @@ class User
 
     try {
       $db = Database::getInstance()->getConnection();
-      $stmt = $db->prepare("UPDATE users SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?");
+      $stmt = $db->prepare("UPDATE users SET deleted_at = NOW() WHERE id = ?");
       return $stmt->execute([$this->id]);
     } catch (PDOException $e) {
       error_log("Database error in User::softDelete(): " . $e->getMessage());

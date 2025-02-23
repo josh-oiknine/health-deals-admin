@@ -13,7 +13,7 @@
         <div class="col-md-8 offset-md-2">
             <div class="card">
                 <div class="card-header">
-                    <h2 class="mb-0"><?= $mode === 'edit' ? 'Edit' : 'Add' ?> Product</h2>
+                    <h2 class="mb-0"><?= $isEdit ? 'Edit' : 'Add' ?> Product</h2>
                 </div>
                 <div class="card-body">
                     <form method="POST" class="needs-validation" novalidate>
@@ -145,7 +145,7 @@
                             <div class="form-text">User who added/manages this product</div>
                         </div>
                         <?php else: ?>
-                            <input type="hidden" name="user_id" value="<?= $mode === 'edit' ? $product['user_id'] : $currentUserId ?>">
+                            <input type="hidden" name="user_id" value="<?= $isEdit ? $product['user_id'] : $currentUserId ?>">
                         <?php endif; ?>
 
                         <div class="mb-3">
@@ -163,7 +163,7 @@
                         <div class="d-flex justify-content-between">
                             <a href="/products" class="btn btn-outline-secondary">Cancel</a>
                             <button type="submit" class="btn btn-primary">
-                                <?= $mode === 'edit' ? 'Update' : 'Create' ?> Product
+                                <?= $isEdit ? 'Update' : 'Create' ?> Product
                             </button>
                         </div>
                     </form>

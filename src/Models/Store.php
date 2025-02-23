@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Database\Database;
+use DateTime;
+use InvalidArgumentException;
 use PDO;
 use PDOException;
 
@@ -15,9 +17,9 @@ class Store
   private $logo_url;
   private $url;
   private $is_active;
-  private $created_at;
-  private $updated_at;
-  private $deleted_at;
+  private ?DateTime $created_at = null;
+  private ?DateTime $updated_at = null;
+  private ?DateTime $deleted_at = null;
 
   public function __construct(
     string $name = '',
@@ -29,6 +31,21 @@ class Store
     $this->logo_url = $logo_url;
     $this->url = $url;
     $this->is_active = $is_active;
+  }
+
+  public function validate(): bool
+  {
+    if (empty($this->name)) {
+      throw new InvalidArgumentException('Name is required');
+    }
+    if (empty($this->url)) {
+      throw new InvalidArgumentException('URL is required');
+    }
+    if (empty($this->logo_url)) {
+      throw new InvalidArgumentException('Logo URL is required');
+    }
+
+    return true;
   }
 
   public static function findAll(): array
@@ -110,16 +127,41 @@ class Store
     try {
       $db = Database::getInstance()->getConnection();
 
+      if (!$this->validate()) {
+        return false;
+      }
+
       if ($this->id === null) {
         $stmt = $db->prepare(
-          "INSERT INTO stores (name, logo_url, url, is_active) 
-                     VALUES (:name, :logo_url, :url, :is_active)"
+          "INSERT INTO stores (
+            name,
+            logo_url,
+            url,
+            is_active,
+            created_at,
+            updated_at
+          ) VALUES (
+            :name, 
+            :logo_url, 
+            :url, 
+            :is_active,
+            NOW(),
+            NOW()
+          )"
         );
       } else {
         $stmt = $db->prepare(
-          "UPDATE stores 
-            SET name = :name, logo_url = :logo_url, url = :url, is_active = :is_active, updated_at = CURRENT_TIMESTAMP 
-            WHERE id = :id AND deleted_at IS NULL"
+          "UPDATE
+              stores
+            SET
+              name = :name,
+              logo_url = :logo_url,
+              url = :url,
+              is_active = :is_active,
+              updated_at = NOW()
+            WHERE
+              id = :id
+          "
         );
         
         $stmt->bindValue(':id', $this->id);
@@ -128,7 +170,7 @@ class Store
       $stmt->bindValue(':name', $this->name);
       $stmt->bindValue(':logo_url', $this->logo_url);
       $stmt->bindValue(':url', $this->url);
-      $stmt->bindValue(':is_active', $this->is_active);
+      $stmt->bindValue(':is_active', $this->is_active, PDO::PARAM_BOOL);
 
       $result = $stmt->execute();
       if ($result) {
@@ -159,7 +201,7 @@ class Store
       return false;
     }
     $db = Database::getInstance()->getConnection();
-    $stmt = $db->prepare("UPDATE stores SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?");
+    $stmt = $db->prepare("UPDATE stores SET deleted_at = NOW() WHERE id = ?");
 
     return $stmt->execute([$this->id]);
   }
@@ -185,6 +227,11 @@ class Store
   public function getId(): ?int
   {
     return $this->id;
+  }
+
+  public function setId(int $id): void
+  {
+    $this->id = $id;
   }
 
   public function getName(): string
@@ -240,6 +287,14 @@ class Store
   public function getDeletedAt(): ?string
   {
     return $this->deleted_at;
+  }
+
+  public function initFromArray(array $data): void
+  {
+    $this->id = isset($data['id']) ? (int)$data['id'] : null;
+    $this->name = $data['name'] ?? '';
+    $this->logo_url = $data['logo_url'] ?? null;
+    $this->url = $data['url'] ?? null;
   }
 
   public function toArray(): array

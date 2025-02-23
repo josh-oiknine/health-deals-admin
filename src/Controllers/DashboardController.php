@@ -39,6 +39,7 @@ class DashboardController
     $latestDeals = Deal::getLatestDeals(10);
 
     return $this->view->render($response, 'dashboard/index.php', [
+      'title' => 'Dashboard',
       'metrics' => $metrics,
       'latestDeals' => $latestDeals
     ]);

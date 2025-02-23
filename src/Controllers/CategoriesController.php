@@ -22,6 +22,7 @@ class CategoriesController
     $categories = Category::findAll();
 
     return $this->view->render($response, 'categories/index.php', [
+      'title' => 'Categories',
       'categories' => $categories
     ]);
   }
@@ -29,6 +30,8 @@ class CategoriesController
   public function add(Request $request, Response $response): Response
   {
     $error = null;
+    $data = [];
+
     if ($request->getMethod() === 'POST') {
       $data = $request->getParsedBody();
       error_log("Category data received: " . print_r($data, true));
@@ -49,7 +52,8 @@ class CategoriesController
     }
 
     return $this->view->render($response, 'categories/form.php', [
-      'category' => new Category(),
+      'title' => 'Add Category',
+      'category' => $data,
       'isEdit' => false,
       'error' => $error
     ]);
@@ -57,33 +61,47 @@ class CategoriesController
 
   public function edit(Request $request, Response $response, array $args): Response
   {
-    $category = Category::findById((int)$args['id']);
-    if (!$category) {
-      throw new HttpNotFoundException($request);
-    }
-
+    $id = (int)$args['id'];
     $error = null;
+
     if ($request->getMethod() === 'POST') {
-      $data = $request->getParsedBody();
-      error_log("Category edit data received: " . print_r($data, true));
+      $categoryData = $request->getParsedBody();
+      error_log("Category edit data received: " . print_r($categoryData, true));
 
-      $category->setName($data['name'] ?? '');
-      $category->setSlug($data['slug'] ?? '');
-      $category->setIsActive(($data['is_active'] ?? '') === 'on');
-      $category->setColor($data['color'] ?? '#6c757d');
-
+      $category = new Category(
+        $categoryData['name'] ?? '',
+        $categoryData['slug'] ?? '',
+        ($categoryData['is_active'] ?? '') === 'on',
+        $categoryData['color'] ?? '#6c757d'
+      );
+      $category->setId($id);
       if ($category->save()) {
         return $response->withHeader('Location', '/categories')
           ->withStatus(302);
       }
       error_log("Failed to update category");
       $error = "Failed to update category. Please try again.";
+    } else {
+      $categoryData = Category::findById($id);
     }
 
     return $this->view->render($response, 'categories/form.php', [
-      'category' => $category,
+      'title' => 'Edit Category',
+      'category' => $categoryData,
       'isEdit' => true,
       'error' => $error
     ]);
   }
+
+  public function delete(Request $request, Response $response, array $args): Response
+  {
+    $category = new Category();
+    $category->setId((int)$args['id']);
+    $category->softDelete();
+
+    return $response->withHeader('Location', '/categories')
+      ->withStatus(302);
+  }
+
+///////////////////////////////////////////////////////////////////////////////
 }

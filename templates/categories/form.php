@@ -38,7 +38,7 @@
                                    class="form-control" 
                                    id="name" 
                                    name="name" 
-                                   value="<?= htmlspecialchars($category['name']) ?>"
+                                   value="<?= htmlspecialchars($category['name'] ?? '') ?>"
                                    required>
                             <div class="invalid-feedback">
                                 Please provide a category name.
@@ -51,7 +51,7 @@
                                    class="form-control" 
                                    id="slug" 
                                    name="slug" 
-                                   value="<?= htmlspecialchars($category['slug']) ?>"
+                                   value="<?= htmlspecialchars($category['slug'] ?? '') ?>"
                                    required>
                             <div class="invalid-feedback">
                                 Please provide a category slug.
@@ -97,7 +97,7 @@
                                        class="form-check-input" 
                                        id="is_active" 
                                        name="is_active" 
-                                    <?= $category['is_active'] ? 'checked' : '' ?>>
+                                       <?= $category['is_active'] ?? false ? 'checked' : '' ?>>
                                 <label class="form-check-label" for="is_active">Active</label>
                             </div>
                             <div class="form-text">Inactive categories won't be visible to users</div>

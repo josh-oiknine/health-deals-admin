@@ -42,29 +42,6 @@ class Deal
     bool $is_featured = false,
     bool $is_expired = false
   ) {
-    // Validate required fields
-    if (empty($title)) {
-      throw new InvalidArgumentException('Title is required');
-    }
-    if (empty($description)) {
-      throw new InvalidArgumentException('Description is required');
-    }
-    if (empty($affiliate_url)) {
-      throw new InvalidArgumentException('Affiliate URL is required');
-    }
-    if ($store_id <= 0) {
-      throw new InvalidArgumentException('Valid store ID is required');
-    }
-    if ($product_id <= 0) {
-      throw new InvalidArgumentException('Valid product ID is required');
-    }
-    if ($original_price < 0) {
-      throw new InvalidArgumentException('Original price must be non-negative');
-    }
-    if ($deal_price < 0) {
-      throw new InvalidArgumentException('Deal price must be non-negative');
-    }
-
     $this->title = $title;
     $this->description = $description;
     $this->affiliate_url = $affiliate_url;
@@ -79,95 +56,32 @@ class Deal
     $this->is_expired = $is_expired;
   }
 
-  public function setId(int $id): void
+  public function validate(): bool
   {
-    $this->id = $id;
-  }
-
-  public function save(): bool
-  {
-    try {
-      $db = Database::getInstance()->getConnection();
-
-      if ($this->id === null) {
-        // Insert new deal
-        $sql = "INSERT INTO deals (
-                    store_id,
-                    product_id,
-                    category_id,
-                    title,
-                    description,
-                    deal_price,
-                    original_price,
-                    image_url,
-                    affiliate_url,
-                    is_active,
-                    is_featured,
-                    is_expired,
-                    created_at,
-                    updated_at
-                ) VALUES (
-                    :store_id,
-                    :product_id,
-                    :category_id,
-                    :title,
-                    :description,
-                    :deal_price,
-                    :original_price,
-                    :image_url,
-                    :affiliate_url,
-                    :is_active,
-                    :is_featured,
-                    :is_expired,
-                    NOW(),
-                    NOW()
-                )";
-      } else {
-        // Update existing deal
-        $sql = "UPDATE deals SET
-                    store_id = :store_id,
-                    product_id = :product_id,
-                    category_id = :category_id,
-                    title = :title,
-                    description = :description,
-                    deal_price = :deal_price,
-                    original_price = :original_price,
-                    image_url = :image_url,
-                    affiliate_url = :affiliate_url,
-                    is_active = :is_active,
-                    is_featured = :is_featured,
-                    is_expired = :is_expired,
-                    updated_at = NOW()
-                WHERE
-                    id = :id";
-      }
-
-      $stmt = $db->prepare($sql);
-
-      $params = [
-        'store_id' => $this->store_id,
-        'product_id' => $this->product_id,
-        'category_id' => $this->category_id,
-        'title' => $this->title,
-        'description' => $this->description,
-        'deal_price' => $this->deal_price,
-        'original_price' => $this->original_price,
-        'image_url' => $this->image_url,
-        'affiliate_url' => $this->affiliate_url,
-        'is_active' => $this->is_active ? 't' : 'f',  // Convert boolean to PostgreSQL format
-        'is_featured' => $this->is_featured ? 't' : 'f',  // Convert boolean to PostgreSQL format
-        'is_expired' => $this->is_expired ? 't' : 'f'  // Convert boolean to PostgreSQL format
-      ];
-
-      if ($this->id !== null) {
-        $params['id'] = $this->id;
-      }
-
-      return $stmt->execute($params);
-    } catch (PDOException $e) {
-      error_log("Error saving deal: " . $e->getMessage());
-      throw $e; // Re-throw the exception to handle it in the controller
+    // Validate required fields
+    if (empty($this->title)) {
+      throw new InvalidArgumentException('Title is required');
     }
+    if (empty($this->description)) {
+      throw new InvalidArgumentException('Description is required');
+    }
+    if (empty($this->affiliate_url)) {
+      throw new InvalidArgumentException('Affiliate URL is required');
+    }
+    if ($this->store_id <= 0) {
+      throw new InvalidArgumentException('Valid store ID is required');
+    }
+    if ($this->product_id <= 0) {
+      throw new InvalidArgumentException('Valid product ID is required');
+    }
+    if ($this->original_price < 0) {
+      throw new InvalidArgumentException('Original price must be non-negative');
+    }
+    if ($this->deal_price < 0) {
+      throw new InvalidArgumentException('Deal price must be non-negative');
+    }
+
+    return true;
   }
 
   public static function findFiltered(array $filters, string $sortBy = 'created_at', string $sortOrder = 'DESC', int $page = 1, int $perPage = 20): array
@@ -368,7 +282,98 @@ class Deal
     }
   }
 
-  public static function delete(int $id): bool
+  public function save(): bool
+  {
+    try {
+      $db = Database::getInstance()->getConnection();
+
+      if (!$this->validate()) {
+        return false;
+      }
+
+      if ($this->id === null) {
+        // Insert new deal
+        $stmt = $db->prepare("INSERT INTO deals (
+                    store_id,
+                    product_id,
+                    category_id,
+                    title,
+                    description,
+                    deal_price,
+                    original_price,
+                    image_url,
+                    affiliate_url,
+                    is_active,
+                    is_featured,
+                    is_expired,
+                    created_at,
+                    updated_at
+                ) VALUES (
+                    :store_id,
+                    :product_id,
+                    :category_id,
+                    :title,
+                    :description,
+                    :deal_price,
+                    :original_price,
+                    :image_url,
+                    :affiliate_url,
+                    :is_active,
+                    :is_featured,
+                    :is_expired,
+                    NOW(),
+                    NOW()
+                )"
+        );
+      } else {
+        // Update existing deal
+        $stmt = $db->prepare("UPDATE deals SET
+                    store_id = :store_id,
+                    product_id = :product_id,
+                    category_id = :category_id,
+                    title = :title,
+                    description = :description,
+                    deal_price = :deal_price,
+                    original_price = :original_price,
+                    image_url = :image_url,
+                    affiliate_url = :affiliate_url,
+                    is_active = :is_active,
+                    is_featured = :is_featured,
+                    is_expired = :is_expired,
+                    updated_at = NOW()
+                WHERE
+                    id = :id"
+        );
+
+        $stmt->bindValue(':id', $this->id);
+      }
+
+      $stmt->bindValue(':store_id', $this->store_id);
+      $stmt->bindValue(':product_id', $this->product_id);
+      $stmt->bindValue(':category_id', $this->category_id);
+      $stmt->bindValue(':title', $this->title);
+      $stmt->bindValue(':description', $this->description);
+      $stmt->bindValue(':deal_price', $this->deal_price);
+      $stmt->bindValue(':original_price', $this->original_price);
+      $stmt->bindValue(':image_url', $this->image_url);
+      $stmt->bindValue(':affiliate_url', $this->affiliate_url);
+      $stmt->bindValue(':is_active', $this->is_active, PDO::PARAM_BOOL);
+      $stmt->bindValue(':is_featured', $this->is_featured, PDO::PARAM_BOOL);
+      $stmt->bindValue(':is_expired', $this->is_expired, PDO::PARAM_BOOL);
+
+      $result = $stmt->execute();
+      if ($result) {
+        return true;
+      }
+
+      return false;
+    } catch (PDOException $e) {
+      error_log("Error saving deal: " . $e->getMessage());
+      throw $e; // Re-throw the exception to handle it in the controller
+    }
+  }
+
+  public function delete(): bool
   {
     try {
       $db = Database::getInstance()->getConnection();
@@ -413,6 +418,11 @@ class Deal
   public function getId(): ?int
   {
     return $this->id;
+  }
+
+  public function setId(int $id): void
+  {
+    $this->id = $id;
   }
 
   public function getTitle(): string
@@ -543,6 +553,25 @@ class Deal
   public function getUpdatedAt(): ?DateTime
   {
     return $this->updated_at;
+  }
+
+  public function initFromArray(array $data): void
+  {
+    $this->id = isset($data['id']) ? (int)$data['id'] : null;
+    $this->title = $data['title'] ?? '';
+    $this->description = $data['description'] ?? '';
+    $this->affiliate_url = $data['affiliate_url'] ?? '';
+    $this->image_url = $data['image_url'] ?? '';
+    $this->product_id = isset($data['product_id']) ? (int)$data['product_id'] : 0;
+    $this->store_id = isset($data['store_id']) ? (int)$data['store_id'] : 0;
+    $this->category_id = isset($data['category_id']) ? (int)$data['category_id'] : null;
+    $this->original_price = isset($data['original_price']) ? (float)$data['original_price'] : 0.0;
+    $this->deal_price = isset($data['deal_price']) ? (float)$data['deal_price'] : 0.0;
+    $this->is_active = isset($data['is_active']) ? (bool)$data['is_active'] : true;
+    $this->is_featured = isset($data['is_featured']) ? (bool)$data['is_featured'] : false;
+    $this->is_expired = isset($data['is_expired']) ? (bool)$data['is_expired'] : false;
+    $this->created_at = isset($data['created_at']) ? new DateTime($data['created_at']) : null;
+    $this->updated_at = isset($data['updated_at']) ? new DateTime($data['updated_at']) : null;
   }
 
   public function toArray(): array
