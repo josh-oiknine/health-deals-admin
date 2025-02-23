@@ -1,7 +1,7 @@
 # Database Schema and Relationships
 
 ## Overview
-The Health Deals Admin application uses PostgreSQL as its primary database. The schema is designed to support the management of health products, deals, stores, and categories, with features for price tracking and user management.
+The Health Deals Admin application uses PostgreSQL as its primary database. The schema is designed to support the management of health products, deals, stores, categories, and blog posts, with features for price tracking and user management.
 
 ## Tables and Relationships
 
@@ -40,7 +40,7 @@ Represents retail stores or online marketplaces.
 | `deleted_at` | timestamp | NULL | Soft delete timestamp |
 
 ### Categories
-Product categories hierarchy.
+Product categories hierarchy with color coding and soft delete support.
 
 **Table: `categories`**
 | Column | Type | Constraints | Description |
@@ -52,6 +52,7 @@ Product categories hierarchy.
 | `is_active` | boolean | DEFAULT true | Category status |
 | `created_at` | timestamp | DEFAULT CURRENT_TIMESTAMP | Record creation time |
 | `updated_at` | timestamp | DEFAULT CURRENT_TIMESTAMP | Record update time |
+| `deleted_at` | timestamp | NULL | Soft delete timestamp |
 
 ### Products
 Core product information.
@@ -96,6 +97,23 @@ Product deals and promotions.
 | `is_active` | boolean | DEFAULT true | Deal status |
 | `created_at` | timestamp | DEFAULT CURRENT_TIMESTAMP | Record creation time |
 | `updated_at` | timestamp | DEFAULT CURRENT_TIMESTAMP | Record update time |
+
+### Blog Posts
+Manages blog content with SEO support and publishing workflow.
+
+**Table: `blog_posts`**
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| `id` | integer | PK | Primary key |
+| `title` | string(255) | NOT NULL | Blog post title |
+| `slug` | string(255) | UNIQUE, NOT NULL | URL-friendly title |
+| `body` | text | NOT NULL | Blog post content (HTML) |
+| `seo_keywords` | string(255) | NULL | SEO meta keywords |
+| `user_id` | integer | FK, NOT NULL | Reference to users.id |
+| `created_at` | timestamp | DEFAULT CURRENT_TIMESTAMP | Record creation time |
+| `updated_at` | timestamp | DEFAULT CURRENT_TIMESTAMP | Record update time |
+| `published_at` | timestamp | NULL | Publication timestamp |
+| `deleted_at` | timestamp | NULL | Soft delete timestamp |
 
 ### Price History
 Historical price tracking for products.
@@ -158,12 +176,17 @@ Message queue for notifications and external communications.
    - Foreign key: `products.user_id` → `users.id`
    - Set NULL on delete
 
-4. Product → Price History
+4. User → Blog Posts
+   - A user can author multiple blog posts
+   - Foreign key: `blog_posts.user_id` → `users.id`
+   - Cascade delete
+
+5. Product → Price History
    - A product has multiple price history records
    - Foreign key: `price_history.product_id` → `products.id`
    - Cascade delete
 
-5. Product → Scraping Jobs
+6. Product → Scraping Jobs
    - A product has multiple scraping jobs
    - Foreign key: `scraping_jobs.product_id` → `products.id`
    - Cascade delete
@@ -189,14 +212,16 @@ Message queue for notifications and external communications.
 2. `products`: `slug` (UNIQUE), `sku` (UNIQUE), `deleted_at`
 3. `categories`: `slug` (UNIQUE)
 4. `stores`: `name`
-5. `price_history`: `(product_id, created_at)`
-6. `scraping_jobs`: `(status, job_type)`, `celery_task_id`
-7. `outbox`: `(status, created_at)`
+5. `blog_posts`: `slug` (UNIQUE), `user_id`, `published_at`
+6. `price_history`: `(product_id, created_at)`
+7. `scraping_jobs`: `(status, job_type)`, `celery_task_id`
+8. `outbox`: `(status, created_at)`
 
 ## Soft Deletes
 The following tables implement soft delete functionality using a `deleted_at` timestamp:
 - `users`
 - `stores`
 - `products`
+- `blog_posts`
 
 When a record is "deleted" in these tables, it is merely marked as deleted by setting the `deleted_at` timestamp, rather than being physically removed from the database. 

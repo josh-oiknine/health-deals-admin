@@ -5,6 +5,7 @@ $finder = PhpCsFixer\Finder::create()
     __DIR__ . '/src',
     __DIR__ . '/db',
     __DIR__ . '/public',
+    __DIR__ . '/templates',
   ])
   ->name('*.php')
   ->notName('*.blade.php')
@@ -12,6 +13,7 @@ $finder = PhpCsFixer\Finder::create()
   ->ignoreVCS(true);
 
 return (new PhpCsFixer\Config())
+  ->setParallelConfig(PhpCsFixer\Runner\Parallel\ParallelConfigFactory::detect())
   ->setRules([
     '@PSR12' => true,
     'array_indentation' => true,

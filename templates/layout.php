@@ -88,6 +88,12 @@ $hasAuthToken = isset($_COOKIE['auth_token']);
             </a>
           </li>
           <li class="nav-item">
+            <a class="nav-link <?= $_SERVER['REQUEST_URI'] === '/blog-posts' ? 'active' : '' ?>" href="/blog-posts" data-bs-toggle="tooltip" data-bs-placement="right" title="Blog Posts">
+              <i class="bi bi-file-text me-2"></i>
+              <span>Blog Posts</span>
+            </a>
+          </li>
+          <li class="nav-item">
             <a class="nav-link <?= $_SERVER['REQUEST_URI'] === '/outbox' ? 'active' : '' ?>" href="/outbox" data-bs-toggle="tooltip" data-bs-placement="right" title="Outbox">
               <i class="bi bi-envelope me-2"></i>
               <span>Outbox</span>

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Models\User;
+use Exception;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -30,8 +31,9 @@ class UsersController
 
     try {
       $decoded = JWT::decode($token, new Key($_ENV['JWT_SECRET'], 'HS256'));
+
       return $decoded->email ?? null;
-    } catch (\Exception $e) {
+    } catch (Exception $e) {
       return null;
     }
   }
@@ -172,4 +174,4 @@ class UsersController
     return $response->withHeader('Location', '/users')
       ->withStatus(302);
   }
-} 
+}

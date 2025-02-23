@@ -197,7 +197,7 @@ class Deal
           LEFT JOIN products p ON d.product_id = p.id
         WHERE
           d.id = :id";
-    
+
       if ($active) {
         $sql .= " AND (d.is_active = TRUE OR d.is_expired = FALSE)";
       }
@@ -228,6 +228,24 @@ class Deal
       return $stmt->fetchColumn();
     } catch (PDOException $e) {
       error_log("Error in Deal::countActive(): " . $e->getMessage());
+
+      return 0;
+    }
+  }
+
+  public static function countInactive(): int
+  {
+    try {
+      $db = Database::getInstance()->getConnection();
+      $stmt = $db->prepare("
+        SELECT COUNT(*) FROM deals
+        WHERE is_active = FALSE
+      ");
+      $stmt->execute();
+
+      return $stmt->fetchColumn();
+    } catch (PDOException $e) {
+      error_log("Error in Deal::countInactive(): " . $e->getMessage());
 
       return 0;
     }
@@ -293,7 +311,8 @@ class Deal
 
       if ($this->id === null) {
         // Insert new deal
-        $stmt = $db->prepare("INSERT INTO deals (
+        $stmt = $db->prepare(
+          "INSERT INTO deals (
                     store_id,
                     product_id,
                     category_id,
@@ -327,7 +346,8 @@ class Deal
         );
       } else {
         // Update existing deal
-        $stmt = $db->prepare("UPDATE deals SET
+        $stmt = $db->prepare(
+          "UPDATE deals SET
                     store_id = :store_id,
                     product_id = :product_id,
                     category_id = :category_id,
@@ -377,15 +397,15 @@ class Deal
   {
     try {
       $db = Database::getInstance()->getConnection();
-      
+
       // Start transaction
       $db->beginTransaction();
-      
+
       // Get the product_id before deleting the deal
       $stmt = $db->prepare("SELECT product_id FROM deals WHERE id = :id");
       $stmt->execute(['id' => $id]);
       $deal = $stmt->fetch(PDO::FETCH_ASSOC);
-      
+
       if ($deal) {
         // Delete price history records for the product
         $stmt = $db->prepare("DELETE FROM price_history WHERE product_id = :product_id");
@@ -394,23 +414,26 @@ class Deal
         // Update the product's last_checked to NULL
         $stmt = $db->prepare("UPDATE products SET last_checked = NULL WHERE id = :product_id");
         $stmt->execute(['product_id' => $deal['product_id']]);
-        
+
         // Delete the deal
         $stmt = $db->prepare("DELETE FROM deals WHERE id = :id");
         $stmt->execute(['id' => $id]);
-        
+
         // Commit transaction
         $db->commit();
+
         return true;
       }
-      
+
       $db->rollBack();
+
       return false;
     } catch (PDOException $e) {
       error_log("Error deleting deal: " . $e->getMessage());
       if ($db->inTransaction()) {
         $db->rollBack();
       }
+
       return false;
     }
   }

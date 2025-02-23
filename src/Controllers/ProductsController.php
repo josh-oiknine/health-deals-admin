@@ -203,7 +203,7 @@ class ProductsController
       'stores' => $stores,
       'categories' => $categories,
       'users' => $users,
-      'isEdit' => true, 
+      'isEdit' => true,
       'error' => $error
     ]);
   }
@@ -215,7 +215,7 @@ class ProductsController
 
     // Don't use layout for this view
     $this->view->setLayout('');
-    
+
     return $this->view->render(
       $response,
       'products/history.php',
@@ -303,7 +303,7 @@ class ProductsController
     if ($existingSlug && $existingSlug > 0) {
       if (strlen($slug) > 85) {
         $slug = substr($slug, 0, 85);
-      
+
         $lastUnderscore = strrpos($slug, '_');
         if ($lastUnderscore !== false) {
           $slug = substr($slug, 0, $lastUnderscore);
@@ -366,7 +366,7 @@ class ProductsController
     // POST DATA
     $data = $request->getQueryParams();
     $sku = $data['sku'] ?? null;
-    
+
     if (empty($sku)) {
       $response->getBody()->write(json_encode([
         'status' => 'error',
@@ -462,7 +462,7 @@ class ProductsController
     );
     $product->setId($existingProduct['id']);
     $product->setLastChecked(date('Y-m-d H:i:s'));
-    
+
     if ($product->save()) {
       // Record a price change
       $lastPrice = PriceHistory::findByProduct($existingProduct['id'], 1);
@@ -518,7 +518,6 @@ class ProductsController
 
     return $response->withStatus(400);
   }
-  
 
   // Private Static Helper Functions
   private static function makeSlug($name, $maxLength = 100): string
@@ -638,6 +637,6 @@ class ProductsController
       return null;
     }
   }
-  
-///////////////////////////////////////////////////////////////////////////////
+
+  ///////////////////////////////////////////////////////////////////////////////
 }

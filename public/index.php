@@ -7,6 +7,7 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 use App\Controllers\AuthController;
+use App\Controllers\BlogPostsController;
 use App\Controllers\CategoriesController;
 use App\Controllers\DashboardController;
 use App\Controllers\DealsController;
@@ -16,11 +17,11 @@ use App\Controllers\SettingsController;
 use App\Controllers\StoresController;
 use App\Controllers\UsersController;
 use App\Database\Database;
+use App\Middleware\ViewDataMiddleware;
 use DI\Container;
 use DI\ContainerBuilder;
 use Slim\Factory\AppFactory;
 use Slim\Views\PhpRenderer;
-use App\Middleware\ViewDataMiddleware;
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -77,6 +78,9 @@ $containerBuilder->addDefinitions([
   },
   UsersController::class => function (Container $container) {
     return new UsersController($container);
+  },
+  BlogPostsController::class => function (Container $container) {
+    return new BlogPostsController($container);
   },
   ScrapingJobsController::class => function (Container $container) {
     return new ScrapingJobsController($container);

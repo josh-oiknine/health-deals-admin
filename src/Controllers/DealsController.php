@@ -129,7 +129,7 @@ class DealsController
     if ($request->getMethod() === 'POST') {
       try {
         $dealData = $request->getParsedBody();
-        
+
         $deal = new Deal(
           $dealData['title'],
           $dealData['description'],

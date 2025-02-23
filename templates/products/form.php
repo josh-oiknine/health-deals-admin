@@ -138,7 +138,7 @@
                                 <?php foreach ($users as $user): ?>
                                     <option value="<?= $user['id'] ?>" 
                                         <?= ($product['user_id'] ?? '') == $user['id'] ? 'selected' : '' ?>>
-                                        <?= htmlspecialchars($user['first_name']) ?>
+                                        <?= htmlspecialchars($user['first_name'] . ' ' . $user['last_name']) ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
@@ -211,8 +211,14 @@ function createSlug(text, maxLength = 100) {
 }
 
 // Auto-generate slug from name
-document.getElementById('name').addEventListener('input', function(e) {
-  document.getElementById('slug').value = createSlug(e.target.value);
+document.getElementById('name').addEventListener('input keyup', function(e) {
+    <?php if ($isEdit): ?>
+        if (!document.getElementById('slug').value) {
+            document.getElementById('slug').value = createSlug(e.target.value);
+        }
+    <?php else: ?>
+        document.getElementById('slug').value = createSlug(e.target.value);
+    <?php endif; ?>
 });
 
 // Function to show toast notification

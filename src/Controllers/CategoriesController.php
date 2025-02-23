@@ -5,7 +5,6 @@ namespace App\Controllers;
 use App\Models\Category;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
-use Slim\Exception\HttpNotFoundException;
 
 class CategoriesController
 {
@@ -103,5 +102,5 @@ class CategoriesController
       ->withStatus(302);
   }
 
-///////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////////////////////////////////////
 }

@@ -43,9 +43,11 @@ class User
          ORDER BY email ASC"
       );
       $stmt->execute();
+
       return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
       error_log("Database error in User::findAll(): " . $e->getMessage());
+
       return [];
     }
   }
@@ -61,9 +63,11 @@ class User
       );
       $stmt->execute([$id]);
       $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
       return $result ?: null;
     } catch (PDOException $e) {
       error_log("Database error in User::findById(): " . $e->getMessage());
+
       return null;
     }
   }
@@ -79,9 +83,11 @@ class User
       );
       $stmt->execute([$email]);
       $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
       return $result ?: null;
     } catch (PDOException $e) {
       error_log("Database error in User::findByEmail(): " . $e->getMessage());
+
       return null;
     }
   }
@@ -94,7 +100,7 @@ class User
       if ($this->id === null) {
         // Hash password for new users
         $this->password = password_hash($this->password, PASSWORD_DEFAULT);
-        
+
         $stmt = $db->prepare(
           "INSERT INTO users (email, password, first_name, last_name, is_active) 
            VALUES (?, ?, ?, ?, ?)"
@@ -109,8 +115,10 @@ class User
 
         if ($result) {
           $this->id = (int)$db->lastInsertId();
+
           return true;
         }
+
         return false;
       } else {
         $updateFields = [];
@@ -148,6 +156,7 @@ class User
       }
     } catch (PDOException $e) {
       error_log("Database error in User::save(): " . $e->getMessage());
+
       return false;
     }
   }
@@ -161,9 +170,11 @@ class User
     try {
       $db = Database::getInstance()->getConnection();
       $stmt = $db->prepare("UPDATE users SET deleted_at = NOW() WHERE id = ?");
+
       return $stmt->execute([$this->id]);
     } catch (PDOException $e) {
       error_log("Database error in User::softDelete(): " . $e->getMessage());
+
       return false;
     }
   }
@@ -173,9 +184,11 @@ class User
     try {
       $db = Database::getInstance()->getConnection();
       $stmt = $db->prepare("UPDATE users SET totp_secret = NULL, totp_setup_complete = FALSE WHERE id = ?");
+
       return $stmt->execute([$id]);
     } catch (PDOException $e) {
       error_log("Database error in User::removeMfa(): " . $e->getMessage());
+
       return false;
     }
   }
@@ -266,4 +279,4 @@ class User
       'totp_setup_complete' => $this->totp_setup_complete
     ];
   }
-} 
+}

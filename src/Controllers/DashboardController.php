@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Models\BlogPost;
 use App\Models\Category;
 use App\Models\Deal;
 use App\Models\Product;
@@ -23,13 +24,31 @@ class DashboardController
   public function index(Request $request, Response $response): Response
   {
     $metrics = [
+      // Products
       'activeProducts' => Product::countActive(),
+      'inactiveProducts' => Product::countInactive(),
       'productsPerDay' => Product::getProductsPerDay(7),
+
+      // Deals
       'activeDeals' => Deal::countActive(),
+      'inactiveDeals' => Deal::countInactive(),
       'dealsPerDay' => Deal::getDealsPerDay(7),
+
+      // Blog Posts
+      'activeBlogPosts' => BlogPost::countPublished(),
+      'draftBlogPosts' => BlogPost::countDrafts(),
+
+      // Stores
       'activeStores' => Store::countActive(),
+      'inactiveStores' => Store::countInactive(),
+
+      // Categories
       'activeCategories' => Category::countActive(),
+
+      // Messages
       'messagesSentToday' => 0, // TODO: Implement when Outbox model is ready,
+
+      // Scraping Jobs
       'pendingJobsCount' => ScrapingJob::findCountByStatus('pending'),
       'runningJobsCount' => ScrapingJob::findCountByStatus('running'),
       'completedJobsCount' => ScrapingJob::findCountByStatus('completed') + ScrapingJob::findCountByStatus('stopped'),

@@ -22,7 +22,9 @@ $urlParts = array_filter([
   !empty($filters['keyword']) ? 'keyword=' . urlencode($filters['keyword']) : null,
   !empty($filters['store_id']) ? 'store_id=' . $filters['store_id'] : null,
   array_key_exists('category_id', $filters) ? 'category_id=' . ($filters['category_id'] === 0 ? 'none' : $filters['category_id']) : null,
-  array_key_exists('is_active', $filters) ? 'is_active=' . ($filters['is_active'] ? '1' : '0') : null
+  array_key_exists('is_active', $filters) ? 'is_active=' . ($filters['is_active'] ? '1' : '0') : null,
+  'sort_by' => $filters['sort_by'] ?? $sortBy,
+  'sort_order' => $filters['sort_order'] ?? $sortOrder
 ]);
 $baseUrl .= implode('&', $urlParts);
 ?>
@@ -82,7 +84,7 @@ $baseUrl .= implode('&', $urlParts);
             <?php foreach ($users as $user): ?>
               <option value="<?= $user['id'] ?>" 
                 <?= ($filters['user_id'] ?? '') == $user['id'] ? 'selected' : '' ?>>
-                <?= htmlspecialchars($user['first_name']) ?>
+                <?= htmlspecialchars($user['first_name'] . ' ' . $user['last_name']) ?>
               </option>
             <?php endforeach; ?>
           </select>
@@ -212,7 +214,7 @@ $baseUrl .= implode('&', $urlParts);
                     <?= $lastChecked ?>
                   </td>
                   <td>
-                    <?= htmlspecialchars($product['user_first_name'] ?? 'N/A') ?>
+                    <?= htmlspecialchars($product['user_name'] ?? 'N/A') ?>
                   </td>
                   <td>
                     <div class="btn-group">

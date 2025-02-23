@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Models\ScrapingJob;
-use App\Models\Product;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
@@ -62,7 +61,7 @@ class ScrapingJobsController
     $error = null;
 
     $data = $request->getParsedBody();
-    
+
     $job = new ScrapingJob(
       (int)$data['product_id'],
       $data['job_type'] ?? 'on-demand',
@@ -97,4 +96,4 @@ class ScrapingJobsController
       'error' => $error
     ]);
   }
-} 
+}

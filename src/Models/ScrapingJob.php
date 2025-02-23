@@ -112,6 +112,7 @@ class ScrapingJob
       ];
     } catch (PDOException $e) {
       error_log("Database error in ScrapingJob::findFiltered(): " . $e->getMessage());
+
       return [
         'data' => [],
         'total' => 0,
@@ -140,6 +141,7 @@ class ScrapingJob
       return $result ?: null;
     } catch (PDOException $e) {
       error_log("Database error in ScrapingJob::findById(): " . $e->getMessage());
+
       return null;
     }
   }
@@ -161,12 +163,14 @@ class ScrapingJob
 
       if ($result === false) {
         error_log("No result found for status: " . $status);
+
         return 0;
       }
 
       return (int)$result;
     } catch (PDOException $e) {
       error_log("Database error in ScrapingJob::findCountByStatus(): " . $e->getMessage());
+
       return 0;
     }
   }
@@ -235,6 +239,7 @@ class ScrapingJob
       return $result;
     } catch (PDOException $e) {
       error_log("Database error in ScrapingJob::save(): " . $e->getMessage());
+
       return false;
     }
   }
@@ -248,38 +253,94 @@ class ScrapingJob
     try {
       $db = Database::getInstance()->getConnection();
       $stmt = $db->prepare("UPDATE scraping_jobs SET status = 'stopped', error_message = 'Job stopped by user' WHERE id = :id");
+
       return $stmt->execute(['id' => $this->id]);
     } catch (PDOException $e) {
       error_log("Database error in ScrapingJob::stop(): " . $e->getMessage());
+
       return false;
     }
   }
 
   // Getters and setters
-  public function getId(): ?int { return $this->id; }
-  public function setId(?int $id): void { $this->id = $id; }
+  public function getId(): ?int
+  {
+    return $this->id;
+  }
+  public function setId(?int $id): void
+  {
+    $this->id = $id;
+  }
 
-  public function getProductId(): int { return $this->product_id; }
-  public function setProductId(int $product_id): void { $this->product_id = $product_id; }
+  public function getProductId(): int
+  {
+    return $this->product_id;
+  }
+  public function setProductId(int $product_id): void
+  {
+    $this->product_id = $product_id;
+  }
 
-  public function getJobType(): string { return $this->job_type; }
-  public function setJobType(string $job_type): void { $this->job_type = $job_type; }
+  public function getJobType(): string
+  {
+    return $this->job_type;
+  }
+  public function setJobType(string $job_type): void
+  {
+    $this->job_type = $job_type;
+  }
 
-  public function getStatus(): string { return $this->status; }
-  public function setStatus(string $status): void { $this->status = $status; }
+  public function getStatus(): string
+  {
+    return $this->status;
+  }
+  public function setStatus(string $status): void
+  {
+    $this->status = $status;
+  }
 
-  public function getStartedAt(): ?string { return $this->started_at; }
-  public function setStartedAt(?string $started_at): void { $this->started_at = $started_at; }
+  public function getStartedAt(): ?string
+  {
+    return $this->started_at;
+  }
+  public function setStartedAt(?string $started_at): void
+  {
+    $this->started_at = $started_at;
+  }
 
-  public function getCompletedAt(): ?string { return $this->completed_at; }
-  public function setCompletedAt(?string $completed_at): void { $this->completed_at = $completed_at; }
+  public function getCompletedAt(): ?string
+  {
+    return $this->completed_at;
+  }
+  public function setCompletedAt(?string $completed_at): void
+  {
+    $this->completed_at = $completed_at;
+  }
 
-  public function getErrorMessage(): ?string { return $this->error_message; }
-  public function setErrorMessage(?string $error_message): void { $this->error_message = $error_message; }
+  public function getErrorMessage(): ?string
+  {
+    return $this->error_message;
+  }
+  public function setErrorMessage(?string $error_message): void
+  {
+    $this->error_message = $error_message;
+  }
 
-  public function getCeleryTaskId(): ?string { return $this->celery_task_id; }
-  public function setCeleryTaskId(?string $celery_task_id): void { $this->celery_task_id = $celery_task_id; }
+  public function getCeleryTaskId(): ?string
+  {
+    return $this->celery_task_id;
+  }
+  public function setCeleryTaskId(?string $celery_task_id): void
+  {
+    $this->celery_task_id = $celery_task_id;
+  }
 
-  public function getCreatedAt(): ?string { return $this->created_at; }
-  public function getUpdatedAt(): ?string { return $this->updated_at; }
-} 
+  public function getCreatedAt(): ?string
+  {
+    return $this->created_at;
+  }
+  public function getUpdatedAt(): ?string
+  {
+    return $this->updated_at;
+  }
+}

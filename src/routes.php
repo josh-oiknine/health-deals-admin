@@ -3,6 +3,7 @@
 use App\Controllers\Api\DealsController as ApiDealsController;
 use App\Controllers\Api\ProductsController as ApiProductsController;
 use App\Controllers\AuthController;
+use App\Controllers\BlogPostsController;
 use App\Controllers\CategoriesController;
 use App\Controllers\DashboardController;
 use App\Controllers\DealsController;
@@ -102,4 +103,13 @@ $app->group('', function (RouteCollectorProxy $group) {
   });
 
   $group->post('/logout', [AuthController::class, 'logout'])->setName('logout');
+
+  // Blog Posts Routes
+  $group->get('/blog-posts', [BlogPostsController::class, 'index']);
+  $group->get('/blog-posts/view/{id}', [BlogPostsController::class, 'view']);
+  $group->get('/blog-posts/add', [BlogPostsController::class, 'add']);
+  $group->post('/blog-posts/add', [BlogPostsController::class, 'add']);
+  $group->get('/blog-posts/edit/{id}', [BlogPostsController::class, 'edit']);
+  $group->post('/blog-posts/edit/{id}', [BlogPostsController::class, 'edit']);
+  $group->post('/blog-posts/delete/{id}', [BlogPostsController::class, 'delete']);
 })->add(new AuthMiddleware());

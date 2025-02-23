@@ -57,9 +57,11 @@ class Category
         ORDER BY name ASC"
       );
       $stmt->execute();
+
       return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
       error_log("Database error in Category::findAll(): " . $e->getMessage());
+
       return [];
     }
   }
@@ -76,9 +78,11 @@ class Category
         ORDER BY name ASC"
       );
       $stmt->execute();
+
       return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
       error_log("Database error in Category::findAllActive(): " . $e->getMessage());
+
       return [];
     }
   }
@@ -93,9 +97,11 @@ class Category
       );
       $stmt->execute([$id]);
       $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
       return $result ?: null;
     } catch (PDOException $e) {
       error_log("Database error in Category::findById(): " . $e->getMessage());
+
       return null;
     }
   }

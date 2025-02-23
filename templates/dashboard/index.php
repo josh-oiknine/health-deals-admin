@@ -1,5 +1,5 @@
 <div class="container-fluid py-4">
-  <div class="row">
+  <div class="row dashboard-row">
     <!-- Products -->
     <div class="col-xl-3 col-sm-6 mb-4">
       <div class="card">
@@ -17,6 +17,7 @@
                 </p>
                 <h3 class="font-weight-bolder m-2 mb-1">
                   <?= $metrics['activeProducts'] ?>
+                  <small class="fs-5 text-muted">(<?= $metrics['inactiveProducts'] ?>)</small>
                 </h3>
               </div>
             </div>
@@ -47,6 +48,7 @@
                 </p>
                 <h3 class="font-weight-bolder m-2 mb-1">
                   <?= $metrics['activeDeals'] ?>
+                  <small class="fs-5 text-muted">(<?= $metrics['inactiveDeals'] ?>)</small>
                 </h3>
               </div>
             </div>
@@ -88,7 +90,7 @@
       </div>
     </div>
 
-    <!-- Categories -->
+    <!-- Blog Posts -->
     <div class="col-xl-2 col-sm-6 mb-4">
       <div class="card">
         <div class="card-body p-3">
@@ -96,15 +98,16 @@
             <div class="col-8">
               <div class="numbers">
                 <p class="text-sm mb-0 text-muted d-flex">
-                  <a href="/categories" class="text-decoration-none me-1">
-                    <span class="icon icon-shape bg-warning text-center" style="width: 1.5rem; height: 1.5rem;">
-                      <i class="bi bi-tags" style="font-size: 0.75rem;"></i>
+                  <a href="/blog-posts" class="text-decoration-none me-1">
+                    <span class="icon icon-shape bg-success text-center" style="width: 1.5rem; height: 1.5rem;">
+                      <i class="bi bi-file-earmark-text" style="font-size: 0.75rem;"></i>
                     </span>
                   </a>
-                  Categories
+                  Blog Posts
                 </p>
                 <h3 class="font-weight-bolder m-2 mb-1">
-                  <?= $metrics['activeCategories'] ?>
+                  <?= $metrics['activeBlogPosts'] ?>
+                  <small class="fs-5 text-muted">(<?= $metrics['draftBlogPosts'] ?>)</small>
                 </h3>
               </div>
             </div>
@@ -113,7 +116,7 @@
       </div>
     </div>
 
-    <!-- Stores -->
+    <!-- Stores and Categories -->
     <div class="col-xl-2 col-sm-6 mb-4">
       <div class="card">
         <div class="card-body p-3">
@@ -122,15 +125,20 @@
               <div class="numbers">
                 <p class="text-sm mb-0 text-muted d-flex">
                   <a href="/stores" class="text-decoration-none me-1">
-                    <span class="icon icon-shape bg-success text-center" style="width: 1.5rem; height: 1.5rem;">
+                    <span class="icon icon-shape bg-secondary text-center" style="width: 1.5rem; height: 1.5rem;">
                       <i class="bi bi-shop" style="font-size: 0.75rem;"></i>
                     </span>
                   </a>
-                  Stores
+                  Stores: <strong><?= $metrics['activeStores'] ?></strong>
                 </p>
-                <h3 class="font-weight-bolder m-2 mb-1">
-                  <?= $metrics['activeStores'] ?>
-                </h3>
+                <p class="text-sm mb-0 text-muted d-flex mt-3">
+                  <a href="/categories" class="text-decoration-none me-1">
+                    <span class="icon icon-shape bg-secondary text-center" style="width: 1.5rem; height: 1.5rem;">
+                      <i class="bi bi-tags" style="font-size: 0.75rem;"></i>
+                    </span>
+                  </a>
+                  Categories: <strong><?= $metrics['activeCategories'] ?></strong>
+                </p>
               </div>
             </div>
           </div>
@@ -141,7 +149,7 @@
   </div>
 
   <!-- Scrapping Jobs -->
-  <div class="row mt-4">
+  <div class="row mt-4 dashboard-row">
   
   <div class="col-xl-4 col-sm-6 mb-4">
     <div class="card">

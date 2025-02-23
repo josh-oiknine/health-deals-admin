@@ -7,7 +7,6 @@ namespace App\Controllers;
 use App\Models\Store;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
-use Slim\Exception\HttpNotFoundException;
 
 class StoresController
 {
@@ -79,7 +78,7 @@ class StoresController
         return $response->withHeader('Location', '/stores')
           ->withStatus(302);
       }
-      
+
       $error = "Failed to update store. Please try again.";
     } else {
       $storeData = Store::findById($id);

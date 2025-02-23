@@ -156,7 +156,7 @@ class Product
       $offset = ($page - 1) * $perPage;
       $query .= " LIMIT :limit OFFSET :offset";
 
-      $query = str_replace("{fields}", "products.*, stores.name as store_name, stores.logo_url as store_logo_url, categories.name as category_name, categories.color as category_color, users.first_name as user_first_name", $query);
+      $query = str_replace("{fields}", "products.*, stores.name as store_name, stores.logo_url as store_logo_url, categories.name as category_name, categories.color as category_color, CONCAT(users.first_name, ' ', users.last_name) as user_name", $query);
       $stmt = $db->prepare($query);
 
       // Bind all parameters
@@ -202,7 +202,7 @@ class Product
           stores.logo_url as store_logo_url,
           categories.name as category_name,
           categories.color as category_color,
-          users.first_name as user_first_name
+          CONCAT(users.first_name, ' ', users.last_name) as user_name
         FROM
           products
           LEFT JOIN stores ON products.store_id = stores.id 
@@ -218,6 +218,7 @@ class Product
       return $stmt->fetchAll();
     } catch (PDOException $e) {
       error_log("Database error in Product::findAll(): " . $e->getMessage());
+
       return [];
     }
   }
@@ -236,9 +237,11 @@ class Product
          ORDER BY p.name ASC"
       );
       $stmt->execute([$store_id]);
+
       return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
       error_log("Database error in Product::findByStore(): " . $e->getMessage());
+
       return [];
     }
   }
@@ -256,9 +259,11 @@ class Product
          AND p.deleted_at IS NULL"
       );
       $stmt->execute([$id]);
+
       return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     } catch (PDOException $e) {
       error_log("Database error in Product::findById(): " . $e->getMessage());
+
       return null;
     }
   }
@@ -276,9 +281,11 @@ class Product
          AND p.deleted_at IS NULL"
       );
       $stmt->execute([$sku]);
+
       return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     } catch (PDOException $e) {
       error_log("Database error in Product::findBySku(): " . $e->getMessage());
+
       return null;
     }
   }
@@ -316,6 +323,24 @@ class Product
       return (int)$stmt->fetchColumn();
     } catch (PDOException $e) {
       error_log("Database error in Product::countActive(): " . $e->getMessage());
+
+      return 0;
+    }
+  }
+
+  public static function countInactive(): int
+  {
+    try {
+      $db = Database::getInstance()->getConnection();
+      $stmt = $db->prepare("
+        SELECT COUNT(*) FROM products 
+        WHERE is_active = FALSE
+      ");
+      $stmt->execute();
+
+      return $stmt->fetchColumn();
+    } catch (PDOException $e) {
+      error_log("Error in Product::countInactive(): " . $e->getMessage());
 
       return 0;
     }
@@ -381,7 +406,8 @@ class Product
             NOW(),
             NOW()
           )
-        ");
+        "
+        );
       } else {
         $stmt = $db->prepare(
           "UPDATE products 
@@ -425,6 +451,7 @@ class Product
       return $result;
     } catch (PDOException $e) {
       error_log("Database error in Product::save(): " . $e->getMessage());
+
       return false;
     }
   }
@@ -591,5 +618,5 @@ class Product
     ];
   }
 
-///////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////////////////////////////////////
 }

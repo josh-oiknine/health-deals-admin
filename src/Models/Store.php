@@ -58,9 +58,11 @@ class Store
          ORDER BY name ASC"
       );
       $stmt->execute();
+
       return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
       error_log("Database error in Store::findAll(): " . $e->getMessage());
+
       return [];
     }
   }
@@ -76,9 +78,11 @@ class Store
          ORDER BY name ASC"
       );
       $stmt->execute();
+
       return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
       error_log("Database error in Store::findAllActive(): " . $e->getMessage());
+
       return [];
     }
   }
@@ -94,9 +98,11 @@ class Store
       );
       $stmt->execute([$id]);
       $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
       return $result ?: null;
     } catch (PDOException $e) {
       error_log("Database error in Store::findById(): " . $e->getMessage());
+
       return null;
     }
   }
@@ -163,7 +169,7 @@ class Store
               id = :id
           "
         );
-        
+
         $stmt->bindValue(':id', $this->id);
       }
 
@@ -221,9 +227,24 @@ class Store
     }
   }
 
+  public static function countInactive(): int
+  {
+    try {
+      $db = Database::getInstance()->getConnection();
+      $stmt = $db->prepare("SELECT COUNT(*) FROM stores WHERE is_active = false AND deleted_at IS NULL");
+      $stmt->execute();
+
+      return (int)$stmt->fetchColumn();
+    } catch (PDOException $e) {
+      error_log("Database error in Store::countInactive(): " . $e->getMessage());
+
+      return 0;
+    }
+  }
+
   ///////////////////////////////////////////////////////////////////////////////
   // Getters and Setters
-  
+
   public function getId(): ?int
   {
     return $this->id;

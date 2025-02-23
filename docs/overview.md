@@ -1,7 +1,7 @@
 # Health Deals Admin - Project Overview
 
 ## Introduction
-Health Deals Admin is a web-based administration panel designed for managing health-related products, deals, and categories. The application is built using modern PHP with a robust MVC architecture, providing a secure and efficient platform for managing health product deals and related data.
+Health Deals Admin is a web-based administration panel designed for managing health-related products, deals, categories, and blog content. The application is built using modern PHP with a robust MVC architecture, providing a secure and efficient platform for managing health product deals and related data.
 
 ## Technology Stack
 - **Backend Framework**: PHP 8.2 with Slim Framework 4.x
@@ -37,6 +37,14 @@ Health Deals Admin is a web-based administration panel designed for managing hea
    - Category hierarchy
    - Category-product associations
 
+6. **Blog Management**
+   - Blog post creation and editing
+   - Rich text content editing
+   - SEO optimization support
+   - Draft/publish workflow
+   - Content preview
+   - Author management
+
 ## Documentation Structure
 
 ### Database Documentation
@@ -49,6 +57,7 @@ Health Deals Admin is a web-based administration panel designed for managing hea
 4. [Store Model](models/store-model.md) - Store information management
 5. [Category Model](models/category-model.md) - Category system
 6. [Price History Model](models/price-history-model.md) - Price tracking system
+7. [Blog Post Model](models/blog-post-model.md) - Blog content management
 
 ### Controller Documentation
 1. [Users Controller](controllers/users-controller.md) - User management endpoints
@@ -58,6 +67,7 @@ Health Deals Admin is a web-based administration panel designed for managing hea
 5. [Categories Controller](controllers/categories-controller.md) - Category operations
 6. [Dashboard Controller](controllers/dashboard-controller.md) - Dashboard functionality
 7. [Auth Controller](controllers/auth-controller.md) - Authentication system
+8. [Blog Posts Controller](controllers/blog-posts-controller.md) - Blog management
 
 ### View Documentation
 1. [Layout and Components](views/layout-and-components.md) - Shared layout and components
@@ -69,6 +79,7 @@ Health Deals Admin is a web-based administration panel designed for managing hea
 7. [Dashboard Views](views/dashboard-views.md) - Dashboard and analytics
 8. [Settings Views](views/settings-views.md) - System configuration
 9. [User Admin Views](views/user-admin-views.md) - User administration
+10. [Blog Post Views](views/blog-posts.md) - Blog content management
 
 ## Project Structure
 ```
@@ -76,10 +87,11 @@ Health Deals Admin is a web-based administration panel designed for managing hea
 │   ├── migrations/        # Database schema changes
 │   └── seeds/            # Seed data for development
 ├── docs/                  # Project documentation
-│   ├── models/           # Model documentation
 │   ├── controllers/      # Controller documentation
+│   ├── models/           # Model documentation
 │   ├── views/            # View documentation
 │   └── database-schema.md # Database documentation
+│   └── overview.md        # Project overview
 ├── public/               # Public directory (web root)
 │   ├── assets/           # Static assets (CSS, JS, images)
 │   └── index.php         # Application entry point
@@ -91,6 +103,17 @@ Health Deals Admin is a web-based administration panel designed for managing hea
 │   ├── Services/         # Business logic services
 │   └── routes.php        # Application routes
 ├── templates/            # View templates
+│   ├── auth/            # Authentication templates
+│   ├── blog-posts/      # Blog post templates
+│   ├── categories/      # Category templates
+│   ├── components/      # Shared components
+│   ├── dashboard/       # Dashboard templates
+│   ├── deals/           # Deals templates
+│   ├── layout/          # Layout templates
+│   ├── products/        # Product templates
+│   ├── settings/        # Settings templates
+│   ├── stores/          # Store templates
+│   └── users/           # User management templates
 ├── storage/             # Application storage
 │   ├── logs/            # Application logs
 │   └── framework/       # Framework storage
