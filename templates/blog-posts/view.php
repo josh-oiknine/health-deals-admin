@@ -4,7 +4,7 @@
     <div class="col-md-12">
       <h1><?= $blogPost['title'] ?></h1>
       <h4>By: <?= $blogPost['user_name'] ?></h4>
-      <div class="blog-post-content">
+      <div class="blog-post-content mt-4 mb-4">
         <?= $blogPost['body'] ?> <!-- HTML body -->
       </div>
     </div>

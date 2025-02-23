@@ -82,12 +82,21 @@ class BlogPostsController
       try {
         $blogPostData = $request->getParsedBody();
 
+        // Handle published_at based on checkbox state and convert local time to UTC
+        $publishedAt = null;
+        if (isset($blogPostData['is_published']) && !empty($blogPostData['published_at'])) {
+            // Convert local time to UTC
+            $localTime = new DateTime($blogPostData['published_at']);
+            $localTime->setTimezone(new \DateTimeZone('UTC'));
+            $publishedAt = $localTime;
+        }
+
         $blogPost = new BlogPost(
           $blogPostData['title'] ?? '',
           $blogPostData['slug'] ?? '',
           $blogPostData['body'] ?? '',
           $blogPostData['seo_keywords'] ?? null,
-          isset($blogPostData['published_at']) ? new DateTime($blogPostData['published_at']) : null,
+          $publishedAt,
           (int)$blogPostData['user_id']
         );
 
@@ -123,12 +132,21 @@ class BlogPostsController
       try {
         $blogPostData = $request->getParsedBody();
 
+        // Handle published_at based on checkbox state and convert local time to UTC
+        $publishedAt = null;
+        if (isset($blogPostData['is_published']) && !empty($blogPostData['published_at'])) {
+            // Convert local time to UTC
+            $localTime = new DateTime($blogPostData['published_at']);
+            $localTime->setTimezone(new \DateTimeZone('UTC'));
+            $publishedAt = $localTime;
+        }
+
         $blogPost = new BlogPost(
           $blogPostData['title'] ?? '',
           $blogPostData['slug'] ?? '',
           $blogPostData['body'] ?? '',
           $blogPostData['seo_keywords'] ?? null,
-          isset($blogPostData['published_at']) ? new DateTime($blogPostData['published_at']) : null,
+          $publishedAt,
           (int)$blogPostData['user_id']
         );
         $blogPost->setId($id);

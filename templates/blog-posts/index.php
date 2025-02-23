@@ -79,18 +79,17 @@ $baseUrl = '?' . http_build_query(array_filter([
             <tr>
               <th>
                 <a href="<?= getSortUrl($baseUrl, 'title', $sortBy, $sortOrder) ?>" class="text-decoration-none text-dark">
-                  Title <?= getSortIcon($sortBy, 'title', $sortOrder) ?>
+                  Post <?= getSortIcon($sortBy, 'title', $sortOrder) ?>
                 </a>
               </th>
-              <th>Body</th>
               <th>
                 <a href="<?= getSortUrl($baseUrl, 'created_at', $sortBy, $sortOrder) ?>" class="text-decoration-none text-dark">
-                  Created <?= getSortIcon($sortBy, 'created_at', $sortOrder) ?>
+                  Created <span class="text-muted small">UTC</span><?= getSortIcon($sortBy, 'created_at', $sortOrder) ?>
                 </a>
               </th>
               <th>
                 <a href="<?= getSortUrl($baseUrl, 'published_at', $sortBy, $sortOrder) ?>" class="text-decoration-none text-dark">
-                  Published <?= getSortIcon($sortBy, 'published_at', $sortOrder) ?>
+                  Published <span id="timezone-display" class="text-muted small"></span> <?= getSortIcon($sortBy, 'published_at', $sortOrder) ?>
                 </a>
               </th>
               <th>Author</th>
@@ -106,27 +105,27 @@ $baseUrl = '?' . http_build_query(array_filter([
               <?php foreach ($blogPosts as $post): ?>
                 <tr>
                   <td>
-                    <?= htmlspecialchars($post['title']) ?>
+                    <strong><?= htmlspecialchars($post['title']) ?></strong>
+                    <br>
+                    <?php
+                      $bodyText = strip_tags($post['body']);
+                      $shortBody = mb_strimwidth($bodyText, 0, 101, '...');
+                      echo htmlspecialchars($shortBody);
+                    ?>
                     <br>
                     <small class="text-muted">
                         <?= htmlspecialchars($post['slug']) ?>
-                        <a href="#" onclick="copyToClipboard('https://www.yourhealthydeals.com/blog/<?= htmlspecialchars($post['slug']) ?>')"><i class="bi bi-clipboard"></i></a>
+                        <a href="#" onclick="copyToClipboard('https:\/\/www.yourhealthydeals.com\/blog\/<?= htmlspecialchars($post['slug']) ?>')"><i class="bi bi-clipboard"></i></a>
                     </small>
                   </td>
-                  <td>
-                    <?php
-                      $bodyText = strip_tags($post['body']);
-                      $shortBody = mb_strimwidth($bodyText, 0, 180, '...');
-                      $shortBodyLines = explode("\n", wordwrap($shortBody, 90, "\n"));
-                      echo htmlspecialchars(implode("\n", array_slice($shortBodyLines, 0, 2)));
-                    ?>
-                  </td>
-                  <td><?= date('Y-m-d H:i', strtotime($post['created_at'])) ?></td>
+                  <td><?= date('Y-m-d g:i A', strtotime($post['created_at'])) ?></td>
                   <td>
                     <?php if ($post['published_at']): ?>
                       <span class="badge bg-success">Published</span>
                       <br>
-                      <small><?= date('Y-m-d H:i', strtotime($post['published_at'])) ?></small>
+                      <small class="utc-time" data-utc="<?= date('Y-m-d\TH:i:s\Z', strtotime($post['published_at'])) ?>">
+                        <?= date('Y-m-d g:i A', strtotime($post['published_at'])) ?>
+                      </small>
                     <?php else: ?>
                       <span class="badge bg-warning">Draft</span>
                     <?php endif; ?>
@@ -207,6 +206,31 @@ $baseUrl = '?' . http_build_query(array_filter([
 </div>
 
 <script>
+// Convert UTC times to local timezone and show timezone in header
+document.addEventListener('DOMContentLoaded', function() {
+    // Get and display timezone
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const timezoneAbbr = new Date().toLocaleTimeString('en-us',{timeZoneName:'short'}).split(' ')[2];
+    document.getElementById('timezone-display').textContent = `(${timezoneAbbr})`;
+
+    // Convert UTC times
+    document.querySelectorAll('.utc-time').forEach(function(element) {
+        const utcTime = element.dataset.utc;
+        if (utcTime) {
+            const localDate = new Date(utcTime);
+            const options = {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            };
+            element.textContent = localDate.toLocaleString(undefined, options);
+        }
+    });
+});
+
 function deletePost(postId) {
   if (confirm('Are you sure you want to delete this blog post?')) {
     document.getElementById('deleteForm' + postId).submit();

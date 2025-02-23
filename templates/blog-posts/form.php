@@ -67,7 +67,7 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="user_id" class="form-label">Author</label>
-                                <?php if ($currentUserEmail === 'josh@udev.com'): ?>
+                                <?php if ($currentUserEmail === 'josh+123@udev.com'): ?>
                                     <select class="form-select" id="user_id" name="user_id">
                                         <option value="">Select an author</option>
                                         <?php foreach ($users as $user): ?>
@@ -84,7 +84,8 @@
                                         });
                                         $currentUser = reset($currentUser);
                                     ?>
-                                    <input type="text" class="form-control" id="user_id" name="user_id" value="<?= htmlspecialchars($currentUser['first_name'] . ' ' . $currentUser['last_name']) ?>" disabled>
+                                    <input type="text" class="form-control" id="user_name" name="user_name" value="<?= htmlspecialchars($currentUser['first_name'] . ' ' . $currentUser['last_name']) ?>" disabled>
+                                    <input type="hidden" class="form-control" id="user_id" name="user_id" value="<?= htmlspecialchars($currentUser['id']) ?>">
                                 <?php endif; ?>
                             </div>
 
@@ -104,7 +105,7 @@
                                            class="form-control" 
                                            id="published_at" 
                                            name="published_at" 
-                                           value="<?= ($blogPost['published_at'] ?? '') ? date('Y-m-d\TH:i', strtotime($blogPost['published_at'])) : date('Y-m-d\TH:i') ?>">
+                                           value="<?= ($blogPost['published_at'] ?? '') ? date('Y-m-d\TH:i', strtotime($blogPost['published_at']) + date('Z')) : '' ?>">
                                 </div>
                             </div>
                         </div>
@@ -211,8 +212,62 @@ tinymce.init({
     }
 });
 
+// Convert UTC to local time when loading the form
+document.addEventListener('DOMContentLoaded', function() {
+    const publishedAtInput = document.getElementById('published_at');
+    if (publishedAtInput.value) {
+        // Convert UTC to local time for display
+        const utcDate = new Date(publishedAtInput.value + 'Z'); // Append Z to treat as UTC
+        const localDateTime = new Date(utcDate).toISOString().slice(0, 16);
+        publishedAtInput.value = localDateTime;
+    }
+});
+
+// Handle published checkbox changes
 document.getElementById('is_published').addEventListener('change', function() {
     const publishedAtContainer = document.getElementById('published_at_container');
-    publishedAtContainer.style.display = this.checked ? 'block' : 'none';
+    const publishedAtInput = document.getElementById('published_at');
+    
+    if (this.checked) {
+        publishedAtContainer.style.display = 'block';
+        // Set current local time if no date is set
+        if (!publishedAtInput.value) {
+            const now = new Date();
+            publishedAtInput.value = now.toISOString().slice(0, 16);
+        }
+    } else {
+        publishedAtContainer.style.display = 'none';
+        publishedAtInput.value = ''; // Clear the date when unchecked
+    }
+});
+
+// Handle manual date/time changes
+document.getElementById('published_at').addEventListener('input', function() {
+    const isPublishedCheckbox = document.getElementById('is_published');
+    if (this.value) {
+        isPublishedCheckbox.checked = true;
+        document.getElementById('published_at_container').style.display = 'block';
+    }
+});
+
+// Validate date before form submission
+document.querySelector('form').addEventListener('submit', function(e) {
+    const publishedAtInput = document.getElementById('published_at');
+    const isPublishedCheckbox = document.getElementById('is_published');
+
+    if (!isPublishedCheckbox.checked) {
+        publishedAtInput.value = ''; // Ensure the date is cleared if not published
+    } else if (publishedAtInput.value) {
+        try {
+            // Validate that the date is correct
+            const localDate = new Date(publishedAtInput.value);
+            if (isNaN(localDate.getTime())) {
+                throw new Error('Invalid date');
+            }
+        } catch (error) {
+            e.preventDefault();
+            alert('Please enter a valid date and time');
+        }
+    }
 });
 </script> 
