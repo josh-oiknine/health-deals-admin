@@ -179,13 +179,13 @@ class User
     }
   }
 
-  public function removeMfa(int $id): bool
+  public function removeMfa(): bool
   {
     try {
       $db = Database::getInstance()->getConnection();
-      $stmt = $db->prepare("UPDATE users SET totp_secret = NULL, totp_setup_complete = FALSE WHERE id = ?");
+      $stmt = $db->prepare("UPDATE users SET totp_secret = NULL, totp_setup_complete = FALSE, updated_at = NOW() WHERE id = ?");
 
-      return $stmt->execute([$id]);
+      return $stmt->execute([$this->id]);
     } catch (PDOException $e) {
       error_log("Database error in User::removeMfa(): " . $e->getMessage());
 

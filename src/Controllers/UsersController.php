@@ -166,9 +166,11 @@ class UsersController
     }
 
     $id = (int)$args['id'];
-    $user = User::findById($id);
-    if ($user) {
-      $user->removeMfa($id);
+    $foundUser = User::findById($id);
+    if ($foundUser) {
+      $user = new User();
+      $user->setId($id);
+      $user->removeMfa();
     }
 
     return $response->withHeader('Location', '/users')
