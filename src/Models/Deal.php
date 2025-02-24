@@ -94,42 +94,42 @@ class Deal
 
       // Apply filters
       if (!empty($filters['keyword'])) {
-        $conditions[] = "(d.title LIKE :keyword OR d.description LIKE :keyword OR p.sku LIKE :keyword OR p.upc LIKE :keyword)";
+        $conditions[] = "(deals.title LIKE :keyword OR deals.description LIKE :keyword OR products.sku LIKE :keyword OR products.upc LIKE :keyword)";
         $params['keyword'] = "%{$filters['keyword']}%";
       }
 
       if (!empty($filters['store_id'])) {
-        $conditions[] = "d.store_id = :store_id";
+        $conditions[] = "deals.store_id = :store_id";
         $params['store_id'] = $filters['store_id'];
       }
 
       if (isset($filters['category_id'])) {
         if ($filters['category_id'] === 0) {
-          $conditions[] = "d.category_id IS NULL";
+          $conditions[] = "deals.category_id IS NULL";
         } else {
-          $conditions[] = "d.category_id = :category_id";
+          $conditions[] = "deals.category_id = :category_id";
           $params['category_id'] = $filters['category_id'];
         }
       }
 
       if (isset($filters['is_active'])) {
-        $conditions[] = "d.is_active = :is_active";
+        $conditions[] = "deals.is_active = :is_active";
         $params['is_active'] = $filters['is_active'];
       }
 
       // Build the query
       $sql = "SELECT 
-                d.*,
-                s.name as store_name,
-                c.name as category_name,
-                c.color as category_color,
-                p.name as product_name,
-                p.sku as product_sku,
-                p.upc as product_upc
-            FROM deals d
-                LEFT JOIN stores s ON d.store_id = s.id
-                LEFT JOIN categories c ON d.category_id = c.id
-                LEFT JOIN products p ON d.product_id = p.id
+                deals.*,
+                stores.name as store_name,
+                categories.name as category_name,
+                categories.color as category_color,
+                products.name as product_name,
+                products.sku as product_sku,
+                products.upc as product_upc
+            FROM deals
+                LEFT JOIN stores ON deals.store_id = stores.id
+                LEFT JOIN categories ON deals.category_id = categories.id
+                LEFT JOIN products ON deals.product_id = products.id
             WHERE " . implode(' AND ', $conditions);
 
       // Add sorting
@@ -144,9 +144,17 @@ class Deal
       $sql .= " ORDER BY $sortBy $sortOrder";
 
       // Get total count for pagination
-      $countSql = "SELECT COUNT(*) FROM deals d LEFT JOIN products p ON d.product_id = p.id WHERE " . implode(' AND ', $conditions);
+      $countSql = "SELECT COUNT(*) FROM deals LEFT JOIN products ON deals.product_id = products.id WHERE " . implode(' AND ', $conditions);
       $countStmt = $db->prepare($countSql);
-      $countStmt->execute($params);
+      // Bind boolean parameters correctly
+      foreach ($params as $key => $value) {
+        if ($key === 'is_active') {
+          $countStmt->bindValue(":$key", $value, PDO::PARAM_BOOL);
+        } else {
+          $countStmt->bindValue(":$key", $value);
+        }
+      }
+      $countStmt->execute();
       $total = $countStmt->fetchColumn();
 
       // Add pagination
@@ -157,7 +165,17 @@ class Deal
 
       // Execute the main query
       $stmt = $db->prepare($sql);
-      $stmt->execute($params);
+      
+      // Bind boolean parameters correctly
+      foreach ($params as $key => $value) {
+        if ($key === 'is_active') {
+          $stmt->bindValue(":$key", $value, PDO::PARAM_BOOL);
+        } else {
+          $stmt->bindValue(":$key", $value);
+        }
+      }
+
+      $stmt->execute();
       $deals = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
       return [

@@ -134,7 +134,14 @@ class Product
       // Count total results
       $countQuery = str_replace("{fields}", "COUNT(*)", $query);
       $countStmt = $db->prepare($countQuery);
-      $countStmt->execute($params);
+      foreach ($params as $key => $value) {
+        if ($key === 'is_active') {
+          $countStmt->bindValue(":$key", $value, PDO::PARAM_BOOL);
+        } else {
+          $countStmt->bindValue(":$key", $value);
+        }
+      }
+      $countStmt->execute();
       $total = (int)$countStmt->fetchColumn();
 
       // Apply sorting
@@ -155,16 +162,22 @@ class Product
       // Apply pagination
       $offset = ($page - 1) * $perPage;
       $query .= " LIMIT :limit OFFSET :offset";
+      $params['limit'] = $perPage;
+      $params['offset'] = $offset;
 
       $query = str_replace("{fields}", "products.*, stores.name as store_name, stores.logo_url as store_logo_url, categories.name as category_name, categories.color as category_color, CONCAT(users.first_name, ' ', users.last_name) as user_name", $query);
       $stmt = $db->prepare($query);
 
       // Bind all parameters
       foreach ($params as $key => $value) {
-        $stmt->bindValue(":{$key}", $value);
+        if ($key === 'is_active') {
+          $stmt->bindValue(":$key", $value, PDO::PARAM_BOOL);
+        } else if ($key === 'limit' || $key === 'offset') {
+          $stmt->bindValue(":$key", $value, PDO::PARAM_INT);
+        } else {
+          $stmt->bindValue(":$key", $value);
+        }
       }
-      $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
-      $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
 
       $stmt->execute();
       $data = $stmt->fetchAll();
