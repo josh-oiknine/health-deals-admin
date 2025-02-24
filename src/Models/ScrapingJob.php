@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Database\Database;
+use DateTime;
 use PDO;
 use PDOException;
 
@@ -14,12 +15,13 @@ class ScrapingJob
   private int $product_id;
   private string $job_type;
   private string $status;
-  private ?string $started_at = null;
-  private ?string $completed_at = null;
+  private ?DateTime $celery_task_started_at = null;
+  private ?DateTime $started_at = null;
+  private ?DateTime $completed_at = null;
   private ?string $error_message = null;
   private ?string $celery_task_id = null;
-  private ?string $created_at = null;
-  private ?string $updated_at = null;
+  private ?DateTime $created_at = null;
+  private ?DateTime $updated_at = null;
   private ?Product $product = null;
 
   public function __construct(

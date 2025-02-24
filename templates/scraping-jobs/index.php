@@ -61,6 +61,7 @@ $baseUrl .= implode('&', $urlParts);
               <th>Product</th>
               <th>Type</th>
               <th>Status</th>
+              <th>Queued</th>
               <th>Started</th>
               <th>Completed</th>
               <th>Processing Time</th>
@@ -88,6 +89,14 @@ $baseUrl .= implode('&', $urlParts);
                     </span>
                   </td>
                   <td>
+                    <?php if ($job['celery_task_started_at']): ?>
+                      <?= date('Y-m-d', strtotime($job['celery_task_started_at'])) ?><br>
+                      <span class="ms-5"><?= date('H:i:s', strtotime($job['celery_task_started_at'])) ?></span>
+                    <?php else: ?>
+                      -
+                    <?php endif; ?>
+                  </td>
+                  <td>
                     <?php if ($job['started_at']): ?>
                       <?= date('Y-m-d', strtotime($job['started_at'])) ?><br>
                       <span class="ms-5"><?= date('H:i:s', strtotime($job['started_at'])) ?></span>
@@ -105,7 +114,20 @@ $baseUrl .= implode('&', $urlParts);
                   </td>
                   <td>
                     <?php if ($job['completed_at']): ?>
-                      <?= round(strtotime($job['completed_at']) - strtotime($job['started_at']), 2) ?> seconds
+                      <?php
+                        if ($job['celery_task_started_at'] && $job['completed_at']) {
+                          $processingTime = strtotime($job['completed_at']) - strtotime($job['celery_task_started_at']);
+                          $hours = floor($processingTime / 3600);
+                          $minutes = floor(($processingTime % 3600) / 60);
+                          $seconds = $processingTime % 60;
+                        } else {
+                          $processingTime = strtotime($job['completed_at']) - strtotime($job['started_at']);
+                          $hours = floor($processingTime / 3600);
+                          $minutes = floor(($processingTime % 3600) / 60);
+                          $seconds = $processingTime % 60;
+                        }
+                      ?>
+                      <?= sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds) ?>
                     <?php else: ?>
                       -
                     <?php endif; ?>
