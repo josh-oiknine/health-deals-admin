@@ -199,6 +199,11 @@ class User
     return $this->id;
   }
 
+  public function setId(int $id): void
+  {
+    $this->id = $id;
+  }
+
   public function getEmail(): string
   {
     return $this->email;
