@@ -105,18 +105,30 @@ $baseUrl = '?' . http_build_query(array_filter([
               <?php foreach ($blogPosts as $post): ?>
                 <tr>
                   <td>
-                    <strong><?= htmlspecialchars($post['title']) ?></strong>
-                    <br>
-                    <?php
-                      $bodyText = strip_tags($post['body']);
-                      $shortBody = mb_strimwidth($bodyText, 0, 101, '...');
-                      echo htmlspecialchars($shortBody);
-                    ?>
-                    <br>
-                    <small class="text-muted">
-                      <?= htmlspecialchars($post['slug']) ?>
-                      <a href="#" onclick="copyToClipboard('https://www.yourhealthydeals.com/blog/<?= htmlspecialchars($post['slug']) ?>')"><i class="bi bi-clipboard"></i></a>
-                    </small>
+                    <div class="d-flex">
+                      <?php if (!empty($post['featured_image_url'])): ?>
+                        <div class="me-3">
+                          <img src="<?= htmlspecialchars($post['featured_image_url']) ?>" 
+                               alt="<?= htmlspecialchars($post['title']) ?>" 
+                               class="img-thumbnail" 
+                               style="max-width: 100px; max-height: 60px;">
+                        </div>
+                      <?php endif; ?>
+                      <div>
+                        <strong><?= htmlspecialchars($post['title']) ?></strong>
+                        <br>
+                        <?php
+                          $bodyText = strip_tags($post['body']);
+                          $shortBody = mb_strimwidth($bodyText, 0, 101, '...');
+                          echo htmlspecialchars($shortBody);
+                        ?>
+                        <br>
+                        <small class="text-muted">
+                          <?= htmlspecialchars($post['slug']) ?>
+                          <a href="#" onclick="copyToClipboard('https://www.yourhealthydeals.com/blog/<?= htmlspecialchars($post['slug']) ?>')"><i class="bi bi-clipboard"></i></a>
+                        </small>
+                      </div>
+                    </div>
                   </td>
                   <td><?= date('Y-m-d g:i A', strtotime($post['created_at'])) ?></td>
                   <td>

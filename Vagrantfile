@@ -31,6 +31,10 @@ Vagrant.configure("2") do |config|
     vb.memory = "2048"
     vb.cpus = 2
     vb.name = "health-deals-admin"
+
+    vb.customize [ "guestproperty", "set", :id, "/VirtualBox/GuestAdd/VBoxService/--timesync-set-threshold", 1000 ]
+    vb.customize [ "guestproperty", "set", :id, "/VirtualBox/GuestAdd/VBoxService/--timesync-set-start", 1000 ]
+    vb.customize [ "guestproperty", "set", :id, "/VirtualBox/GuestAdd/VBoxService/--timesync-set-on-restore", 1000 ]
   end
   
   # Provisioning script
@@ -150,6 +154,10 @@ EOL
     cd /var/www/health-deals-admin
     sudo -u vagrant php vendor/bin/phinx migrate -e development
     sudo -u vagrant php vendor/bin/phinx seed:run -e development
+
+    # Install ntpdate
+    # apt-get install -y ntpdate
+    # ntpdate -q pool.ntp.org
     
     echo "Installation completed! You can access the site at http://localhost:8080"
   SHELL

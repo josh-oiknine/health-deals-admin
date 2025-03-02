@@ -6,19 +6,23 @@ namespace App\Controllers;
 
 use App\Models\BlogPost;
 use App\Models\User;
+use App\Services\S3Service;
 use DateTime;
 use Exception;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Message\UploadedFileInterface;
 
 class BlogPostsController
 {
   private $view;
+  private $s3Service;
 
   public function __construct($container)
   {
     $this->view = $container->get('view');
     $this->view->setLayout('layout.php');
+    $this->s3Service = new S3Service();
   }
 
   public function index(Request $request, Response $response): Response
@@ -81,6 +85,16 @@ class BlogPostsController
     if ($request->getMethod() === 'POST') {
       try {
         $blogPostData = $request->getParsedBody();
+        $uploadedFiles = $request->getUploadedFiles();
+        
+        // Handle featured image upload
+        $featuredImageUrl = null;
+        if (isset($uploadedFiles['featured_image']) && $uploadedFiles['featured_image']->getError() === UPLOAD_ERR_OK) {
+          $featuredImageUrl = $this->handleImageUpload($uploadedFiles['featured_image']);
+          if (!$featuredImageUrl) {
+            throw new Exception('Failed to upload featured image');
+          }
+        }
 
         // Handle published_at based on checkbox state and convert local time to UTC
         $publishedAt = null;
@@ -97,7 +111,8 @@ class BlogPostsController
           $blogPostData['body'] ?? '',
           $blogPostData['seo_keywords'] ?? null,
           $publishedAt,
-          (int)$blogPostData['user_id']
+          (int)$blogPostData['user_id'],
+          $featuredImageUrl
         );
 
         if ($blogPost->save()) {
@@ -131,6 +146,33 @@ class BlogPostsController
     if ($request->getMethod() === 'POST') {
       try {
         $blogPostData = $request->getParsedBody();
+        $uploadedFiles = $request->getUploadedFiles();
+        
+        // Get the existing blog post to check if we need to update the image
+        $existingBlogPost = BlogPost::findById($id);
+        
+        // Handle featured image upload
+        $featuredImageUrl = $existingBlogPost['featured_image_url'] ?? null;
+        if (isset($uploadedFiles['featured_image']) && $uploadedFiles['featured_image']->getError() === UPLOAD_ERR_OK) {
+          // Upload new image
+          $newImageUrl = $this->handleImageUpload($uploadedFiles['featured_image']);
+          if (!$newImageUrl) {
+            throw new Exception('Failed to upload featured image');
+          }
+          
+          // Delete old image if it exists
+          if ($featuredImageUrl) {
+            $this->s3Service->deleteFile($featuredImageUrl);
+          }
+          
+          $featuredImageUrl = $newImageUrl;
+        } elseif (isset($blogPostData['remove_featured_image']) && $blogPostData['remove_featured_image'] === '1') {
+          // User wants to remove the image
+          if ($featuredImageUrl) {
+            $this->s3Service->deleteFile($featuredImageUrl);
+          }
+          $featuredImageUrl = null;
+        }
 
         // Handle published_at based on checkbox state and convert local time to UTC
         $publishedAt = null;
@@ -147,7 +189,8 @@ class BlogPostsController
           $blogPostData['body'] ?? '',
           $blogPostData['seo_keywords'] ?? null,
           $publishedAt,
-          (int)$blogPostData['user_id']
+          (int)$blogPostData['user_id'],
+          $featuredImageUrl
         );
         $blogPost->setId($id);
 
@@ -194,5 +237,30 @@ class BlogPostsController
   private function getCurrentUserEmail(Request $request): ?string
   {
     return $this->view->getAttribute('currentUserEmail');
+  }
+
+  /**
+   * Handle image upload to S3
+   * 
+   * @param UploadedFileInterface $uploadedFile The uploaded file
+   * @return string|null The URL of the uploaded file or null on failure
+   */
+  private function handleImageUpload(UploadedFileInterface $uploadedFile): ?string
+  {
+    // Validate file type
+    $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!in_array($uploadedFile->getClientMediaType(), $allowedTypes)) {
+      error_log("Invalid file type: " . $uploadedFile->getClientMediaType());
+      return null;
+    }
+    
+    // Validate file size (max 5MB)
+    if ($uploadedFile->getSize() > 5 * 1024 * 1024) {
+      error_log("File too large: " . $uploadedFile->getSize());
+      return null;
+    }
+    
+    // Upload to S3
+    return $this->s3Service->uploadFile($uploadedFile, 'blog-images');
   }
 }

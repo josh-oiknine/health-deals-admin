@@ -18,6 +18,7 @@ class BlogPost
   private $body;
   private $seo_keywords;
   private $user_id;
+  private ?string $featured_image_url = null;
   private ?DateTime $created_at = null;
   private ?DateTime $updated_at = null;
   private ?DateTime $published_at = null;
@@ -29,7 +30,8 @@ class BlogPost
     string $body = '',
     ?string $seo_keywords = null,
     ?DateTime $published_at = null,
-    int $user_id = 0
+    int $user_id = 0,
+    ?string $featured_image_url = null
   ) {
     $this->title = $title;
     $this->slug = $slug;
@@ -37,6 +39,7 @@ class BlogPost
     $this->seo_keywords = $seo_keywords;
     $this->published_at = $published_at;
     $this->user_id = $user_id;
+    $this->featured_image_url = $featured_image_url;
   }
 
   public function validate(): bool
@@ -262,11 +265,23 @@ class BlogPost
     try {
       $db = Database::getInstance()->getConnection();
 
-      if (!$this->validate()) {
-        return false;
-      }
-
-      if ($this->id === null) {
+      if ($this->id) {
+        // Update existing record
+        $stmt = $db->prepare(
+          "UPDATE blog_posts SET
+            title = :title,
+            slug = :slug,
+            body = :body,
+            seo_keywords = :seo_keywords,
+            user_id = :user_id,
+            published_at = :published_at,
+            featured_image_url = :featured_image_url,
+            updated_at = NOW()
+          WHERE id = :id"
+        );
+        $stmt->bindValue(':id', $this->id);
+      } else {
+        // Insert new record
         $stmt = $db->prepare(
           "INSERT INTO blog_posts (
             title,
@@ -274,38 +289,22 @@ class BlogPost
             body,
             seo_keywords,
             user_id,
+            published_at,
+            featured_image_url,
             created_at,
-            updated_at,
-            published_at
+            updated_at
           ) VALUES (
             :title, 
             :slug, 
             :body, 
             :seo_keywords,
             :user_id,
+            :published_at,
+            :featured_image_url,
             NOW(),
-            NOW(),
-            :published_at
+            NOW()
           )"
         );
-      } else {
-        $stmt = $db->prepare(
-          "UPDATE
-              blog_posts
-            SET
-              title = :title,
-              slug = :slug,
-              body = :body,
-              seo_keywords = :seo_keywords,
-              user_id = :user_id,
-              updated_at = NOW(),
-              published_at = :published_at
-            WHERE
-              id = :id
-          "
-        );
-
-        $stmt->bindValue(':id', $this->id);
       }
 
       $stmt->bindValue(':title', $this->title);
@@ -314,6 +313,7 @@ class BlogPost
       $stmt->bindValue(':seo_keywords', $this->seo_keywords);
       $stmt->bindValue(':user_id', $this->user_id);
       $stmt->bindValue(':published_at', $this->published_at ? $this->published_at->format('Y-m-d H:i:s') : null);
+      $stmt->bindValue(':featured_image_url', $this->featured_image_url);
 
       $result = $stmt->execute();
       if ($result) {
@@ -441,14 +441,41 @@ class BlogPost
     return $this->deleted_at;
   }
 
+  public function getFeaturedImageUrl(): ?string
+  {
+    return $this->featured_image_url;
+  }
+
+  public function setFeaturedImageUrl(?string $featured_image_url): void
+  {
+    $this->featured_image_url = $featured_image_url;
+  }
+
   public function initFromArray(array $data): void
   {
-    $this->id = isset($data['id']) ? (int)$data['id'] : null;
+    $this->id = $data['id'] ?? null;
     $this->title = $data['title'] ?? '';
     $this->slug = $data['slug'] ?? '';
     $this->body = $data['body'] ?? '';
     $this->seo_keywords = $data['seo_keywords'] ?? null;
     $this->user_id = $data['user_id'] ?? 0;
+    $this->featured_image_url = $data['featured_image_url'] ?? null;
+    
+    if (isset($data['created_at'])) {
+      $this->created_at = new DateTime($data['created_at']);
+    }
+    
+    if (isset($data['updated_at'])) {
+      $this->updated_at = new DateTime($data['updated_at']);
+    }
+    
+    if (isset($data['published_at']) && $data['published_at']) {
+      $this->published_at = new DateTime($data['published_at']);
+    }
+    
+    if (isset($data['deleted_at']) && $data['deleted_at']) {
+      $this->deleted_at = new DateTime($data['deleted_at']);
+    }
   }
 
   public function toArray(): array
@@ -460,10 +487,11 @@ class BlogPost
       'body' => $this->body,
       'seo_keywords' => $this->seo_keywords,
       'user_id' => $this->user_id,
-      'created_at' => $this->created_at,
-      'updated_at' => $this->updated_at,
-      'deleted_at' => $this->deleted_at,
-      'published_at' => $this->published_at
+      'featured_image_url' => $this->featured_image_url,
+      'created_at' => $this->created_at ? $this->created_at->format('Y-m-d H:i:s') : null,
+      'updated_at' => $this->updated_at ? $this->updated_at->format('Y-m-d H:i:s') : null,
+      'published_at' => $this->published_at ? $this->published_at->format('Y-m-d H:i:s') : null,
+      'deleted_at' => $this->deleted_at ? $this->deleted_at->format('Y-m-d H:i:s') : null
     ];
   }
 }

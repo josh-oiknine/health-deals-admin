@@ -13,7 +13,7 @@
                         </div>
                     <?php endif; ?>
 
-                    <form method="POST" class="needs-validation" novalidate>
+                    <form method="POST" class="needs-validation" novalidate enctype="multipart/form-data">
                         <div class="mb-1">
                             <label for="title" class="form-label">Title *</label>
                             <input type="text" 
@@ -62,6 +62,37 @@
                                    value="<?= htmlspecialchars($blogPost['seo_keywords'] ?? '') ?>"
                                    placeholder="keyword1, keyword2, keyword3">
                             <div class="form-text">Comma-separated keywords for SEO</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="featured_image" class="form-label">Featured Image</label>
+                            <?php if (!empty($blogPost['featured_image_url'])): ?>
+                                <div class="mb-2">
+                                    <img src="<?= htmlspecialchars($blogPost['featured_image_url']) ?>" 
+                                         alt="Featured image" 
+                                         class="img-thumbnail" 
+                                         style="max-height: 200px;">
+                                    <div class="form-check mt-2">
+                                        <input type="checkbox" 
+                                               class="form-check-input" 
+                                               id="remove_featured_image" 
+                                               name="remove_featured_image" 
+                                               value="1">
+                                        <label class="form-check-label" for="remove_featured_image">
+                                            Remove current image
+                                        </label>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+                            <input type="file" 
+                                   class="form-control" 
+                                   id="featured_image" 
+                                   name="featured_image" 
+                                   accept="image/jpeg,image/png,image/gif,image/webp">
+                            <div class="form-text">
+                                Recommended size: 1200x630 pixels. Max file size: 5MB.<br>
+                                Supported formats: JPEG, PNG, GIF, WebP
+                            </div>
                         </div>
 
                         <div class="row">
