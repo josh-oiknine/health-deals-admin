@@ -16,6 +16,7 @@ The `BlogPost` model manages blog content in the Health Deals Admin application.
 | `created_at` | ?DateTime | Creation timestamp |
 | `updated_at` | ?DateTime | Last update timestamp |
 | `published_at` | ?DateTime | Publication timestamp |
+| `featured_image_url` | ?string | Featured image URL |
 | `deleted_at` | ?DateTime | Soft deletion timestamp |
 
 ## Constructor
@@ -27,7 +28,8 @@ public function __construct(
     string $body = '',
     ?string $seo_keywords = null,
     ?DateTime $published_at = null,
-    int $user_id = 0
+    int $user_id = 0,
+    ?string $featured_image_url = null
 )
 ```
 
@@ -136,7 +138,8 @@ $blogPost = new BlogPost(
     '<p>Detailed article about green tea benefits...</p>',
     'green tea, health benefits, antioxidants',
     new DateTime(),
-    1 // user_id
+    1, // user_id
+    'https://example.com/green-tea.jpg' // featured_image_url
 );
 
 if ($blogPost->save()) {
@@ -171,7 +174,8 @@ $blogPost = new BlogPost(
     'Updated content...',
     'updated, keywords',
     new DateTime(),
-    1
+    1,
+    'https://example.com/updated-image.jpg'
 );
 $blogPost->setId($existingId);
 $blogPost->save();

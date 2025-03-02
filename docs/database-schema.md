@@ -113,6 +113,7 @@ Manages blog content with SEO support and publishing workflow.
 | `created_at` | timestamp | DEFAULT CURRENT_TIMESTAMP | Record creation time |
 | `updated_at` | timestamp | DEFAULT CURRENT_TIMESTAMP | Record update time |
 | `published_at` | timestamp | NULL | Publication timestamp |
+| `featured_image_url` | string(1024) | NULL | Featured image URL |
 | `deleted_at` | timestamp | NULL | Soft delete timestamp |
 
 ### Price History
